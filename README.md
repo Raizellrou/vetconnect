@@ -1,3 +1,5 @@
+# vetconnect
+A web platform for pet owners to find nearby veterinary clinics and manage appointments. Built with React + Firebase.
 # React + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
