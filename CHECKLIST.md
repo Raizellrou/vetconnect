@@ -3,8 +3,8 @@
 ## 🗓 Week 1: Core Setup & Authentication ✅
 **Goal:** Solid foundation, working auth flow, role-based routing.
 
-- [ ] Day 1: Create Firebase project + enable Auth, Firestore, Storage, Hosting + initialize React project
-- [ ] Day 2: Build AuthContext, setup ProtectedRoutes + routing
+- [x] Day 1: Create Firebase project + enable Auth, Firestore, Storage, Hosting + initialize React project
+- [x] Day 2: Build AuthContext, setup ProtectedRoutes + routing
 - [ ] Day 3: Implement registration with role selection + save to Firestore
 - [ ] Day 4: Implement login flow with role-based redirects
 - [ ] Day 5: Setup basic UI layouts (sidebar + dashboard shell)
