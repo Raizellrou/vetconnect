@@ -1,0 +1,255 @@
+/* Centering wrapper (full viewport) */
+.auth-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px; /* small breathing room on mobile */
+  box-sizing: border-box;
+  background: linear-gradient(180deg, #f7fbff 0%, #ffffff 100%); /* subtle bg */
+}
+
+/* Container */
+.auth-container {
+  max-width: 420px;
+  margin: 0; /* removed top margin so wrapper centers it */
+  padding: 2rem;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(23, 23, 23, 0.06);
+  border: 1px solid #edf2f7;
+  width: 100%;
+}
+
+/* Title */
+.auth-title {
+  text-align: center;
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  color: #1f2937;
+}
+
+/* Form */
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* Inputs */
+.auth-input {
+  padding: 0.6rem 0.75rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 0.98rem;
+  width: 100%;
+  box-sizing: border-box;
+  background: #fff;
+}
+
+.auth-input:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.08);
+}
+
+/* Inputs with icon */
+.auth-input-with-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.auth-input-inside {
+  padding-right: 52px; /* increased slightly to accommodate icon */
+}
+
+.icon-button {
+  position: absolute;
+  right: 8px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  padding: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.toggle-icon {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  cursor: pointer;
+  display: inline-block;
+  opacity: 0.95;
+}
+
+/* Slightly larger touch target on mobile while keeping visual size */
+@media (max-width: 480px) {
+  .toggle-icon {
+    width: 24px;
+    height: 24px;
+    right: 8px;
+  }
+}
+
+/* Role select */
+.auth-select-group {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-top: 6px;
+}
+
+.select-label {
+  font-size: 0.88rem;
+  color: #374151;
+  min-width: 85px;
+}
+
+.auth-select {
+  padding: 0.5rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  flex: 1;
+}
+
+/* Buttons */
+.auth-button {
+  padding: 0.7rem;
+  font-size: 1rem;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: 0.15s ease;
+  width: 100%;
+}
+
+.auth-button.primary {
+  background-color: #2563eb;
+  color: white;
+}
+
+.auth-button.primary:hover:not([disabled]) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.12);
+}
+
+.auth-button.google {
+  background-color: #db4437;
+  color: white;
+  margin-top: 0.5rem;
+}
+
+.auth-button.google:hover:not([disabled]) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(219, 68, 55, 0.12);
+}
+
+.auth-button[disabled] {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Divider */
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 12px 0;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: #e6eef8;
+}
+
+.auth-divider span {
+  font-size: 0.85rem;
+  color: #6b7280;
+  padding: 0 8px;
+}
+
+/* Messages */
+.auth-error {
+  color: #dc2626;
+  font-size: 0.9rem;
+  text-align: center;
+  margin-top: 8px;
+}
+
+.confirm-row {
+  font-size: 0.9rem;
+  margin-bottom: 4px;
+  min-height: 20px;
+}
+
+.match {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+
+.match.success {
+  color: #065f46;
+  background: #ecfdf5;
+}
+
+.match.error {
+  color: #991b1b;
+  background: #fff1f2;
+}
+
+.match.muted {
+  color: #6b7280;
+}
+
+/* Switch */
+.auth-switch {
+  margin-top: 0.85rem;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.auth-switch a {
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.auth-switch a:hover {
+  text-decoration: underline;
+}
+
+/* Toast */
+.local-toast {
+  margin: 0 auto 12px;
+  max-width: 420px;
+  text-align: center;
+  background: #f0fdf4;
+  color: #065f46;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #bbf7d0;
+  box-shadow: 0 6px 18px rgba(6, 95, 70, 0.06);
+  font-weight: 600;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .auth-container {
+    margin: 20px;
+    padding: 1rem;
+  }
+}

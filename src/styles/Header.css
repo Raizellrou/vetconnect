@@ -1,0 +1,140 @@
+/* Header - responsive, clean layout */
+.vc-header {
+  width: 100%;
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(6px);
+  border-bottom: 1px solid rgba(15, 23, 42, 0.04);
+  box-sizing: border-box;
+}
+
+.vc-header-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  box-sizing: border-box;
+}
+
+.vc-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.vc-logo {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+.vc-name {
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: #0f172a;
+}
+
+/* Navigation */
+.vc-nav {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.vc-link {
+  text-decoration: none;
+  font-weight: 600;
+  padding: 8px 12px;
+  border-radius: 8px;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+  color: #0f172a;
+}
+
+.vc-link-plain {
+  background: transparent;
+}
+
+.vc-link-plain:hover {
+  background: rgba(15, 23, 42, 0.03);
+}
+
+.vc-link-cta {
+  background: #2563eb;
+  color: #fff;
+}
+
+.vc-link-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(37, 99, 235, 0.12);
+}
+
+/* Hamburger (mobile) */
+.vc-nav-toggle {
+  display: none;
+  background: transparent;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+}
+
+.vc-hamburger {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: #0f172a;
+  position: relative;
+}
+
+.vc-hamburger::before,
+.vc-hamburger::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  width: 22px;
+  height: 2px;
+  background: #0f172a;
+}
+
+.vc-hamburger::before {
+  top: -7px;
+}
+
+.vc-hamburger::after {
+  top: 7px;
+}
+
+/* Mobile behaviour */
+@media (max-width: 760px) {
+  .vc-nav {
+    display: none;
+    position: absolute;
+    right: 20px;
+    top: 64px;
+    background: #fff;
+    padding: 12px;
+    border-radius: 10px;
+    box-shadow: 0 8px 30px rgba(2, 6, 23, 0.08);
+    flex-direction: column;
+    align-items: stretch;
+    min-width: 160px;
+    z-index: 45;
+  }
+
+  .vc-nav.open {
+    display: flex;
+  }
+
+  .vc-nav-toggle {
+    display: inline-flex;
+  }
+
+  .vc-link {
+    padding: 10px 14px;
+    text-align: center;
+  }
+}
