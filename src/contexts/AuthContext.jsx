@@ -29,13 +29,14 @@ export function AuthProvider({ children }) {
     return unsubscribe;
   }, []);
 
-    const logout = () => { 
-        return auth.signOut();
-  }
+  const logout = () => {
+    return auth.signOut();
+  };
 
   const value = {
     currentUser,
     userData,
+    loading,
     logout,
   };
 

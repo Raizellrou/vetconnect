@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
-import { auth } from "../firebase/firebase";
+import { auth, db } from "../firebase/firebase";
+import { doc, getDoc } from "firebase/firestore";
 import { useNavigate, Link } from "react-router-dom";
 import "../styles/Auth.css";
 import eye from "../assets/eyeOn.png";
@@ -45,9 +46,30 @@ export default function LoginForm() {
     setError("");
     setLoading(true);
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const userCred = await signInWithEmailAndPassword(auth, email, password);
+      const uid = userCred.user?.uid;
+      // fetch role from Firestore
+      let role = null;
+      if (uid) {
+        try {
+          const userDoc = await getDoc(doc(db, "users", uid));
+          if (userDoc.exists()) {
+            role = userDoc.data().role;
+          }
+        } catch (err) {
+          console.warn("Could not fetch user doc:", err);
+        }
+      }
+
       showSuccess("Welcome back 🐾");
-      setTimeout(() => navigate("/dashboard"), 900);
+
+      // navigate based on role
+      if (role === "clinicOwner") {
+        setTimeout(() => navigate("/clinic-dashboard"), 900);
+      } else {
+        // default to pet owner dashboard
+        setTimeout(() => navigate("/owner-dashboard"), 900);
+      }
     } catch (err) {
       console.error("Login error:", err);
       setError(mapAuthError(err.code, err.message));
@@ -61,9 +83,28 @@ export default function LoginForm() {
     setLoadingGoogle(true);
     try {
       const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
+      const result = await signInWithPopup(auth, provider);
+      const uid = result?.user?.uid;
+
+      // attempt to read role from Firestore if exists
+      let role = null;
+      if (uid) {
+        try {
+          const userDoc = await getDoc(doc(db, "users", uid));
+          if (userDoc.exists()) {
+            role = userDoc.data().role;
+          }
+        } catch (e) {
+          console.warn("Could not read user doc:", e);
+        }
+      }
+
       showSuccess("Welcome back 🐾");
-      setTimeout(() => navigate("/dashboard"), 900);
+      if (role === "clinicOwner") {
+        setTimeout(() => navigate("/clinic-dashboard"), 900);
+      } else {
+        setTimeout(() => navigate("/owner-dashboard"), 900);
+      }
     } catch (err) {
       console.error("Google sign-in error:", err);
       setError(mapAuthError(err.code, err.message));

@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { auth, db } from "../firebase/firebase";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc } from "firebase/firestore";
 import { useNavigate, Link } from "react-router-dom";
 import "../styles/Auth.css";
 import eye from "../assets/eyeOn.png";
@@ -59,8 +59,15 @@ export default function RegisterForm() {
         role,
         createdAt: new Date(),
       });
+
       showSuccess("Welcome 🐾");
-      setTimeout(() => navigate("/dashboard"), 900);
+
+      // redirect based on selected role
+      if (role === "clinicOwner") {
+        setTimeout(() => navigate("/clinic-dashboard"), 900);
+      } else {
+        setTimeout(() => navigate("/owner-dashboard"), 900);
+      }
     } catch (err) {
       console.error("Register error:", err);
       setError(mapAuthError(err.code, err.message));
@@ -75,21 +82,25 @@ export default function RegisterForm() {
     try {
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
-      if (result?.user?.uid) {
-        // Create user doc for new sign-ups (guarded by isNewUser may not always be present)
+      const uid = result?.user?.uid;
+      if (uid) {
+        // create or ensure user doc exists with role (use selected role)
         try {
-          await setDoc(doc(db, "users", result.user.uid), {
+          await setDoc(doc(db, "users", uid), {
             email: result.user.email,
             role,
             createdAt: new Date(),
           });
         } catch (e) {
-          // if doc write fails, still proceed to dashboard
           console.warn("Could not write user doc:", e);
         }
       }
       showSuccess("Welcome 🐾");
-      setTimeout(() => navigate("/dashboard"), 900);
+      if (role === "clinicOwner") {
+        setTimeout(() => navigate("/clinic-dashboard"), 900);
+      } else {
+        setTimeout(() => navigate("/owner-dashboard"), 900);
+      }
     } catch (err) {
       console.error("Google sign-in error:", err);
       setError(mapAuthError(err.code, err.message));
