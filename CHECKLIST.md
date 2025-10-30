@@ -6,7 +6,7 @@
 - [x] Day 1: Create Firebase project + enable Auth, Firestore, Storage, Hosting + initialize React project
 - [x] Day 2: Build AuthContext, setup ProtectedRoutes + routing
 - [x] Day 3: Implement registration with role selection + save to Firestore
-- [ ] Day 4: Implement login flow with role-based redirects
+- [x] Day 4: Implement login flow with role-based redirects
 - [ ] Day 5: Setup basic UI layouts (sidebar + dashboard shell)
 - [ ] Day 6: Create Firestore structure + security rules for user roles
 - [ ] Day 7: Test registration/login + deploy initial build to Firebase Hosting
