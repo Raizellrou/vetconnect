@@ -33,52 +33,44 @@
   --vc-border-radius: 12px;
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
+/* Global Styles */
 body {
-  font-family: var(--vc-font-sans);
   background-color: var(--vc-bg-main);
   color: var(--vc-text-dark);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  font-family: var(--vc-font-sans);
+  margin: 0;
+  padding: 0;
+}
+
+/* Utility Classes */
+.vc-text-h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.vc-text-h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.vc-text-h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.vc-text-body {
+  font-size: 1rem;
   line-height: 1.5;
 }
 
-/* Remove button styles */
-button {
-  background: none;
-  border: none;
-  padding: 0;
-  margin: 0;
-  font: inherit;
-  cursor: pointer;
+.vc-text-small {
+  font-size: 0.875rem;
+  line-height: 1.5;
 }
 
-/* Focus styles */
-:focus-visible {
-  outline: 2px solid var(--vc-primary);
-  outline-offset: 2px;
-}
-
-/* Scrollbar styles */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--vc-text-light);
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--vc-text-muted);
+.vc-text-muted {
+  color: var(--vc-text-muted);
 }

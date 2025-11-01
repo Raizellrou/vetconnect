@@ -1,0 +1,327 @@
+.dashboard {
+  min-height: 100vh;
+  background-color: var(--vc-bg-main);
+  display: flex;
+  width: 100%;
+}
+
+.appointmentSection {
+  background: var(--vc-bg-card);
+  border-radius: var(--vc-border-radius);
+  box-shadow: var(--vc-shadow);
+  padding: var(--vc-spacing-lg);
+  margin: var(--vc-spacing-lg) var(--vc-spacing-lg) var(--vc-spacing-xl);
+  border: 1px solid var(--vc-border);
+}
+
+.sectionTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin-bottom: 1rem;
+}
+
+.statusList {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.statusItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.statusDot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.statusDot.ready { background-color: var(--vc-status-ready); }
+.statusDot.rejected { background-color: var(--vc-status-rejected); }
+.statusDot.pending { background-color: var(--vc-status-pending); }
+.statusDot.finished { background-color: var(--vc-status-finished); }
+
+/* Card border colors */
+.appointmentCard.ready { border-left: 4px solid var(--vc-status-ready); }
+.appointmentCard.rejected { border-left: 4px solid var(--vc-status-rejected); }
+.appointmentCard.pending { border-left: 4px solid var(--vc-status-pending); }
+.appointmentCard.finished { border-left: 4px solid var(--vc-status-finished); }
+
+/* Rating Form Styles */
+.ratingFormContent {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1;
+}
+
+.starRating {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 8px 0;
+}
+
+.starBtn {
+  background: transparent;
+  border: none;
+  padding: 2px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  line-height: 0;
+}
+
+.starBtn:hover {
+  transform: scale(1.05);
+}
+
+.starBtn.active {
+  transform: scale(1.05);
+}
+
+.commentWrapper {
+  width: 100%;
+  margin-top: 8px;
+  position: relative;
+}
+
+.commentInput {
+  width: 100%;
+  padding: 12px;
+  padding-bottom: 48px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #f8fafc;
+  font-size: 14px;
+  line-height: 1.4;
+  resize: none;
+  height: 100px;
+  transition: all 0.2s ease;
+}
+
+.commentInput:focus {
+  outline: none;
+  border-color: #818cf8;
+  background: white;
+}
+
+.commentInput::placeholder {
+  color: #94a3b8;
+}
+
+.ratingFormActions {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+}
+
+.doneButton {
+  padding: 6px 16px;
+  background: #818cf8;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.doneButton:hover {
+  background: #6366f1;
+}
+
+.doneButton:active {
+  background: #4f46e5;
+}
+
+.statusText {
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+.divider {
+  height: 1px;
+  background-color: #e2e8f0;
+  margin: 1.5rem 0;
+}
+
+.appointmentCard {
+  background: var(--vc-bg-card);
+  border-radius: var(--vc-border-radius);
+  padding: var(--vc-spacing-lg);
+  margin-bottom: var(--vc-spacing-md);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid var(--vc-border);
+  box-shadow: 0 2px 4px rgba(2, 6, 23, 0.03);
+  transition: all 0.2s ease;
+}
+
+.appointmentCard:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--vc-shadow);
+  border-color: rgba(129, 140, 248, 0.2);
+}
+
+.cardLeft { flex: 2; }
+.cardMiddle { flex: 1; text-align: left }
+.cardDate { flex: 1; text-align: center }
+.cardTime { flex: 1; text-align: center }
+
+.cardContent {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  flex: 1;
+}
+
+.cardActions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+/* Buttons */
+.btn {
+  min-height: 40px;
+  padding: 0 12px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.btn-primary, .btnPrimary {
+  background: var(--vc-primary);
+  color: #fff;
+  border: none;
+  box-shadow: 0 6px 18px rgba(129,140,248,0.12);
+}
+
+.btn-outline {
+  background: #fff;
+  color: var(--vc-accent);
+  border: 2px solid rgba(14,165,233,0.12);
+}
+
+.btnBlue { background: var(--vc-accent); color: #fff; }
+
+.iconBtn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  color: var(--vc-text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.iconBtn:hover {
+  color: var(--vc-primary);
+  background: rgba(129, 140, 248, 0.08);
+}
+
+.iconBtn:focus-visible {
+  outline: 2px solid var(--vc-primary);
+  outline-offset: 2px;
+}
+
+.iconBtnDelete {
+  color: var(--vc-status-rejected);
+}
+
+.iconBtnDelete:hover {
+  background: rgba(239, 68, 68, 0.08);
+  color: var(--vc-status-rejected);
+}
+
+/* Card border colors */
+.appointmentCard.ready { border-left: 6px solid #22c55e; }
+.appointmentCard.rejected { border-left: 6px solid #ef4444; }
+.appointmentCard.pending { border-left: 6px solid #f97316; }
+.appointmentCard.finished { border-left: 6px solid var(--vc-primary); }
+
+/* Welcome Banner */
+.welcomeBanner {
+  background: linear-gradient(135deg, var(--vc-primary) 0%, var(--vc-primary-hover) 100%);
+  border-radius: var(--vc-border-radius);
+  padding: var(--vc-spacing-xl);
+  color: white;
+  margin: var(--vc-spacing-lg) var(--vc-spacing-lg) 0;
+  box-shadow: var(--vc-shadow);
+}
+
+.welcomeTitle {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.welcomeSubtitle {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 1rem;
+}
+
+/* Main Layout */
+.mainWrapper {
+  flex: 1;
+  margin-left: var(--vc-sidebar-width);
+  min-height: 100vh;
+  background: var(--vc-bg-main);
+}
+
+.mainContent {
+  padding-top: calc(var(--vc-header-height) + var(--vc-spacing-lg));
+  min-height: calc(100vh - var(--vc-header-height));
+  box-sizing: border-box;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Inputs and small helpers */
+.vc-input { padding: 0.5rem; border-radius: 8px; border: 1px solid #cbd5e1; display: block; width: 100%; margin-top: 0.25rem; }
+.vc-comment-input { padding: 1rem; border-radius: 12px; border: 1px solid #cbd5e1 }
+
+/* Edit form specific tweaks */
+.appointmentCard.editCard { display: flex; flex-direction: column; align-items: stretch; }
+.editCard { background: #e5e7eb }
+
+.editFormContent { margin-bottom: 0.75rem; }
+.editTitle { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem; }
+.formRow { margin-bottom: 0.5rem; }
+.formRowGrid { display: flex; gap: 1rem; }
+.formRowGrid > div { flex: 1; }
+
+.formActions { display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1rem; }
+
+@media (max-width: 640px) {
+  .formRowGrid { flex-direction: column; }
+  .formActions { flex-direction: column; align-items: stretch; }
+  .formActions .btn { width: 100%; }
+}
+
+/* banner meta */
+.bannerMeta {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  color: rgba(255,255,255,0.95);
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.bannerMeta .dateText { color: rgba(255,255,255,0.9); font-weight: 500; }

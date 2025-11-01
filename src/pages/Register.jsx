@@ -1,215 +1,284 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState } from "react";
 import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { auth, db } from "../firebase/firebase";
-import { doc, setDoc, getDoc } from "firebase/firestore";
-import { useNavigate, Link } from "react-router-dom";
+import { doc, setDoc } from "firebase/firestore";
+import { useNavigate } from "react-router-dom";
 import "../styles/Auth.css";
 import eye from "../assets/eyeOn.png";
 import eyeOff from "../assets/eyeOff.png";
+import logo from "../assets/logo.png"; // ✅ Correct way to import PNG
+import googleLogo from "../assets/googleLogo.png"; // 💡 ADD THIS IMPORT for the Google Logo
 
 const mapAuthError = (code, fallback) => {
-  switch (code) {
-    case "auth/email-already-in-use":
-      return "This email is already registered.";
-    case "auth/invalid-email":
-      return "Please enter a valid email address.";
-    case "auth/weak-password":
-      return "Password should be at least 6 characters.";
-    default:
-      return fallback || "An error occurred. Please try again.";
-  }
+  switch (code) {
+    case "auth/email-already-in-use":
+      return "This email is already registered.";
+    case "auth/invalid-email":
+      return "Please enter a valid email address.";
+    case "auth/weak-password":
+      return "Password should be at least 6 characters.";
+    default:
+      return fallback || "An error occurred. Please try again.";
+  }
 };
 
-export default function RegisterForm() {
-  const [email, setEmail] = useState("");
-  const [role, setRole] = useState("petOwner");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [loadingGoogle, setLoadingGoogle] = useState(false);
-  const [successMessage, setSuccessMessage] = useState("");
-  const emailRef = useRef(null);
-  const navigate = useNavigate();
-  const showSuccess = (msg) => {
-    setSuccessMessage(msg);
-    setTimeout(() => setSuccessMessage(""), 1500);
-  };
+export default function Register() {
+  const [role, setRole] = useState("");
+  const [formData, setFormData] = useState({
+    fullName: "",
+    birthday: "",
+    contactNo: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+  });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [loadingGoogle, setLoadingGoogle] = useState(false);
+  const [acceptTerms, setAcceptTerms] = useState(false);
+  const [acceptPrivacy, setAcceptPrivacy] = useState(false);
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    emailRef.current?.focus();
-  }, []);
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
 
-  const passwordsMatch = password !== "" && password === confirmPassword;
+  const validateForm = () => {
+    if (!role) {
+      setError("Please select a role (Pet Owner or Clinic Staff)");
+      return false;
+    }
+    if (!formData.fullName || !formData.birthday || !formData.contactNo || 
+        !formData.email || !formData.password || !formData.confirmPassword) {
+      setError("All fields are required");
+      return false;
+    }
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match");
+      return false;
+    }
+    if (!acceptTerms || !acceptPrivacy) {
+      setError("Please accept both Terms & Conditions and Privacy Policy");
+      return false;
+    }
+    return true;
+  };
 
-  const handleRegister = async (e) => {
-    e.preventDefault();
-    setError("");
-    if (!passwordsMatch) {
-      setError("Passwords do not match");
-      return;
-    }
-    setLoading(true);
-    try {
-      const userCred = await createUserWithEmailAndPassword(auth, email, password);
-      await setDoc(doc(db, "users", userCred.user.uid), {
-        email,
-        role,
-        createdAt: new Date(),
-      });
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validateForm()) return;
 
-      showSuccess("Welcome 🐾");
+    setLoading(true);
+    setError("");
 
-      // redirect based on selected role
-      if (role === "clinicOwner") {
-        setTimeout(() => navigate("/clinic-dashboard"), 900);
-      } else {
-        setTimeout(() => navigate("/owner-dashboard"), 900);
-      }
-    } catch (err) {
-      console.error("Register error:", err);
-      setError(mapAuthError(err.code, err.message));
-    } finally {
-      setLoading(false);
-    }
-  };
+    try {
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        formData.email,
+        formData.password
+      );
 
-  const handleGoogle = async () => {
-    setError("");
-    setLoadingGoogle(true);
-    try {
-      const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      const uid = result?.user?.uid;
-      if (uid) {
-        // create or ensure user doc exists with role (use selected role)
-        try {
-          await setDoc(doc(db, "users", uid), {
-            email: result.user.email,
-            role,
-            createdAt: new Date(),
-          });
-        } catch (e) {
-          console.warn("Could not write user doc:", e);
-        }
-      }
-      showSuccess("Welcome 🐾");
-      if (role === "clinicOwner") {
-        setTimeout(() => navigate("/clinic-dashboard"), 900);
-      } else {
-        setTimeout(() => navigate("/owner-dashboard"), 900);
-      }
-    } catch (err) {
-      console.error("Google sign-in error:", err);
-      setError(mapAuthError(err.code, err.message));
-    } finally {
-      setLoadingGoogle(false);
-    }
-  };
+      await setDoc(doc(db, "users", userCredential.user.uid), {
+        fullName: formData.fullName,
+        birthday: formData.birthday,
+        contactNo: formData.contactNo,
+        email: formData.email,
+        role: role === "Pet Owner" ? "petOwner" : "clinicStaff",
+        createdAt: new Date().toISOString()
+      });
 
-  return (
-    <div className="auth-page">
-      <div className="auth-container">
-        {successMessage && <div className="local-toast">{successMessage}</div>}
-        <h1 className="auth-title">Register</h1>
+      navigate(role === "Pet Owner" ? "/owner-dashboard" : "/clinic-dashboard");
+    } catch (err) {
+      console.error("Registration error:", err);
+      setError(mapAuthError(err.code, err.message));
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        <form onSubmit={handleRegister} className="auth-form">
-          <input
-            ref={emailRef}
-            type="email"
-            placeholder="Email"
-            className="auth-input"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            autoComplete="email"
-          />
+  const handleGoogle = async () => {
+    if (!role) {
+      setError("Please select a role (Pet Owner or Clinic Staff) before continuing with Google");
+      return;
+    }
 
-          <div className="auth-input-with-icon">
-            <input
-              type={showPassword ? "text" : "password"}
-              placeholder="Password"
-              className="auth-input auth-input-inside"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              autoComplete="new-password"
-            />
-            <img
-              src={showPassword ? eyeOff : eye}
-              alt={showPassword ? "Hide password" : "Show password"}
-              className="toggle-icon"
-              role="button"
-              tabIndex={0}
-              onClick={() => setShowPassword((s) => !s)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") setShowPassword((s) => !s);
-              }}
-            />
-          </div>
+    setLoadingGoogle(true);
+    setError("");
 
-          <div className="auth-input-with-icon">
-            <input
-              type={showConfirm ? "text" : "password"}
-              placeholder="Confirm Password"
-              className="auth-input auth-input-inside"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-              autoComplete="new-password"
-            />
-            <img
-              src={showConfirm ? eyeOff : eye}
-              alt={showConfirm ? "Hide confirm password" : "Show confirm password"}
-              className="toggle-icon"
-              role="button"
-              tabIndex={0}
-              onClick={() => setShowConfirm((s) => !s)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") setShowConfirm((s) => !s);
-              }}
-            />
-          </div>
+    try {
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      
+      await setDoc(doc(db, "users", result.user.uid), {
+        fullName: result.user.displayName || "",
+        email: result.user.email,
+        role: role === "Pet Owner" ? "petOwner" : "clinicStaff",
+        createdAt: new Date().toISOString()
+      });
 
-          <div className="confirm-row">
-            {confirmPassword.length > 0 ? (
-              passwordsMatch ? (
-                <span className="match success">✅ Passwords match</span>
-              ) : (
-                <span className="match error">❌ Passwords do not match</span>
-              )
-            ) : (
-              <span className="match muted">Enter passwords to compare</span>
-            )}
-          </div>
+      navigate(role === "Pet Owner" ? "/owner-dashboard" : "/clinic-dashboard");
+    } catch (err) {
+      console.error("Google sign-up error:", err);
+      setError(mapAuthError(err.code, err.message));
+    } finally {
+      setLoadingGoogle(false);
+    }
+  };
 
-          <div className="auth-select-group">
-            <label className="select-label">Select Role:</label>
-            <select value={role} onChange={(e) => setRole(e.target.value)} className="auth-select">
-              <option value="petOwner">🐾 Pet Owner</option>
-              <option value="clinicOwner">🏥 Clinic Owner</option>
-            </select>
-          </div>
+  return (
+    <div className="auth-page">
+      <div className="auth-container register">
+        <div className="logo-container">
+          <img src={logo} alt="VetConnect Logo" className="auth-logo" /> 
+          <h2>VETCONNECT</h2>
+          <p className="subtitle">Please complete the following details to proceed.</p>
+        </div>
 
-          <button type="submit" className="auth-button primary" disabled={!passwordsMatch || loading}>
-            {loading ? "Loading..." : "Register"}
-          </button>
-        </form>
+        <div className="register-as">
+          <p>REGISTER AS</p>
+          <div className="role-buttons">
+            <button
+              className={`role-button ${role === "Pet Owner" ? "active" : ""}`}
+              onClick={() => setRole("Pet Owner")}
+              type="button"
+            >
+              Pet Owner
+            </button>
+            <button
+              className={`role-button ${role === "Clinic Staff" ? "active" : ""}`}
+              onClick={() => setRole("Clinic Staff")}
+              type="button"
+            >
+              Clinic Staff
+            </button>
+          </div>
+        </div>
 
-        {error && <p className="auth-error">{error}</p>}
+        <form onSubmit={handleSubmit} className="auth-form">
+          <input
+            type="text"
+            name="fullName"
+            placeholder="FULL NAME"
+            className="auth-input"
+            value={formData.fullName}
+            onChange={handleInputChange}
+            required
+          />
 
-        <div className="auth-divider"><span>or</span></div>
+          <input
+            type="date"
+            name="birthday"
+            placeholder="BIRTHDAY"
+            className="auth-input"
+            value={formData.birthday}
+            onChange={handleInputChange}
+            required
+          />
 
-        <button className="auth-button google" onClick={handleGoogle} disabled={loadingGoogle}>
-          {loadingGoogle ? "Loading..." : "Sign up with Google"}
-        </button>
+          <input
+            type="tel"
+            name="contactNo"
+            placeholder="CONTACT NO."
+            className="auth-input"
+            value={formData.contactNo}
+            onChange={handleInputChange}
+            required
+          />
 
-        <p className="auth-switch">
-          Already have an account? <Link to="/login">Login</Link>
-        </p>
-      </div>
-    </div>
-  );
+          <input
+            type="email"
+            name="email"
+            placeholder="EMAIL"
+            className="auth-input"
+            value={formData.email}
+            onChange={handleInputChange}
+            required
+            autoComplete="email"
+          />
+
+          <div className="auth-input-with-icon">
+            <input
+              type={showPassword ? "text" : "password"}
+              name="password"
+              placeholder="PASSWORD"
+              className="auth-input auth-input-inside"
+              value={formData.password}
+              onChange={handleInputChange}
+              required
+              autoComplete="new-password"
+            />
+            <img
+              src={showPassword ? eyeOff : eye}
+              alt={showPassword ? "Hide password" : "Show password"}
+              className="toggle-icon"
+              onClick={() => setShowPassword(prev => !prev)}
+            />
+          </div>
+
+          <div className="auth-input-with-icon">
+            <input
+              type={showConfirmPassword ? "text" : "password"}
+              name="confirmPassword"
+              placeholder="CONFIRM PASSWORD"
+              className="auth-input auth-input-inside"
+              value={formData.confirmPassword}
+              onChange={handleInputChange}
+              required
+              autoComplete="new-password"
+            />
+            <img
+              src={showConfirmPassword ? eyeOff : eye}
+              alt={showConfirmPassword ? "Hide password" : "Show password"}
+              className="toggle-icon"
+              onClick={() => setShowConfirmPassword(prev => !prev)}
+            />
+          </div>
+
+          <div className="auth-checkboxes">
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                checked={acceptTerms}
+                onChange={(e) => setAcceptTerms(e.target.checked)}
+              />
+              <span>I have read, understood, and accept the <a href="#">Terms and Conditions.</a></span>
+            </label>
+            
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                checked={acceptPrivacy}
+                onChange={(e) => setAcceptPrivacy(e.target.checked)}
+              />
+              <span>I have read, understood, and accept the <a href="#">Privacy and Policy.</a></span>
+            </label>
+          </div>
+
+          {error && <p className="auth-error">{error}</p>}
+
+          <button type="submit" className="auth-button primary" disabled={loading}>
+            {loading ? "Loading..." : "SUBMIT"}
+          </button>
+
+          <div className="auth-divider"><span>or</span></div>
+
+          <button
+            type="button"
+            className="auth-button google"
+            onClick={handleGoogle}
+            disabled={loadingGoogle}
+          >
+                <img src={googleLogo} alt="Google Logo" className="google-icon" /> {/* 💡 ADDED GOOGLE ICON */}
+            {loadingGoogle ? "Loading..." : "Continue with Google"}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
 }
