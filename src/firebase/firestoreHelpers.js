@@ -21,7 +21,7 @@ export const createPet = async (userId, petData) => {
   });
 };
 
-// Add or remove bookmarked clinic
+// Add or remove bookmarked/saved clinic
 export const addBookmark = async (userId, clinicId, clinicData) => {
   const bookmarkRef = doc(db, "users", userId, "bookmarks", clinicId);
   await setDoc(bookmarkRef, {
@@ -34,6 +34,9 @@ export const removeBookmark = async (userId, clinicId) => {
   const bookmarkRef = doc(db, "users", userId, "bookmarks", clinicId);
   await deleteDoc(bookmarkRef);
 };
+
+// Alias for removeBookmark to match UI terminology
+export const removeSavedClinic = removeBookmark;
 
 /* -------------------- 🏥 CLINIC OWNER FUNCTIONS -------------------- */
 

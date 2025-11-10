@@ -1,0 +1,161 @@
+.wrapper {
+  display: flex;
+  min-height: 100vh;
+}
+
+.mainWrapper {
+  /* leave space for the left sidebar (72px) and allow the topbar to sit above */
+  margin-left: 72px;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.page {
+  padding: 20px 40px 40px 40px;
+  box-sizing: border-box;
+  /* ensure content is below a fixed topbar (approx 64px) */
+  padding-top: 28px;
+}
+
+.headerRow {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+
+.title { font-size: 20px; margin: 0; }
+.subtitle { color: #6b7280; font-size: 13px; }
+
+.listCard {
+  background: var(--vc-bg-card);
+  padding: 18px;
+  border-radius: 10px;
+  border: 1px solid var(--vc-border);
+}
+
+.sectionLabel { margin: 0 0 12px 0; font-weight: 600; }
+.listTableHeader { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; color:#6b7280; padding: 8px 12px; }
+
+.list { display: flex; flex-direction: column; gap: 10px; }
+.listRow { display: grid; grid-template-columns: 1fr 1fr auto; gap: 12px; align-items: center; background: transparent; padding: 12px; border-radius: 8px; cursor: pointer; }
+.listRow:hover { background: rgba(17,24,39,0.02); }
+.rowName { font-weight: 600; }
+.rowLocation { color: #374151; }
+.rowAction { background: transparent; border: none; cursor: pointer; color: #0ea5e9; }
+
+.detailsCard { background: var(--vc-bg-card); border-radius: 12px; padding: 0; overflow: hidden; border: 1px solid var(--vc-border); }
+.banner { height: 140px; background: linear-gradient(90deg,#f8fafc 0%, #e6eefb 100%); display:block; }
+.cardHeader { display: flex; justify-content: space-between; padding: 20px; }
+.clinicName { margin: 0; font-size: 28px; }
+.owner { color:#374151; margin-top:6px; }
+.statRow { display:flex; gap:16px; margin-top:12px; align-items:center; }
+.statItem { display:flex; gap:8px; align-items:center; color:#111827; }
+.headerActions { display:flex; gap:10px; }
+.iconBtn { 
+  background: rgba(14,165,233,0.08); 
+  border: none; 
+  padding:8px; 
+  border-radius:8px; 
+  cursor:pointer;
+  color: #111827;
+  transition: background-color 0.2s, color 0.2s;
+}
+.iconBtn:hover { background: rgba(14,165,233,0.12); }
+
+.savedBtn {
+  color: #111827;
+  background: rgba(239, 68, 68, 0.08);
+}
+.savedBtn:hover {
+  background: rgba(239, 68, 68, 0.12);
+}
+
+.tabBar { display:flex; gap:24px; padding: 0 20px; border-top: 1px solid #e6e9ee; }
+.tabBtn { background: transparent; border: none; padding: 16px 0; cursor:pointer; font-size:16px; }
+.activeTab { border-bottom: 2px solid #111827; font-weight:600; }
+.tabContent { 
+  padding: 24px;
+  background: white;
+}
+
+.overviewText {
+  color: #374151;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.servicesList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.serviceCard { 
+  background: white; 
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid var(--vc-border);
+}
+
+.serviceCard h4 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  color: #111827;
+}
+
+.serviceCard p {
+  margin: 0;
+  color: #374151;
+  line-height: 1.6;
+}
+
+.reviewsList {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.reviewItem { 
+  display: flex;
+  gap: 16px;
+  padding: 0;
+}
+
+.avatar { 
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #7c3aed;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+}
+
+.reviewContent {
+  flex: 1;
+}
+
+.reviewHeader { 
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rating { 
+  color: #6b7280;
+  font-weight: 500;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ctaRow { display:flex; justify-content:center; padding:20px; }
+.bookBtn { background:#06b6d4; color:white; padding:12px 24px; border-radius:999px; border:none; cursor:pointer; }

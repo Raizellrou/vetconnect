@@ -1,0 +1,129 @@
+.pageRoot {
+  display: flex;
+  min-height: 100vh;
+  background: var(--vc-bg-main);
+}
+
+.mainWrapper {
+  flex: 1;
+  margin-left: 72px; /* account for sidebar width */
+}
+
+.content {
+  padding: 24px 32px;
+}
+
+.headerRow {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+
+.title {
+  font-size: 20px;
+  margin: 0;
+}
+
+.subtitle {
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.mapCard {
+  background: var(--vc-bg-card);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: var(--vc-shadow);
+  border: 1px solid var(--vc-border);
+}
+
+.mapContainer {
+  position: relative;
+  height: 520px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: linear-gradient(180deg,#f4f6f8 0%, #e9eef6 100%);
+  display: block;
+}
+
+.searchBar {
+  position: absolute;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 56%;
+  display: flex;
+  justify-content: center;
+  pointer-events: none; /* allow styling but input will receive pointer events */
+}
+
+.searchInput {
+  pointer-events: auto;
+  width: 100%;
+  max-width: 680px;
+  padding: 12px 18px;
+  border-radius: 20px;
+  border: 1px solid rgba(0,0,0,0.08);
+  background: rgba(255,255,255,0.9);
+  box-shadow: 0 2px 6px rgba(17,24,39,0.04);
+}
+
+.marker {
+  position: absolute;
+  background: transparent;
+  padding: 6px 10px;
+  font-size: 13px;
+  color: #0f172a;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 8px;
+}
+
+.marker::before {
+  content: '';
+  width: 18px;
+  height: 18px;
+  background: #60a5fa;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.markerTop { top: 80px; left: 280px; }
+.markerCenter { top: 300px; left: 380px; }
+.markerRight { top: 150px; left: 680px; }
+
+.mapControls {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.controlBtn {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.95);
+  border: 1px solid rgba(15,23,42,0.06);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.zoomBtns {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+@media (max-width: 900px) {
+  .mapContainer { height: 380px; }
+  .searchBar { width: 86%; }
+}

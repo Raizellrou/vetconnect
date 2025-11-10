@@ -1,10 +1,14 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
-import { useAuth } from "./contexts/Authcontext";
+import { useAuth } from "./contexts/AuthContext";
 import LandingPage from "./pages/LandingPage";
-import OwnerDashboard from "./pages/OwnerDashboard";
+// OwnerDashboard lives under the PetOwnerDashBoard folder
+import OwnerDashboard from "./pages/PetOwnerDashBoard/OwnerDashboard";
 import ClinicDashboard from "./pages/ClinicDashboard";
+import MapPage from "./pages/PetOwnerDashBoard/MapPage";
+import SavedClinicsList from "./pages/PetOwnerDashBoard/SavedClinicsList";
+import ClinicDetails from "./pages/PetOwnerDashBoard/ClinicDetails";
 import RoleProtectedRoute from "./components/RoleProtectedRoute";
 
 export default function App() {
@@ -38,6 +42,30 @@ export default function App() {
           element={
             <RoleProtectedRoute allowedRoles={["petOwner"]}>
               <OwnerDashboard />
+            </RoleProtectedRoute>
+          }
+        />
+        <Route
+          path="/map"
+          element={
+            <RoleProtectedRoute allowedRoles={["petOwner"]}>
+              <MapPage />
+            </RoleProtectedRoute>
+          }
+        />
+        <Route
+          path="/saved"
+          element={
+            <RoleProtectedRoute allowedRoles={["petOwner"]}>
+              <SavedClinicsList />
+            </RoleProtectedRoute>
+          }
+        />
+        <Route
+          path="/saved/:id"
+          element={
+            <RoleProtectedRoute allowedRoles={["petOwner"]}>
+              <ClinicDetails />
             </RoleProtectedRoute>
           }
         />

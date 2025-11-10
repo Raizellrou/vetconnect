@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import TopBar from '../components/layout/TopBar';
-import Sidebar from '../components/layout/Sidebar';
-import AppointmentStatusLegend from '../components/AppointmentStatusLegend';
-import AppointmentCard from '../components/AppointmentCard';
-import AppointmentDetailsCard from '../components/AppointmentDetailsCard';
-import RatingCommentForm from '../components/RatingCommentForm';
-import EditAppointmentForm from '../components/EditAppointmentForm';
-import styles from '../styles/Dashboard.module.css';
+import TopBar from '../../components/layout/TopBar';
+import Sidebar from '../../components/layout/Sidebar';
+import AppointmentStatusLegend from '../../components/AppointmentStatusLegend';
+import AppointmentCard from '../../components/AppointmentCard';
+import AppointmentDetailsCard from '../../components/AppointmentDetailsCard';
+import RatingCommentForm from '../../components/RatingCommentForm';
+import EditAppointmentForm from '../../components/EditAppointmentForm';
+import styles from '../../styles/Dashboard.module.css';
 
 // View state constants
 const VIEW_STATES = {
