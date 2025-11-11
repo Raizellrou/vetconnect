@@ -28,18 +28,29 @@
   --vc-spacing-xl: 32px;
 
   /* Layout */
-  --vc-sidebar-width: 64px;
+  --vc-sidebar-width: 200px;
   --vc-header-height: 64px;
   --vc-border-radius: 12px;
 }
 
 /* Global Styles */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  overflow-x: hidden;
+  width: 100%;
+}
+
 body {
   background-color: var(--vc-bg-main);
   color: var(--vc-text-dark);
   font-family: var(--vc-font-sans);
   margin: 0;
   padding: 0;
+  overflow-x: hidden;
+  width: 100%;
 }
 
 /* Utility Classes */

@@ -20,8 +20,11 @@ export default function RoleProtectedRoute({ children, allowedRoles = [] }) {
   }
 
   if (!allowedRoles.includes(userData.role)) {
-    // role not allowed -> redirect to landing (or show unauthorized)
-    return <Navigate to="/" replace />;
+    // role not allowed -> redirect to their correct dashboard
+    if (userData.role === "clinicOwner") {
+      return <Navigate to="/clinic-dashboard" replace />;
+    }
+    return <Navigate to="/owner-dashboard" replace />;
   }
 
   return <>{children}</>;

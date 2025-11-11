@@ -6,8 +6,6 @@ import { useNavigate } from "react-router-dom";
 import "../styles/Auth.css";
 import eye from "../assets/eyeOn.png";
 import eyeOff from "../assets/eyeOff.png";
-import logo from "../assets/logo.png"; // ✅ Correct way to import PNG
-import googleLogo from "../assets/googleLogo.png"; // 💡 ADD THIS IMPORT for the Google Logo
 
 const mapAuthError = (code, fallback) => {
   switch (code) {
@@ -84,16 +82,14 @@ export default function Register() {
         formData.password
       );
 
-      await setDoc(doc(db, "users", userCredential.user.uid), {
-        fullName: formData.fullName,
-        birthday: formData.birthday,
-        contactNo: formData.contactNo,
-        email: formData.email,
-        role: role === "Pet Owner" ? "petOwner" : "clinicStaff",
-        createdAt: new Date().toISOString()
-      });
-
-      navigate(role === "Pet Owner" ? "/owner-dashboard" : "/clinic-dashboard");
+      await setDoc(doc(db, "users", userCredential.user.uid), {
+        fullName: formData.fullName,
+        birthday: formData.birthday,
+        contactNo: formData.contactNo,
+        email: formData.email,
+        role: role === "Pet Owner" ? "petOwner" : "clinicOwner",
+        createdAt: new Date().toISOString()
+      });      navigate(role === "Pet Owner" ? "/owner-dashboard" : "/clinic-dashboard");
     } catch (err) {
       console.error("Registration error:", err);
       setError(mapAuthError(err.code, err.message));
@@ -118,7 +114,7 @@ export default function Register() {
       await setDoc(doc(db, "users", result.user.uid), {
         fullName: result.user.displayName || "",
         email: result.user.email,
-        role: role === "Pet Owner" ? "petOwner" : "clinicStaff",
+        role: role === "Pet Owner" ? "petOwner" : "clinicOwner",
         createdAt: new Date().toISOString()
       });
 

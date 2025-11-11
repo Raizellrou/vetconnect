@@ -5,10 +5,15 @@ import { useAuth } from "./contexts/AuthContext";
 import LandingPage from "./pages/LandingPage";
 // OwnerDashboard lives under the PetOwnerDashBoard folder
 import OwnerDashboard from "./pages/PetOwnerDashBoard/OwnerDashboard";
-import ClinicDashboard from "./pages/ClinicDashboard";
+import ClinicOwnerDashboard from "./pages/ClinicOwner/ClinicOwnerDashboard";
+import ClinicAppointments from "./pages/ClinicOwner/ClinicAppointments";
+import ClinicSettings from "./pages/ClinicOwner/ClinicSettings";
 import MapPage from "./pages/PetOwnerDashBoard/MapPage";
 import SavedClinicsList from "./pages/PetOwnerDashBoard/SavedClinicsList";
 import ClinicDetails from "./pages/PetOwnerDashBoard/ClinicDetails";
+import Files from "./pages/PetOwnerDashBoard/Files"; // ADD THIS LINE
+import Profile from "./pages/PetOwnerDashBoard/Profile";
+import EditProfile from "./pages/PetOwnerDashBoard/EditProfile";
 import RoleProtectedRoute from "./components/RoleProtectedRoute";
 
 export default function App() {
@@ -28,10 +33,10 @@ export default function App() {
       <Routes>
         <Route
           path="/"
-          element={currentUser ? <Navigate to="/dashboard" /> : <LandingPage />}
+          element={<LandingPage />}
         />
-        <Route path="/login" element={!currentUser ? <Login /> : <Navigate to="/dashboard" />} />
-        <Route path="/register" element={!currentUser ? <Register /> : <Navigate to="/dashboard" />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
 
         {/* legacy /dashboard route redirects to role-specific dashboard */}
         <Route path="/dashboard" element={<DashboardRedirect />} />
@@ -69,11 +74,52 @@ export default function App() {
             </RoleProtectedRoute>
           }
         />
+        {/* ADD THIS ROUTE FOR FILES */}
+        <Route
+          path="/files"
+          element={
+            <RoleProtectedRoute allowedRoles={["petOwner"]}>
+              <Files />
+            </RoleProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <RoleProtectedRoute allowedRoles={["petOwner"]}>
+              <Profile />
+            </RoleProtectedRoute>
+          }
+        />
+        <Route
+          path="/edit-profile"
+          element={
+            <RoleProtectedRoute allowedRoles={["petOwner"]}>
+              <EditProfile />
+            </RoleProtectedRoute>
+          }
+        />
         <Route
           path="/clinic-dashboard"
           element={
             <RoleProtectedRoute allowedRoles={["clinicOwner"]}>
-              <ClinicDashboard />
+              <ClinicOwnerDashboard />
+            </RoleProtectedRoute>
+          }
+        />
+        <Route
+          path="/clinic/appointments"
+          element={
+            <RoleProtectedRoute allowedRoles={["clinicOwner"]}>
+              <ClinicAppointments />
+            </RoleProtectedRoute>
+          }
+        />
+        <Route
+          path="/clinic/settings"
+          element={
+            <RoleProtectedRoute allowedRoles={["clinicOwner"]}>
+              <ClinicSettings />
             </RoleProtectedRoute>
           }
         />
@@ -81,4 +127,3 @@ export default function App() {
     </Router>
   );
 }
-

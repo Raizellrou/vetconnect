@@ -1,7 +1,9 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { onAuthStateChanged, signOut } from "firebase/auth";
+import { onAuthStateChanged, signOut, updateProfile } from "firebase/auth";
 import { auth, db } from "../firebase/firebase";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { storage } from "../firebase/firebase";
 
 const AuthContext = createContext();
 
@@ -52,10 +54,55 @@ export function AuthProvider({ children }) {
 
   const logout = () => signOut(auth);
 
+  const updateUserProfile = async (updates, photoFile = null) => {
+    if (!currentUser) throw new Error("No user logged in");
+
+    try {
+      let photoURL = updates.photoURL;
+
+      // Upload photo if provided
+      if (photoFile) {
+        const storageRef = ref(storage, `profile-photos/${currentUser.uid}`);
+        await uploadBytes(storageRef, photoFile);
+        photoURL = await getDownloadURL(storageRef);
+      }
+
+      // Update Firebase Auth profile
+      await updateProfile(currentUser, {
+        displayName: updates.fullName,
+        photoURL: photoURL || currentUser.photoURL,
+      });
+
+      // Update Firestore document
+      const userRef = doc(db, "users", currentUser.uid);
+      await updateDoc(userRef, {
+        fullName: updates.fullName,
+        phone: updates.phone || "",
+        address: updates.address || "",
+        photoURL: photoURL || currentUser.photoURL,
+      });
+
+      // Update local state
+      setUserData(prev => ({
+        ...prev,
+        fullName: updates.fullName,
+        phone: updates.phone || "",
+        address: updates.address || "",
+        photoURL: photoURL || prev.photoURL,
+      }));
+
+      return { success: true };
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      throw error;
+    }
+  };
+
   const value = {
     currentUser,
     userData,
     logout,
+    updateUserProfile,
   };
 
   return (

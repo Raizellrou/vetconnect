@@ -1,8 +1,9 @@
 .dashboard {
   min-height: 100vh;
   background-color: var(--vc-bg-main);
-  display: flex;
   width: 100%;
+  overflow-x: hidden;
+  position: relative;
 }
 
 .appointmentSection {
@@ -10,8 +11,10 @@
   border-radius: var(--vc-border-radius);
   box-shadow: var(--vc-shadow);
   padding: var(--vc-spacing-lg);
-  margin: var(--vc-spacing-lg) var(--vc-spacing-lg) var(--vc-spacing-xl);
+  margin-bottom: var(--vc-spacing-xl);
   border: 1px solid var(--vc-border);
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .sectionTitle {
@@ -105,7 +108,7 @@
 .commentInput:focus {
   outline: none;
   border-color: #818cf8;
-  background: white;
+  background: var(--vc-bg-card);
 }
 
 .commentInput::placeholder {
@@ -208,7 +211,7 @@
 }
 
 .btn-outline {
-  background: #fff;
+  background: var(--vc-bg-card);
   color: var(--vc-accent);
   border: 2px solid rgba(14,165,233,0.12);
 }
@@ -258,38 +261,44 @@
 .welcomeBanner {
   background: linear-gradient(135deg, var(--vc-primary) 0%, var(--vc-primary-hover) 100%);
   border-radius: var(--vc-border-radius);
-  padding: var(--vc-spacing-xl);
+  padding: 24px;
   color: white;
-  margin: var(--vc-spacing-lg) var(--vc-spacing-lg) 0;
+  margin-bottom: 24px;
   box-shadow: var(--vc-shadow);
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .welcomeTitle {
-  font-size: 2rem;
+  font-size: 1.5rem;
   font-weight: 700;
   margin-bottom: 0.25rem;
+  margin: 0;
 }
 
 .welcomeSubtitle {
   color: rgba(255, 255, 255, 0.9);
-  font-size: 1rem;
+  font-size: 0.875rem;
+  margin: 0;
 }
 
 /* Main Layout */
 .mainWrapper {
-  flex: 1;
-  margin-left: var(--vc-sidebar-width);
+  margin-left: 200px;
   min-height: 100vh;
   background: var(--vc-bg-main);
+  width: calc(100vw - 200px);
+  max-width: calc(100vw - 200px);
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .mainContent {
-  padding-top: calc(var(--vc-header-height) + var(--vc-spacing-lg));
+  padding: 88px 24px 40px 24px;
   min-height: calc(100vh - var(--vc-header-height));
   box-sizing: border-box;
-  max-width: 1200px;
-  margin: 0 auto;
   width: 100%;
+  max-width: 100%;
 }
 
 /* Inputs and small helpers */
@@ -320,8 +329,203 @@
   gap: 0.5rem;
   align-items: center;
   color: rgba(255,255,255,0.95);
-  font-weight: 600;
+  font-weight: 500;
+  font-size: 0.813rem;
   margin-bottom: 0.5rem;
 }
 
-.bannerMeta .dateText { color: rgba(255,255,255,0.9); font-weight: 500; }
+.bannerMeta .dateText { 
+  color: rgba(255,255,255,0.9); 
+  font-weight: 400; 
+}
+
+.bannerMeta .bulletPoint {
+  font-weight: 300;
+}
+
+/* Instructions Link */
+.instructionsLink {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.95);
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 0.95rem;
+  padding: 0;
+  transition: opacity 0.2s ease;
+}
+
+.instructionsLink:hover {
+  opacity: 0.8;
+}
+
+/* Modal Styles */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modalContent {
+  background: white;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 700px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 32px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.modalTitle {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+
+.modalCloseBtn {
+  background: transparent;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modalCloseBtn:hover {
+  background: #f1f5f9;
+  color: #1e293b;
+}
+
+.modalBody {
+  padding: 32px;
+}
+
+.modalIntro {
+  font-size: 1rem;
+  color: #64748b;
+  margin: 0 0 32px 0;
+  line-height: 1.6;
+}
+
+.instructionsList {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.instructionStep {
+  display: flex;
+  gap: 20px;
+  padding: 20px;
+  background: #f8fafc;
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.instructionStep:hover {
+  background: #eef2ff;
+  transform: translateX(4px);
+}
+
+.stepNumber {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #818cf8 0%, #a78bfa 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.25rem;
+}
+
+.stepContent {
+  flex: 1;
+}
+
+.stepTitle {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 8px 0;
+}
+
+.stepDescription {
+  font-size: 0.95rem;
+  color: #64748b;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.modalFooter {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.modalCloseButton {
+  background: linear-gradient(135deg, #818cf8 0%, #a78bfa 100%);
+  color: white;
+  border: none;
+  padding: 12px 32px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.modalCloseButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(129, 140, 248, 0.4);
+}
+
+.modalCloseButton:active {
+  transform: translateY(0);
+}

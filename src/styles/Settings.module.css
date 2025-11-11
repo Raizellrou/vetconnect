@@ -1,0 +1,257 @@
+.pageRoot {
+  display: flex;
+  min-height: 100vh;
+  background: var(--vc-bg-main);
+}
+
+.mainWrapper {
+  flex: 1;
+  margin-left: var(--vc-sidebar-width);
+  width: calc(100vw - var(--vc-sidebar-width));
+  max-width: calc(100vw - var(--vc-sidebar-width));
+  overflow-x: hidden;
+}
+
+.content {
+  padding: 108px 32px 40px 32px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.headerRow {
+  margin-bottom: 32px;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #64748b;
+  font-size: 0.875rem;
+  margin-bottom: 8px;
+}
+
+.bullet {
+  color: #cbd5e1;
+}
+
+.dateText {
+  color: #94a3b8;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+
+.settingsCard {
+  background: var(--vc-bg-card);
+  border-radius: 16px;
+  padding: 32px;
+  margin-bottom: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.cardHeader {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 28px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.headerIcon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #818cf8 0%, #c084fc 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
+}
+
+.cardTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 4px 0;
+}
+
+.cardDescription {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin: 0;
+}
+
+.settingItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.settingItem:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.settingItem:first-child {
+  padding-top: 0;
+}
+
+.settingInfo {
+  flex: 1;
+}
+
+.settingLabel {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #1e293b;
+  margin-bottom: 4px;
+}
+
+.settingDesc {
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+/* Toggle Switch */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 52px;
+  height: 28px;
+  flex-shrink: 0;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #cbd5e1;
+  transition: 0.3s;
+  border-radius: 28px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: 0.3s;
+  border-radius: 50%;
+}
+
+.switch input:checked + .slider {
+  background: linear-gradient(135deg, #818cf8 0%, #c084fc 100%);
+}
+
+.switch input:checked + .slider:before {
+  transform: translateX(24px);
+}
+
+.switch:hover .slider {
+  opacity: 0.9;
+}
+
+/* Select Dropdown */
+.select {
+  padding: 10px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #1e293b;
+  background: var(--vc-bg-card);
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 160px;
+}
+
+.select:hover {
+  border-color: #cbd5e1;
+}
+
+.select:focus {
+  outline: none;
+  border-color: #818cf8;
+  box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.1);
+}
+
+/* Help Links */
+.helpLinks {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.helpLink {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.2s;
+}
+
+.helpLink:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  transform: translateX(4px);
+}
+
+.helpLink svg {
+  color: #818cf8;
+  flex-shrink: 0;
+}
+
+.helpLinkTitle {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #1e293b;
+  margin-bottom: 2px;
+}
+
+.helpLinkDesc {
+  font-size: 0.875rem;
+  color: #64748b;
+}
+
+/* Version Info */
+.versionInfo {
+  text-align: center;
+  padding: 24px 0;
+  color: #94a3b8;
+  font-size: 0.875rem;
+}
+
+.versionInfo p {
+  margin: 4px 0;
+}
+
+.copyright {
+  font-size: 0.813rem;
+}
+
+/* Dark Mode Styles */

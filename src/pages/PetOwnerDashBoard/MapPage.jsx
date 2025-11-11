@@ -1,14 +1,18 @@
 import React from 'react';
 import TopBar from '../../components/layout/TopBar';
 import Sidebar from '../../components/layout/Sidebar';
+import { useAuth } from '../../contexts/AuthContext';
 import styles from '../../styles/MapPage.module.css';
 
 export default function MapPage() {
+  const { userData } = useAuth();
+  const displayName = userData?.fullName || userData?.displayName || userData?.email;
+
   return (
     <div className={styles.pageRoot}>
       <Sidebar />
       <div className={styles.mainWrapper}>
-        <TopBar username={null} />
+        <TopBar username={displayName} />
 
         <main className={styles.content}>
           <header className={styles.headerRow}>

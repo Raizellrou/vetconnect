@@ -1,12 +1,11 @@
 import React, { useState, useRef, useEffect } from "react";
 import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { auth, db } from "../firebase/firebase";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { useNavigate, Link } from "react-router-dom";
 import "../styles/Auth.css";
 import eye from "../assets/eyeOn.png";
 import eyeOff from "../assets/eyeOff.png";
-import logo from "../assets/logo.png";
 
 const mapAuthError = (code, fallback) => {
   switch (code) {
@@ -35,7 +34,6 @@ export default function LoginForm() {
   const [successMessage, setSuccessMessage] = useState("");
   const emailRef = useRef(null);
   const navigate = useNavigate();
-
   const showSuccess = (msg) => {
     setSuccessMessage(msg);
     setTimeout(() => setSuccessMessage(""), 2000);
@@ -51,6 +49,25 @@ export default function LoginForm() {
       ...prev,
       [name]: value
     }));
+  };
+
+  // Temporary function to update role to clinicOwner
+  const updateRoleToClinicOwner = async () => {
+    if (!formData.email || !formData.password) {
+      alert("Please enter your email and password first");
+      return;
+    }
+    try {
+      const userCred = await signInWithEmailAndPassword(auth, formData.email, formData.password);
+      const uid = userCred.user?.uid;
+      if (uid) {
+        await updateDoc(doc(db, "users", uid), { role: "clinicOwner" });
+        alert("Role updated to clinicOwner! Please log in again.");
+        window.location.reload();
+      }
+    } catch (err) {
+      alert("Error: " + err.message);
+    }
   };
 
   const handleLogin = async (e) => {
@@ -72,6 +89,9 @@ export default function LoginForm() {
           const userDoc = await getDoc(doc(db, "users", uid));
           if (userDoc.exists()) {
             role = userDoc.data().role;
+            console.log("User role from Firestore:", role);
+          } else {
+            console.log("User document does not exist in Firestore");
           }
         } catch (err) {
           console.warn("Could not fetch user doc:", err);
@@ -83,8 +103,10 @@ export default function LoginForm() {
       const redirectDelay = 1000;
       setTimeout(() => {
         if (role === "clinicOwner" || role === "clinicStaff") {
+          console.log("Redirecting to clinic dashboard");
           navigate("/clinic-dashboard");
         } else {
+          console.log("Redirecting to owner dashboard, role was:", role);
           navigate("/owner-dashboard");
         }
       }, redirectDelay);
@@ -137,7 +159,11 @@ export default function LoginForm() {
         {successMessage && <div className="local-toast">{successMessage}</div>}
         
         <div className="logo-container">
-         <img src={logo} alt="VetConnect Logo" className="auth-logo" />
+          <svg className="auth-logo" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="50" cy="50" r="45" fill="#818cf8"/>
+            <path d="M35 30C35 27.2386 37.2386 25 40 25H60C62.7614 25 65 27.2386 65 30V70C65 72.7614 62.7614 75 60 75H40C37.2386 75 35 72.7614 35 70V30Z" fill="white"/>
+            <path d="M45 40C45 37.2386 47.2386 35 50 35H70C72.7614 35 75 37.2386 75 40V60C75 62.7614 72.7614 65 70 65H50C47.2386 65 45 62.7614 45 60V40Z" fill="#38bdf8"/>
+          </svg>
           <h2>VETCONNECT</h2>
           <p className="subtitle">Welcome back! Please login to continue.</p>
         </div>
@@ -191,6 +217,24 @@ export default function LoginForm() {
             disabled={loading}
           >
             {loading ? "Loading..." : "LOGIN"}
+          </button>
+
+          {/* Temporary button to fix role */}
+          <button 
+            type="button" 
+            onClick={updateRoleToClinicOwner}
+            style={{
+              marginTop: '10px',
+              padding: '10px',
+              background: '#f59e0b',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontSize: '14px'
+            }}
+          >
+            Fix Role to Clinic Owner (Click if you're a clinic owner going to wrong dashboard)
           </button>
         </form>
 
