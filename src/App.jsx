@@ -8,12 +8,15 @@ import OwnerDashboard from "./pages/PetOwnerDashBoard/OwnerDashboard";
 import ClinicOwnerDashboard from "./pages/ClinicOwner/ClinicOwnerDashboard";
 import ClinicAppointments from "./pages/ClinicOwner/ClinicAppointments";
 import ClinicSettings from "./pages/ClinicOwner/ClinicSettings";
+import ClinicManagement from "./pages/ClinicOwner/ClinicManagement";
+import ClinicRegistration from "./pages/ClinicOwner/ClinicRegistration";
 import MapPage from "./pages/PetOwnerDashBoard/MapPage";
 import SavedClinicsList from "./pages/PetOwnerDashBoard/SavedClinicsList";
 import ClinicDetails from "./pages/PetOwnerDashBoard/ClinicDetails";
 import Files from "./pages/PetOwnerDashBoard/Files"; // ADD THIS LINE
 import Profile from "./pages/PetOwnerDashBoard/Profile";
 import EditProfile from "./pages/PetOwnerDashBoard/EditProfile";
+import Settings from "./pages/PetOwnerDashBoard/Settings";
 import RoleProtectedRoute from "./components/RoleProtectedRoute";
 import AddPetPage from "./pages/PetOwnerDashBoard/AddPetPage";
 
@@ -109,6 +112,14 @@ export default function App() {
           }
         />
         <Route
+          path="/settings"
+          element={
+            <RoleProtectedRoute allowedRoles={["petOwner"]}>
+              <Settings />
+            </RoleProtectedRoute>
+          }
+        />
+        <Route
           path="/clinic-dashboard"
           element={
             <RoleProtectedRoute allowedRoles={["clinicOwner"]}>
@@ -129,6 +140,22 @@ export default function App() {
           element={
             <RoleProtectedRoute allowedRoles={["clinicOwner"]}>
               <ClinicSettings />
+            </RoleProtectedRoute>
+          }
+        />
+        <Route
+          path="/clinic/management"
+          element={
+            <RoleProtectedRoute allowedRoles={["clinicOwner"]}>
+              <ClinicManagement />
+            </RoleProtectedRoute>
+          }
+        />
+        <Route
+          path="/clinic/register"
+          element={
+            <RoleProtectedRoute allowedRoles={["clinicOwner"]}>
+              <ClinicRegistration />
             </RoleProtectedRoute>
           }
         />

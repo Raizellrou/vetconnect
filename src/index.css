@@ -114,3 +114,24 @@ button {
   border: 2px solid white;
   box-shadow: 0 1px 4px rgba(37,99,235,0.4);
 }
+
+/* Animations for modals and steps */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

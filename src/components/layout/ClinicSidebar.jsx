@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { Home, Calendar, Users, DollarSign, UserCog, BarChart3, Settings } from 'lucide-react';
+import { Home, Calendar, Users, DollarSign, UserCog, BarChart3, Settings, Building2 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import styles from '../../styles/ClinicSidebar.module.css';
 import vetconnectLogo from '../../assets/logo.png';
@@ -52,14 +52,6 @@ export default function ClinicSidebar() {
         </NavLink>
 
         <NavLink 
-          to="/clinic/services" 
-          className={({ isActive }) => `${styles.navBtn} ${isActive ? styles.active : ''}`}
-        >
-          <DollarSign size={20} />
-          <span>Services</span>
-        </NavLink>
-
-        <NavLink 
           to="/clinic/staff" 
           className={({ isActive }) => `${styles.navBtn} ${isActive ? styles.active : ''}`}
         >
@@ -68,11 +60,11 @@ export default function ClinicSidebar() {
         </NavLink>
 
         <NavLink 
-          to="/clinic/reports" 
+          to="/clinic/management" 
           className={({ isActive }) => `${styles.navBtn} ${isActive ? styles.active : ''}`}
         >
-          <BarChart3 size={20} />
-          <span>Reports</span>
+          <Building2 size={20} />
+          <span>Clinics</span>
         </NavLink>
       </nav>
 
