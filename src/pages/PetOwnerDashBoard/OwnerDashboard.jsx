@@ -11,7 +11,6 @@ import RatingCommentForm from '../../components/RatingCommentForm';
 import EditAppointmentForm from '../../components/EditAppointmentForm';
 import styles from '../../styles/Dashboard.module.css';
 
-// View state constants
 const VIEW_STATES = {
   APPOINTMENT_LIST: 'list',
   VIEW_DETAILS: 'detail',
@@ -25,6 +24,7 @@ export default function OwnerDashboard() {
 
   const [viewState, setViewState] = useState(VIEW_STATES.APPOINTMENT_LIST);
   const [showInstructions, setShowInstructions] = useState(false);
+
   const [appointments, setAppointments] = useState([
     {
       id: 'a1',
@@ -130,7 +130,11 @@ export default function OwnerDashboard() {
               })}
             </span>
           </div>
+
+          {/* ── CLEAN HEADER (no button) ────────────────────────────────────────── */}
           <h1 className={styles.welcomeTitle}>Hello, {displayName}!</h1>
+          {/* ─────────────────────────────────────────────────────────────────────── */}
+
           <p className={styles.welcomeSubtitle}>
             <button 
               onClick={() => setShowInstructions(true)}

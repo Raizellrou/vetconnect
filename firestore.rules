@@ -1,0 +1,5 @@
+// ...existing rules...
+
+match /users/{uid}/pets/{petId} {
+  allow create: if request.auth.uid == uid;
+}

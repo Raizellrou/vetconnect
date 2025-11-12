@@ -15,6 +15,7 @@ import Files from "./pages/PetOwnerDashBoard/Files"; // ADD THIS LINE
 import Profile from "./pages/PetOwnerDashBoard/Profile";
 import EditProfile from "./pages/PetOwnerDashBoard/EditProfile";
 import RoleProtectedRoute from "./components/RoleProtectedRoute";
+import AddPetPage from "./pages/PetOwnerDashBoard/AddPetPage";
 
 export default function App() {
   const { currentUser, userData } = useAuth();
@@ -55,6 +56,14 @@ export default function App() {
           element={
             <RoleProtectedRoute allowedRoles={["petOwner"]}>
               <MapPage />
+            </RoleProtectedRoute>
+          }
+        />
+        <Route
+          path="/pets"
+          element={
+            <RoleProtectedRoute allowedRoles={["petOwner"]}>
+              <AddPetPage />
             </RoleProtectedRoute>
           }
         />

@@ -1,5 +1,6 @@
 :root {
   /* Color Palette */
+  
   --vc-bg-main: #f8fafc;
   --vc-bg-card: #ffffff;
   --vc-primary: #818cf8;
@@ -81,4 +82,35 @@ button {
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--vc-text-muted);
+}
+
+.clinic-marker {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 18px;
+  background: #e0f2fe; /* light blue background */
+  color: #0369a1; /* deep blue paw */
+  font-size: 18px;
+  border: 2px solid rgba(2,6,23,0.06);
+  box-shadow: 0 4px 10px rgba(2,6,23,0.08);
+}
+
+.clinic-marker.selected {
+  transform: scale(1.18);
+  background: linear-gradient(180deg, #60a5fa, #3b82f6);
+  color: white;
+  border-color: rgba(59,130,246,0.9);
+}
+
+/* small round dot for user location */
+.user-marker {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #2563eb;
+  border: 2px solid white;
+  box-shadow: 0 1px 4px rgba(37,99,235,0.4);
 }
