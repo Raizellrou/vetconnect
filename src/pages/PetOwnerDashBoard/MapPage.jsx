@@ -96,15 +96,56 @@ export default function MapPage() {
   const clinicMarkers = useMemo(() => {
     return clinics
       .map((c) => {
-        const lat = (typeof c.latitude === 'number') ? c.latitude : (c.location?.lat ?? c.location?.latitude);
-        const lng = (typeof c.longitude === 'number') ? c.longitude : (c.location?.lng ?? c.location?.longitude);
-        if (typeof lat !== 'number' || typeof lng !== 'number') return null;
+        // try multiple locations shapes and coerce to numbers
+        const tryNum = (v) => {
+          if (v === undefined || v === null) return NaN;
+          const n = typeof v === 'number' ? v : Number(v);
+          return Number.isFinite(n) ? n : NaN;
+        };
+
+        let lat = tryNum(c.latitude ?? c.lat);
+        let lng = tryNum(c.longitude ?? c.lng);
+
+        // check nested 'location' object with either { lat, lng } or { latitude, longitude }
+        if ((Number.isNaN(lat) || Number.isNaN(lng)) && c.location) {
+          lat = tryNum(c.location.lat ?? c.location.latitude ?? c.location._lat);
+          lng = tryNum(c.location.lng ?? c.location.longitude ?? c.location._long);
+        }
+
+        // check alternate 'coords' array [lat,lng]
+        if ((Number.isNaN(lat) || Number.isNaN(lng)) && Array.isArray(c.coords)) {
+          lat = tryNum(c.coords[0]);
+          lng = tryNum(c.coords[1]);
+        }
+
+        // last resort: some local storage may have coordinates under 'coordinates'
+        if ((Number.isNaN(lat) || Number.isNaN(lng)) && c.coordinates) {
+          lat = tryNum(c.coordinates.latitude ?? c.coordinates.lat ?? c.coordinates[0]);
+          lng = tryNum(c.coordinates.longitude ?? c.coordinates.lng ?? c.coordinates[1]);
+        }
+
+        // Detect swapped values: lat must be within -90..90, lng within -180..180
+        const inLat = (v) => !Number.isNaN(v) && v >= -90 && v <= 90;
+        const inLng = (v) => !Number.isNaN(v) && v >= -180 && v <= 180;
+
+        if (!inLat(lat) && inLat(lng) && inLng(lat)) {
+          // looks swapped, correct it
+          const tmp = lat;
+          lat = lng;
+          lng = tmp;
+        }
+
+        if (!inLat(lat) || !inLng(lng)) {
+          // invalid coordinates — skip this clinic
+          return null;
+        }
+
         return {
           id: c.id,
           name: c.name || c.clinicName || 'Clinic',
           address: c.address || '',
           services: c.services || [],
-          contact: c.contact || c.phone || '',
+          phone: c.phone || c.contact || '',
           rating: c.rating ?? null,
           position: [lat, lng],
           raw: c
