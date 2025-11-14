@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { MapPin, Phone, Clock, Building2, FileText, ArrowRight, ArrowLeft, CheckSquare, Search, X } from 'lucide-react';
+import { MapPin, Phone, Clock, Building2, FileText, ArrowRight, ArrowLeft, CheckSquare, Search, X, Lock } from 'lucide-react';
 import { saveClinic, updateClinic } from '../../utils/clinicStorage';
 
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
@@ -182,8 +182,7 @@ export default function ClinicRegistration() {
         const lng = pos.coords.longitude;
         setSelectedCoords([lat, lng]);
         setMapCenter([lat, lng]);
-        setFormData(prev => ({ ...prev, coordinates: { latitude: lat, longitude: lng } }));
-        setIsMapOpen(false);
+        // Don't close the modal - let user lock the location
       },
       (err) => {
         console.warn('Geolocation error', err);
@@ -193,10 +192,27 @@ export default function ClinicRegistration() {
     );
   };
 
-  // When user selects in modal map, apply to formData and close modal
-  const handleMapSelect = (coords) => {
+  // When user clicks "Pick Location", apply to formData, get address, and close modal
+  const handleMapSelect = async (coords) => {
     setSelectedCoords(coords);
     setFormData(prev => ({ ...prev, coordinates: { latitude: coords[0], longitude: coords[1] } }));
+    
+    // Reverse geocode to get address
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${coords[0]}&lon=${coords[1]}`
+      );
+      const data = await response.json();
+      
+      if (data.display_name) {
+        setFormData(prev => ({ ...prev, address: data.display_name }));
+      }
+    } catch (error) {
+      console.error('Error getting address:', error);
+      // If reverse geocoding fails, use coordinates as fallback
+      setFormData(prev => ({ ...prev, address: `${coords[0].toFixed(6)}, ${coords[1].toFixed(6)}` }));
+    }
+    
     setIsMapOpen(false);
     if (errors.address) setErrors(prev => ({ ...prev, address: '' }));
   };
@@ -403,15 +419,6 @@ export default function ClinicRegistration() {
                       </button>
                     </div>
                     {errors.address && <p style={{ color: '#ef4444', marginTop: 10 }}>{errors.address}</p>}
-                    <div style={{ marginTop: 8, color: '#475569' }}>
-                      {formData.coordinates ? (
-                        <div>
-                          Selected coordinates: <strong>{`${formData.coordinates.latitude?.toFixed?.(6) ?? formData.coordinates[0]?.toFixed?.(6) ?? ''}, ${formData.coordinates.longitude?.toFixed?.(6) ?? formData.coordinates[1]?.toFixed?.(6) ?? ''}`}</strong>
-                        </div>
-                      ) : (
-                        <div>Click "Pick on Map" to set your clinic's location.</div>
-                      )}
-                    </div>
                   </div>
 
                   <div>
@@ -507,21 +514,49 @@ export default function ClinicRegistration() {
         </div>
       </div>
 
-      {/* Map Modal */}
+      {/* Enhanced Map Modal with Lock Feature */}
       {isMapOpen && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.5)' }}
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.6)', padding: 16 }}
              onClick={(e) => { if (e.target === e.currentTarget) setIsMapOpen(false); }}>
-          <div style={{ width: '92%', maxWidth: 920, background: 'white', borderRadius: 12, overflow: 'hidden' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 16, borderBottom: '1px solid #eee' }}>
-              <h3 style={{ margin: 0 }}>Pick Clinic Location</h3>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button onClick={handleUseMyLocation} style={{ padding: '8px 12px', background: '#eef2ff', borderRadius: 8 }}>Use my current location</button>
-                <button onClick={() => setIsMapOpen(false)} style={{ padding: 8, borderRadius: 8, background: 'transparent' }}><X /></button>
+          <div style={{ width: '100%', maxWidth: 1200, height: '90vh', background: 'white', borderRadius: 20, overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)', display: 'flex', flexDirection: 'column' }}>
+            {/* Enhanced Header */}
+            <div style={{ background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)', padding: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                <div style={{ width: 48, height: 48, background: 'rgba(255,255,255,0.2)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <MapPin size={24} color="white" />
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, color: 'white', fontSize: '1.5rem', fontWeight: 700 }}>Pick Clinic Location</h3>
+                  <p style={{ margin: 0, color: 'rgba(255,255,255,0.9)', fontSize: '0.875rem' }}>Select your clinic's exact location on the map</p>
+                </div>
+              </div>
+              <button onClick={() => setIsMapOpen(false)} style={{ padding: 10, borderRadius: 10, background: 'rgba(255,255,255,0.2)', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}
+                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.3)'}
+                onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}>
+                <X size={24} color="white" />
+              </button>
+            </div>
+
+            {/* Top Action Bar */}
+            <div style={{ padding: 24, background: 'linear-gradient(180deg, #f0f9ff 0%, #ffffff 100%)', borderBottom: '2px solid #e0e7ff' }}>
+              <button onClick={handleUseMyLocation} style={{ width: '100%', padding: '16px 24px', background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)', borderRadius: 12, border: 'none', cursor: 'pointer', boxShadow: '0 4px 16px rgba(59, 130, 246, 0.4)', transition: 'all 0.3s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, fontSize: '1rem', fontWeight: 700, color: 'white', marginBottom: 16 }}
+                onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-3px) scale(1.01)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(59, 130, 246, 0.5)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0) scale(1)'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(59, 130, 246, 0.4)'; }}>
+                <MapPin size={22} strokeWidth={2.5} />
+                <span>Use my current location</span>
+              </button>
+              <div style={{ background: 'linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)', padding: '16px 20px', borderRadius: 12, border: '2px solid #93c5fd', boxShadow: '0 2px 8px rgba(59, 130, 246, 0.15)' }}>
+                <p style={{ fontSize: '0.875rem', color: '#1e40af', margin: 0, lineHeight: 1.6, fontWeight: 600, display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                  <span style={{ fontSize: '1.25rem' }}>💡</span>
+                  <span><strong>Quick Tip:</strong> Click anywhere on the map to place a marker, then click "Lock Location" to confirm your choice.</span>
+                </p>
               </div>
             </div>
 
-            <div style={{ display: 'flex', gap: 0, flexWrap: 'wrap' }}>
-              <div style={{ flex: 1, minWidth: 320, height: 420 }}>
+            {/* Map and Sidebar Container */}
+            <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+              {/* Map Section */}
+              <div style={{ flex: 1, position: 'relative', minWidth: 400 }}>
                 <MapContainer center={mapCenter} zoom={13} style={{ height: '100%', width: '100%' }}>
                   <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution="&copy; OpenStreetMap contributors" />
                   <ClickToSetMarker onSet={(coords) => { setSelectedCoords(coords); }} />
@@ -529,33 +564,60 @@ export default function ClinicRegistration() {
                 </MapContainer>
               </div>
 
-              <div style={{ width: 360, padding: 16, boxSizing: 'border-box' }}>
-                <p style={{ marginTop: 0, color: '#475569' }}>
-                  Click anywhere on the map to place a marker for your clinic. After selecting, coordinates will be saved with your clinic record.
-                </p>
-                <div style={{ marginTop: 12 }}>
-                  <div style={{ fontWeight: 700 }}>Selected Coordinates</div>
-                  <div style={{ marginTop: 8, color: '#111827' }}>
-                    {selectedCoords ? (
-                      <>
-                        <div>Latitude: {selectedCoords[0].toFixed(6)}</div>
-                        <div>Longitude: {selectedCoords[1].toFixed(6)}</div>
-                        <div style={{ marginTop: 12 }}>
-                          <button onClick={() => handleMapSelect(selectedCoords)} className="px-4 py-2 rounded bg-indigo-600 text-white">Use this location</button>
+              {/* Right Sidebar */}
+              <div style={{ width: 400, background: 'linear-gradient(180deg, #ffffff 0%, #f9fafb 100%)', borderLeft: '2px solid #e5e7eb', padding: 24, display: 'flex', flexDirection: 'column', overflowY: 'auto' }}>
+                {selectedCoords ? (
+                  <>
+                    <div style={{ marginBottom: 20 }}>
+                      <div style={{ background: 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)', padding: '16px 20px', borderRadius: 12, border: '2px solid #6ee7b7', boxShadow: '0 2px 8px rgba(16, 185, 129, 0.15)', marginBottom: 16 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                          <span style={{ fontSize: '1.5rem' }}>✓</span>
+                          <span style={{ fontSize: '1rem', fontWeight: 700, color: '#065f46' }}>Location Selected!</span>
                         </div>
-                      </>
-                    ) : (
-                      <div style={{ color: '#6b7280' }}>No location selected yet.</div>
-                    )}
+                        <p style={{ margin: 0, fontSize: '0.875rem', color: '#047857', lineHeight: 1.5 }}>
+                          Your marker is placed. Click "Pick Location" below to confirm and use this as your clinic's address.
+                        </p>
+                      </div>
+                      
+                      <button onClick={() => handleMapSelect(selectedCoords)} style={{ width: '100%', padding: '16px 24px', background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', borderRadius: 12, border: 'none', cursor: 'pointer', boxShadow: '0 4px 16px rgba(16, 185, 129, 0.4)', transition: 'all 0.3s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10, fontSize: '1rem', fontWeight: 800, color: 'white', marginBottom: 16 }}
+                        onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-3px) scale(1.02)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(16, 185, 129, 0.5)'; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0) scale(1)'; e.currentTarget.style.boxShadow = '0 4px 16px rgba(16, 185, 129, 0.4)'; }}>
+                        <MapPin size={20} strokeWidth={2.5} />
+                        <span>Pick Location</span>
+                      </button>
+                      
+                      <button onClick={() => { setSelectedCoords(null); }} style={{ width: '100%', padding: '12px 20px', background: 'white', borderRadius: 10, border: '2px solid #e5e7eb', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 600, color: '#6b7280', transition: 'all 0.2s' }}
+                        onMouseEnter={(e) => { e.currentTarget.style.background = '#f9fafb'; e.currentTarget.style.borderColor = '#d1d5db'; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.background = 'white'; e.currentTarget.style.borderColor = '#e5e7eb'; }}>
+                        Clear Selection
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <div style={{ background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)', padding: '18px 22px', borderRadius: 14, border: '2px solid #fbbf24', boxShadow: '0 4px 12px rgba(251, 191, 36, 0.2)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                      <span style={{ fontSize: '1.5rem' }}>📍</span>
+                      <span style={{ fontSize: '1rem', fontWeight: 700, color: '#92400e' }}>No Location Selected</span>
+                    </div>
+                    <p style={{ margin: 0, fontSize: '0.875rem', color: '#78350f', lineHeight: 1.6 }}>
+                      Click anywhere on the map to place your clinic marker, or use the "Use my current location" button above.
+                    </p>
                   </div>
-                </div>
+                )}
 
-                <div style={{ marginTop: 16 }}>
-                  <div style={{ fontWeight: 700 }}>Tips</div>
-                  <ul style={{ color: '#6b7280', marginTop: 8 }}>
-                    <li>Zoom/pan the map to refine placement.</li>
-                    <li>Use "Use my current location" for quick placement.</li>
-                  </ul>
+                <div style={{ marginTop: 'auto', paddingTop: 20, borderTop: '2px solid #e5e7eb' }}>
+                  <div style={{ background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)', padding: '18px 22px', borderRadius: 14, border: '2px solid #fbbf24' }}>
+                    <h4 style={{ fontSize: '0.9375rem', fontWeight: 800, color: '#92400e', margin: '0 0 10px 0', letterSpacing: '0.02em', display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontSize: '1.25rem' }}>💡</span>
+                      QUICK TIPS
+                    </h4>
+                    <ul style={{ margin: 0, paddingLeft: 24, fontSize: '0.875rem', color: '#78350f', lineHeight: 1.8, fontWeight: 500 }}>
+                      <li>Use <strong>zoom controls (+/-)</strong> to adjust view</li>
+                      <li><strong>Click the map</strong> to set marker position</li>
+                      <li>Click <strong>"Pick Location"</strong> to confirm</li>
+                      <li>Use <strong>"Use my current location"</strong> for quick setup</li>
+                    </ul>
+                  </div>
                 </div>
               </div>
             </div>

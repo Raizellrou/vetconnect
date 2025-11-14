@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { MapPin, Phone, Clock, Star, ChevronRight, Search } from 'lucide-react';
 import TopBar from '../../components/layout/TopBar';
 import Sidebar from '../../components/layout/Sidebar';
 import { useAuth } from '../../contexts/AuthContext';
@@ -48,6 +49,7 @@ export default function MapPage() {
   const [error, setError] = useState(null);
   const [selectedClinicId, setSelectedClinicId] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // default Laoag City
   const defaultCenter = { lat: 18.1978, lng: 120.5936 };
@@ -94,7 +96,19 @@ export default function MapPage() {
 
   // prepare markers (only those with numeric lat & lng)
   const clinicMarkers = useMemo(() => {
-    return clinics
+    const filtered = searchQuery.trim()
+      ? clinics.filter(c => {
+          const query = searchQuery.toLowerCase();
+          const name = (c.name || c.clinicName || '').toLowerCase();
+          const address = (c.address || '').toLowerCase();
+          const services = Array.isArray(c.services) 
+            ? c.services.join(' ').toLowerCase() 
+            : '';
+          return name.includes(query) || address.includes(query) || services.includes(query);
+        })
+      : clinics;
+
+    return filtered
       .map((c) => {
         // try multiple locations shapes and coerce to numbers
         const tryNum = (v) => {
@@ -152,7 +166,7 @@ export default function MapPage() {
         };
       })
       .filter(Boolean);
-  }, [clinics]);
+  }, [clinics, searchQuery]);
 
   const bounds = useMemo(() => {
     if (!clinicMarkers || clinicMarkers.length === 0) return [];
@@ -183,6 +197,97 @@ export default function MapPage() {
           </header>
 
           <section className={styles.mapCard}>
+            {/* Search Bar */}
+            <div style={{
+              marginBottom: '16px',
+              position: 'relative'
+            }}>
+              <div style={{
+                position: 'relative',
+                maxWidth: '600px',
+                margin: '0 auto'
+              }}>
+                <Search 
+                  size={20} 
+                  style={{
+                    position: 'absolute',
+                    left: '16px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    color: '#9ca3af',
+                    pointerEvents: 'none',
+                    zIndex: 1
+                  }}
+                />
+                <input
+                  type="text"
+                  placeholder="Search clinics by name, location, or services..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '14px 16px 14px 48px',
+                    border: '2px solid #e5e7eb',
+                    borderRadius: '12px',
+                    fontSize: '1rem',
+                    outline: 'none',
+                    transition: 'all 0.2s',
+                    background: 'white',
+                    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)'
+                  }}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = '#3b82f6';
+                    e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1), 0 1px 3px rgba(0, 0, 0, 0.05)';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = '#e5e7eb';
+                    e.target.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.05)';
+                  }}
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    style={{
+                      position: 'absolute',
+                      right: '12px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      padding: '6px',
+                      background: 'transparent',
+                      border: 'none',
+                      cursor: 'pointer',
+                      color: '#6b7280',
+                      borderRadius: '6px',
+                      transition: 'all 0.2s',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = '#f3f4f6';
+                      e.currentTarget.style.color = '#1f2937';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'transparent';
+                      e.currentTarget.style.color = '#6b7280';
+                    }}
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+              {searchQuery && (
+                <div style={{
+                  textAlign: 'center',
+                  marginTop: '8px',
+                  fontSize: '0.875rem',
+                  color: '#6b7280'
+                }}>
+                  Found {clinicMarkers.length} clinic{clinicMarkers.length !== 1 ? 's' : ''}
+                </div>
+              )}
+            </div>
+
             <div style={{ marginBottom: 12 }}>
               {loading ? (
                 <div style={{ padding: 12, background: 'white', borderRadius: 8 }}>Loading clinics...</div>
@@ -221,24 +326,181 @@ export default function MapPage() {
                       }
                     }}
                   >
-                    <Popup onClose={() => setSelectedClinicId(null)} closeButton>
-                      <div style={{ minWidth: 220 }}>
-                        <h3 style={{ margin: '0 0 6px 0' }}>{m.name}</h3>
-                        <div style={{ color: '#4b5563', fontSize: 13 }}>{m.address}</div>
-                        {m.contact && <div style={{ marginTop: 6, fontSize: 13 }}>📞 {m.contact}</div>}
-                        {m.services && m.services.length > 0 && (
-                          <div style={{ marginTop: 8, fontSize: 13 }}>
-                            <strong>Services:</strong> {Array.isArray(m.services) ? m.services.slice(0,3).join(', ') : String(m.services)}
-                            {Array.isArray(m.services) && m.services.length > 3 ? '...' : ''}
+                    <Popup 
+                      onClose={() => setSelectedClinicId(null)} 
+                      closeButton={false}
+                      className="custom-popup"
+                    >
+                      <div style={{
+                        minWidth: '280px',
+                        background: 'white',
+                        borderRadius: '16px',
+                        overflow: 'hidden',
+                        boxShadow: '0 10px 40px rgba(0, 0, 0, 0.15)'
+                      }}>
+                        {/* Header with gradient */}
+                        <div style={{
+                          background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                          padding: '16px',
+                          color: 'white'
+                        }}>
+                          <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            marginBottom: '4px'
+                          }}>
+                            <MapPin size={18} />
+                            <h3 style={{
+                              margin: 0,
+                              fontSize: '1.125rem',
+                              fontWeight: '700'
+                            }}>
+                              {m.name}
+                            </h3>
                           </div>
-                        )}
-                        {m.rating !== null && <div style={{ marginTop: 6, fontSize: 13 }}>⭐ {m.rating}</div>}
-                        <div style={{ marginTop: 10, display: 'flex', justifyContent: 'flex-end' }}>
+                          {m.rating !== null && (
+                            <div style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              fontSize: '0.875rem',
+                              marginTop: '6px'
+                            }}>
+                              <Star size={14} fill="white" />
+                              <span>{m.rating}</span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Content */}
+                        <div style={{ padding: '16px' }}>
+                          {/* Address */}
+                          {m.address && (
+                            <div style={{
+                              display: 'flex',
+                              gap: '8px',
+                              marginBottom: '12px',
+                              fontSize: '0.875rem',
+                              color: '#64748b'
+                            }}>
+                              <MapPin size={16} style={{ flexShrink: 0, marginTop: '2px', color: '#3b82f6' }} />
+                              <span>{m.address}</span>
+                            </div>
+                          )}
+
+                          {/* Phone */}
+                          {(m.phone || m.raw?.contactNumber) && (
+                            <div style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '8px',
+                              marginBottom: '12px',
+                              fontSize: '0.875rem',
+                              color: '#64748b'
+                            }}>
+                              <Phone size={16} style={{ color: '#10b981' }} />
+                              <span>{m.phone || m.raw?.contactNumber}</span>
+                            </div>
+                          )}
+
+                          {/* Hours */}
+                          {m.raw?.openHours && (
+                            <div style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '8px',
+                              marginBottom: '12px',
+                              fontSize: '0.875rem',
+                              color: '#64748b'
+                            }}>
+                              <Clock size={16} style={{ color: '#f59e0b' }} />
+                              <span>{m.raw.openHours}</span>
+                            </div>
+                          )}
+
+                          {/* Services */}
+                          {m.services && m.services.length > 0 && (
+                            <div style={{
+                              marginTop: '12px',
+                              paddingTop: '12px',
+                              borderTop: '1px solid #e5e7eb'
+                            }}>
+                              <div style={{
+                                fontSize: '0.75rem',
+                                fontWeight: '600',
+                                color: '#6b7280',
+                                marginBottom: '6px',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.5px'
+                              }}>
+                                Services
+                              </div>
+                              <div style={{
+                                display: 'flex',
+                                flexWrap: 'wrap',
+                                gap: '6px'
+                              }}>
+                                {(Array.isArray(m.services) ? m.services.slice(0, 3) : [m.services]).map((service, idx) => (
+                                  <span
+                                    key={idx}
+                                    style={{
+                                      fontSize: '0.75rem',
+                                      padding: '4px 10px',
+                                      background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
+                                      color: '#1e40af',
+                                      borderRadius: '12px',
+                                      fontWeight: '500'
+                                    }}
+                                  >
+                                    {service}
+                                  </span>
+                                ))}
+                                {Array.isArray(m.services) && m.services.length > 3 && (
+                                  <span style={{
+                                    fontSize: '0.75rem',
+                                    padding: '4px 10px',
+                                    color: '#6b7280'
+                                  }}>
+                                    +{m.services.length - 3} more
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* View Clinic Button */}
                           <button
-                            onClick={() => navigate(`/clinic/${m.id}`)}
-                            className="px-3 py-1 rounded bg-indigo-600 text-white"
+                            onClick={() => navigate(`/saved/${m.id}`)}
+                            style={{
+                              width: '100%',
+                              marginTop: '16px',
+                              padding: '12px 16px',
+                              background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                              color: 'white',
+                              border: 'none',
+                              borderRadius: '10px',
+                              fontSize: '0.9375rem',
+                              fontWeight: '600',
+                              cursor: 'pointer',
+                              transition: 'all 0.2s',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: '8px',
+                              boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)'
+                            }}
+                            onMouseEnter={(e) => {
+                              e.currentTarget.style.transform = 'translateY(-2px)';
+                              e.currentTarget.style.boxShadow = '0 6px 16px rgba(59, 130, 246, 0.4)';
+                            }}
+                            onMouseLeave={(e) => {
+                              e.currentTarget.style.transform = 'translateY(0)';
+                              e.currentTarget.style.boxShadow = '0 4px 12px rgba(59, 130, 246, 0.3)';
+                            }}
                           >
                             View Clinic
+                            <ChevronRight size={18} />
                           </button>
                         </div>
                       </div>

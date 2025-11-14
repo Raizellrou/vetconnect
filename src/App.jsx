@@ -10,6 +10,10 @@ import ClinicAppointments from "./pages/ClinicOwner/ClinicAppointments";
 import ClinicSettings from "./pages/ClinicOwner/ClinicSettings";
 import ClinicManagement from "./pages/ClinicOwner/ClinicManagement";
 import ClinicRegistration from "./pages/ClinicOwner/ClinicRegistration";
+import ClinicFiles from "./pages/ClinicOwner/ClinicFiles";
+import ClinicClients from "./pages/ClinicOwner/ClinicClients";
+import ClinicProfile from "./pages/ClinicOwner/ClinicProfile";
+import ClinicEditProfile from "./pages/ClinicOwner/ClinicEditProfile";
 import MapPage from "./pages/PetOwnerDashBoard/MapPage";
 import SavedClinicsList from "./pages/PetOwnerDashBoard/SavedClinicsList";
 import ClinicDetails from "./pages/PetOwnerDashBoard/ClinicDetails";
@@ -19,6 +23,7 @@ import EditProfile from "./pages/PetOwnerDashBoard/EditProfile";
 import Settings from "./pages/PetOwnerDashBoard/Settings";
 import RoleProtectedRoute from "./components/RoleProtectedRoute";
 import AddPetPage from "./pages/PetOwnerDashBoard/AddPetPage";
+import BookAppointment from "./pages/PetOwnerDashBoard/BookAppointment";
 
 export default function App() {
   const { currentUser, userData } = useAuth();
@@ -120,6 +125,14 @@ export default function App() {
           }
         />
         <Route
+          path="/book-appointment"
+          element={
+            <RoleProtectedRoute allowedRoles={["petOwner"]}>
+              <BookAppointment />
+            </RoleProtectedRoute>
+          }
+        />
+        <Route
           path="/clinic-dashboard"
           element={
             <RoleProtectedRoute allowedRoles={["clinicOwner"]}>
@@ -132,6 +145,38 @@ export default function App() {
           element={
             <RoleProtectedRoute allowedRoles={["clinicOwner"]}>
               <ClinicAppointments />
+            </RoleProtectedRoute>
+          }
+        />
+        <Route
+          path="/clinic/clients"
+          element={
+            <RoleProtectedRoute allowedRoles={["clinicOwner"]}>
+              <ClinicClients />
+            </RoleProtectedRoute>
+          }
+        />
+        <Route
+          path="/clinic/files"
+          element={
+            <RoleProtectedRoute allowedRoles={["clinicOwner"]}>
+              <ClinicFiles />
+            </RoleProtectedRoute>
+          }
+        />
+        <Route
+          path="/clinic/profile"
+          element={
+            <RoleProtectedRoute allowedRoles={["clinicOwner"]}>
+              <ClinicProfile />
+            </RoleProtectedRoute>
+          }
+        />
+        <Route
+          path="/clinic/edit-profile"
+          element={
+            <RoleProtectedRoute allowedRoles={["clinicOwner"]}>
+              <ClinicEditProfile />
             </RoleProtectedRoute>
           }
         />

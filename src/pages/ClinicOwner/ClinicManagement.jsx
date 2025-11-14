@@ -382,9 +382,24 @@ export default function ClinicManagement() {
         </main>
       </div>
 
-      {/* Delete Confirmation Dialog */}
+      {/* Delete Confirmation Modal */}
       {deleteConfirm && (
-        <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4">
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 9999,
+          backgroundColor: 'rgba(0, 0, 0, 0.6)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '16px'
+        }}
+        onClick={(e) => {
+          if (e.target === e.currentTarget) handleCancelDelete();
+        }}>
           <div style={{
             background: 'white',
             borderRadius: '20px',
@@ -392,7 +407,8 @@ export default function ClinicManagement() {
             maxWidth: '480px',
             width: '100%',
             padding: '32px',
-            animation: 'slideIn 0.3s ease'
+            animation: 'slideIn 0.3s ease',
+            position: 'relative'
           }}>
             <div style={{
               width: '64px',

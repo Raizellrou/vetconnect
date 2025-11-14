@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { MapPin, BookmarkX, Star } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { MapPin, BookmarkX, Star, Calendar } from 'lucide-react';
 import TopBar from '../../components/layout/TopBar';
 import Sidebar from '../../components/layout/Sidebar';
 import { useAuth } from '../../contexts/AuthContext';
@@ -33,6 +34,15 @@ export default function ClinicDetails() {
   const [tab, setTab] = useState('overview');
   const { userData } = useAuth();
   const displayName = userData?.fullName || userData?.displayName || userData?.email;
+  const navigate = useNavigate();
+
+  const handleBookAppointment = () => {
+    navigate('/book-appointment', { 
+      state: { 
+        clinic: dummyClinic 
+      } 
+    });
+  };
 
   return (
     <div className={styles.wrapper}>
@@ -73,6 +83,46 @@ export default function ClinicDetails() {
               {tab === 'overview' && (
                 <div>
                   <p className={styles.overviewText}>{dummyClinic.description}</p>
+                  
+                  <div style={{
+                    marginTop: '40px',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    padding: '0 24px'
+                  }}>
+                    <button
+                      onClick={handleBookAppointment}
+                      style={{
+                        padding: '14px 40px',
+                        background: '#06b6d4',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '50px',
+                        fontSize: '1rem',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        transition: 'all 0.3s ease',
+                        boxShadow: '0 2px 8px rgba(6, 182, 212, 0.25)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                        letterSpacing: '0.3px'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = '#0891b2';
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(6, 182, 212, 0.35)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = '#06b6d4';
+                        e.currentTarget.style.transform = 'translateY(0)';
+                        e.currentTarget.style.boxShadow = '0 2px 8px rgba(6, 182, 212, 0.25)';
+                      }}
+                    >
+                      <Calendar size={20} />
+                      BOOK APPOINTMENT
+                    </button>
+                  </div>
                 </div>
               )}
 
@@ -102,10 +152,6 @@ export default function ClinicDetails() {
                   ))}
                 </div>
               )}
-            </div>
-
-            <div className={styles.ctaRow}>
-              <button className={styles.bookBtn}>BOOK APPOINTMENT</button>
             </div>
           </section>
         </main>

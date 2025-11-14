@@ -45,7 +45,34 @@
 .rowAction { background: transparent; border: none; cursor: pointer; color: #0ea5e9; }
 
 .detailsCard { background: var(--vc-bg-card); border-radius: 12px; padding: 0; overflow: hidden; border: 1px solid var(--vc-border); }
-.banner { height: 140px; background: linear-gradient(90deg,#f8fafc 0%, #e6eefb 100%); display:block; }
+.banner { 
+  height: 200px; 
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: block;
+  position: relative;
+  overflow: hidden;
+}
+
+.banner::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAwIDEwIEwgNjAgMTAgTSAxMCAwIEwgMTAgNjAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjA1IiBzdHJva2Utd2lkdGg9IjEiLz48L3BhdHRlcm4+PC9kZWZzPjxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz48L3N2Zz4=');
+  opacity: 0.3;
+}
+
+.banner::after {
+  content: '🐾';
+  position: absolute;
+  font-size: 120px;
+  right: 40px;
+  bottom: -20px;
+  opacity: 0.15;
+  transform: rotate(-15deg);
+}
 .cardHeader { display: flex; justify-content: space-between; padding: 20px; }
 .clinicName { margin: 0; font-size: 28px; }
 .owner { color:#374151; margin-top:6px; }
@@ -53,22 +80,33 @@
 .statItem { display:flex; gap:8px; align-items:center; color:#111827; }
 .headerActions { display:flex; gap:10px; }
 .iconBtn { 
-  background: rgba(14,165,233,0.08); 
+  background: #3b82f6; 
   border: none; 
-  padding:8px; 
-  border-radius:8px; 
-  cursor:pointer;
-  color: #111827;
-  transition: background-color 0.2s, color 0.2s;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%; 
+  cursor: pointer;
+  color: white;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
 }
-.iconBtn:hover { background: rgba(14,165,233,0.12); }
+.iconBtn:hover { 
+  background: #2563eb;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
 
 .savedBtn {
-  color: #111827;
-  background: rgba(239, 68, 68, 0.08);
+  color: white;
+  background: #3b82f6;
 }
 .savedBtn:hover {
-  background: rgba(239, 68, 68, 0.12);
+  background: #2563eb;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
 }
 
 .tabBar { display:flex; gap:24px; padding: 0 20px; border-top: 1px solid #e6e9ee; }

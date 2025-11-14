@@ -77,15 +77,6 @@ export default function ClinicOwnerDashboard() {
       stats: '15 Services'
     },
     {
-      id: 'staff',
-      title: 'Staff Management',
-      description: 'Manage veterinarians and support staff',
-      icon: UserCog,
-      color: '#a78bfa',
-      path: '/clinic/staff',
-      stats: '8 Staff'
-    },
-    {
       id: 'reports',
       title: 'Reports / Analytics',
       description: 'Monitor booking data and metrics',
@@ -136,76 +127,38 @@ export default function ClinicOwnerDashboard() {
             </p>
           </div>
 
-          {/* Clinic Selector */}
-          {clinics.length > 0 && (
-            <div className="mb-6 relative">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                <Building2 size={16} className="inline mr-2" />
-                Active Clinic Branch
-              </label>
-              <div className="relative">
-                <button
-                  onClick={() => setShowClinicDropdown(!showClinicDropdown)}
-                  className="w-full md:w-auto min-w-[300px] px-4 py-3 bg-white border border-gray-300 rounded-lg shadow-sm hover:border-blue-500 transition-colors flex items-center justify-between gap-3"
-                >
-                  <div className="flex items-center gap-3">
-                    <MapPin size={18} className="text-blue-600" />
-                    <div className="text-left">
-                      <p className="font-semibold text-gray-800">
-                        {selectedClinic ? selectedClinic.clinicName : 'Select a clinic'}
-                      </p>
-                      {selectedClinic && (
-                        <p className="text-sm text-gray-500 truncate max-w-[200px]">
-                          {selectedClinic.address}
-                        </p>
-                      )}
-                    </div>
-                  </div>
-                  <ChevronDown size={20} className={`text-gray-600 transition-transform ${showClinicDropdown ? 'rotate-180' : ''}`} />
-                </button>
-
-                {/* Dropdown Menu */}
-                {showClinicDropdown && (
-                  <div className="absolute z-10 mt-2 w-full md:w-auto min-w-[300px] bg-white border border-gray-200 rounded-lg shadow-lg max-h-64 overflow-y-auto">
-                    {clinics.map((clinic) => (
-                      <button
-                        key={clinic.id}
-                        onClick={() => handleClinicSelect(clinic)}
-                        className={`w-full px-4 py-3 text-left hover:bg-blue-50 transition-colors border-b border-gray-100 last:border-b-0 ${
-                          selectedClinic?.id === clinic.id ? 'bg-blue-50' : ''
-                        }`}
-                      >
-                        <p className="font-semibold text-gray-800">{clinic.clinicName}</p>
-                        <p className="text-sm text-gray-500 truncate">{clinic.address}</p>
-                      </button>
-                    ))}
-                    <button
-                      onClick={() => {
-                        setShowClinicDropdown(false);
-                        navigate('/clinic/management');
-                      }}
-                      className="w-full px-4 py-3 text-left text-blue-600 hover:bg-blue-50 transition-colors font-medium border-t-2 border-gray-200"
-                    >
-                      + Manage Clinics
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
+          {/* Register Clinic Button - Only shows when no clinics registered */}
           {clinics.length === 0 && (
-            <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-              <p className="text-yellow-800">
-                <MapPin size={16} className="inline mr-2" />
-                No clinics registered yet.{' '}
-                <button
-                  onClick={() => navigate('/clinic/management')}
-                  className="font-semibold underline hover:text-yellow-900"
-                >
-                  Add your first clinic
-                </button>
-              </p>
+            <div style={{ marginTop: '32px', marginBottom: '32px' }}>
+              <button
+                onClick={() => navigate('/clinic/management')}
+                style={{
+                  padding: '12px 24px',
+                  background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '10px',
+                  fontSize: '0.9375rem',
+                  fontWeight: '700',
+                  cursor: 'pointer',
+                  boxShadow: '0 2px 8px rgba(59, 130, 246, 0.3)',
+                  transition: 'all 0.2s ease',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(59, 130, 246, 0.4)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(59, 130, 246, 0.3)';
+                }}
+              >
+                <Building2 size={20} strokeWidth={2.5} />
+                <span>Register Your First Clinic</span>
+              </button>
             </div>
           )}
 

@@ -6,6 +6,8 @@ import { useNavigate } from "react-router-dom";
 import "../styles/Auth.css";
 import eye from "../assets/eyeOn.png";
 import eyeOff from "../assets/eyeOff.png";
+import logo from "../assets/logo.png";
+import googleLogo from "../assets/googleLogo.png";
 
 const mapAuthError = (code, fallback) => {
   switch (code) {

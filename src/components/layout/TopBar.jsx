@@ -9,7 +9,7 @@ export default function TopBar({ username }) {
   const [showNotifications, setShowNotifications] = useState(false);
   const dropdownRef = useRef(null);
   const notificationRef = useRef(null);
-  const { logout } = useAuth();
+  const { logout, userData } = useAuth();
   const navigate = useNavigate();
 
   // Mock notifications data - replace with real data later
@@ -75,14 +75,16 @@ export default function TopBar({ username }) {
 
   const handleViewProfile = () => {
     setShowDropdown(false);
-    // TODO: Navigate to view profile page
-    navigate('/profile');
+    // Navigate based on user role
+    const isClinicOwner = userData?.role === 'clinicOwner' || userData?.role === 'clinicStaff';
+    navigate(isClinicOwner ? '/clinic/profile' : '/profile');
   };
 
   const handleEditProfile = () => {
     setShowDropdown(false);
-    // TODO: Navigate to edit profile page
-    navigate('/edit-profile');
+    // Navigate based on user role
+    const isClinicOwner = userData?.role === 'clinicOwner' || userData?.role === 'clinicStaff';
+    navigate(isClinicOwner ? '/clinic/edit-profile' : '/edit-profile');
   };
 
   const markAsRead = (id) => {

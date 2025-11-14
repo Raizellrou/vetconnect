@@ -4,7 +4,7 @@ import { X, MapPin, Locate } from 'lucide-react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
-// Fix for default marker icon in React Leaflet
+// Fix for default marker icon in React Leaflet  
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
@@ -39,6 +39,9 @@ export default function MapPicker({ isOpen, onClose, onSelectLocation, initialPo
   const [position, setPosition] = useState(initialPosition || defaultCenter);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
+
+  // Debug log
+  console.log('MapPicker loaded - Enhanced design v2.0');
 
   useEffect(() => {
     if (initialPosition) {
@@ -77,15 +80,35 @@ export default function MapPicker({ isOpen, onClose, onSelectLocation, initialPo
   const handleCurrentLocation = () => {
     if ('geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition(
-        (position) => {
+        (pos) => {
+          console.log('Got location:', pos.coords.latitude, pos.coords.longitude);
           setPosition({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude
           });
         },
         (error) => {
           console.error('Error getting location:', error);
-          alert('Unable to get your current location. Please enable location services.');
+          let errorMessage = 'Unable to get your current location. ';
+          switch(error.code) {
+            case error.PERMISSION_DENIED:
+              errorMessage += 'Please enable location permissions for this site.';
+              break;
+            case error.POSITION_UNAVAILABLE:
+              errorMessage += 'Location information is unavailable.';
+              break;
+            case error.TIMEOUT:
+              errorMessage += 'The request to get your location timed out.';
+              break;
+            default:
+              errorMessage += 'An unknown error occurred.';
+          }
+          alert(errorMessage);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0
         }
       );
     } else {
@@ -159,7 +182,7 @@ export default function MapPicker({ isOpen, onClose, onSelectLocation, initialPo
         {/* Header */}
         <div style={{
           background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-          padding: '24px',
+          padding: '20px 24px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
@@ -167,32 +190,25 @@ export default function MapPicker({ isOpen, onClose, onSelectLocation, initialPo
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div style={{
-              width: '48px',
-              height: '48px',
+              width: '40px',
+              height: '40px',
               background: 'rgba(255, 255, 255, 0.2)',
-              borderRadius: '12px',
+              borderRadius: '10px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center'
             }}>
-              <MapPin size={24} color="white" />
+              <MapPin size={20} color="white" />
             </div>
             <div>
               <h2 style={{
-                fontSize: '1.5rem',
+                fontSize: '1.25rem',
                 fontWeight: '700',
                 color: 'white',
                 margin: 0
               }}>
-                Pick Location on Map
+                Pick Clinic Location
               </h2>
-              <p style={{
-                fontSize: '0.875rem',
-                color: 'rgba(255, 255, 255, 0.9)',
-                margin: 0
-              }}>
-                Search or click on the map to select your clinic location
-              </p>
             </div>
           </div>
           <button
@@ -215,276 +231,278 @@ export default function MapPicker({ isOpen, onClose, onSelectLocation, initialPo
               e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
             }}
           >
-            <X size={24} color="white" />
+            <X size={20} color="white" />
           </button>
         </div>
 
-        {/* Search Bar */}
-        <div style={{ padding: '20px 24px', borderBottom: '2px solid #f3f4f6' }}>
-          <div style={{ display: 'flex', gap: '12px' }}>
-            <div style={{ position: 'relative', flex: 1 }}>
-              <MapPin 
-                size={20} 
-                style={{
-                  position: 'absolute',
-                  left: '16px',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  color: '#9ca3af'
-                }}
-              />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                placeholder="Search for a location (e.g., Angeles City, Pampanga)"
-                style={{
-                  width: '100%',
-                  padding: '14px 16px 14px 48px',
-                  border: '2px solid #e5e7eb',
-                  borderRadius: '12px',
-                  fontSize: '1rem',
-                  outline: 'none',
-                  transition: 'all 0.2s'
-                }}
-                onFocus={(e) => {
-                  e.target.style.borderColor = '#3b82f6';
-                  e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
-                }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = '#e5e7eb';
-                  e.target.style.boxShadow = 'none';
-                }}
-              />
-            </div>
-            <button
-              onClick={handleSearch}
-              disabled={isSearching}
-              style={{
-                padding: '14px 32px',
-                background: isSearching ? '#93c5fd' : 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-                color: 'white',
-                border: 'none',
-                borderRadius: '12px',
-                fontSize: '1rem',
-                fontWeight: '600',
-                cursor: isSearching ? 'not-allowed' : 'pointer',
-                transition: 'all 0.2s',
-                whiteSpace: 'nowrap',
-                boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)'
-              }}
-              onMouseEnter={(e) => {
-                if (!isSearching) {
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = '0 6px 16px rgba(59, 130, 246, 0.4)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!isSearching) {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(59, 130, 246, 0.3)';
-                }
-              }}
-            >
-              {isSearching ? 'Searching...' : 'Search'}
-            </button>
-          </div>
-          <p style={{
-            fontSize: '0.875rem',
-            color: '#6b7280',
-            marginTop: '12px',
-            marginBottom: 0
-          }}>
-            💡 Click anywhere on the map to place a marker, or use the search bar above
-          </p>
-        </div>
-
-        {/* Map Placeholder */}
+        {/* Enhanced Top Action Bar with Blue Gradient */}
         <div style={{ 
-          flex: 1, 
-          position: 'relative',
-          background: 'linear-gradient(135deg, #e0e7ff 0%, #f3f4f6 100%)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          overflow: 'hidden'
+          padding: '24px', 
+          background: 'linear-gradient(180deg, #f0f9ff 0%, #ffffff 100%)', 
+          borderBottom: '2px solid #e0e7ff'
         }}>
-          {/* Grid pattern background */}
-          <div style={{
-            position: 'absolute',
-            inset: 0,
-            backgroundImage: `
-              linear-gradient(rgba(59, 130, 246, 0.1) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(59, 130, 246, 0.1) 1px, transparent 1px)
-            `,
-            backgroundSize: '40px 40px'
-          }}></div>
-
-          {/* Placeholder content */}
-          <div style={{
-            textAlign: 'center',
-            zIndex: 1,
-            padding: '32px'
-          }}>
-            <div style={{
-              width: '120px',
-              height: '120px',
-              background: 'linear-gradient(135deg, #818cf8 0%, #3b82f6 100%)',
-              borderRadius: '50%',
-              margin: '0 auto 24px',
+          <button
+            onClick={handleCurrentLocation}
+            style={{
+              width: '100%',
+              padding: '16px 24px',
+              background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+              borderRadius: '12px',
+              border: 'none',
+              cursor: 'pointer',
+              boxShadow: '0 4px 16px rgba(59, 130, 246, 0.4)',
+              transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              boxShadow: '0 8px 24px rgba(59, 130, 246, 0.3)'
-            }}>
-              <MapPin size={60} color="white" />
-            </div>
-            <h3 style={{
-              fontSize: '1.5rem',
-              fontWeight: '700',
-              color: '#1f2937',
-              marginBottom: '12px'
-            }}>
-              Map Placeholder
-            </h3>
-            <p style={{
+              gap: '12px',
               fontSize: '1rem',
-              color: '#6b7280',
-              maxWidth: '500px',
-              margin: '0 auto 24px'
-            }}>
-              Interactive map will appear here. You'll be able to search locations, click to place markers, and select your clinic's exact position.
-            </p>
-            <div style={{
-              display: 'inline-block',
-              background: 'white',
-              padding: '12px 24px',
-              borderRadius: '12px',
-              border: '2px solid #e5e7eb',
-              fontSize: '0.875rem'
-            }}>
-              <span style={{ fontWeight: '700', color: '#1f2937' }}>Current Position:</span>{' '}
-              <span style={{ color: '#3b82f6', fontWeight: '600' }}>
-                {position.lat.toFixed(6)}, {position.lng.toFixed(6)}
-              </span>
-            </div>
-          </div>
-
-          {/* Coordinate selector buttons */}
+              fontWeight: '700',
+              color: 'white',
+              marginBottom: '16px'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-3px) scale(1.01)';
+              e.currentTarget.style.boxShadow = '0 8px 24px rgba(59, 130, 246, 0.5)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0) scale(1)';
+              e.currentTarget.style.boxShadow = '0 4px 16px rgba(59, 130, 246, 0.4)';
+            }}
+          >
+            <Locate size={22} strokeWidth={2.5} />
+            <span>Use my current location</span>
+          </button>
+          
           <div style={{
-            position: 'absolute',
-            bottom: '24px',
-            right: '24px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '12px',
-            zIndex: 1000
+            background: 'linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)',
+            padding: '16px 20px',
+            borderRadius: '12px',
+            border: '2px solid #93c5fd',
+            boxShadow: '0 2px 8px rgba(59, 130, 246, 0.15)'
           }}>
-            <button
-              onClick={handleCurrentLocation}
-              style={{
-                padding: '14px 20px',
-                background: 'white',
-                borderRadius: '12px',
-                border: '2px solid #e5e7eb',
-                cursor: 'pointer',
-                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                transition: 'all 0.2s',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                fontSize: '0.875rem',
-                fontWeight: '600',
-                color: '#374151'
-              }}
-              title="Use current location"
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'scale(1.05)';
-                e.currentTarget.style.boxShadow = '0 6px 16px rgba(0, 0, 0, 0.15)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'scale(1)';
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
-              }}
-            >
-              <Locate size={20} style={{ color: '#3b82f6' }} />
-              Use My Location
-            </button>
+            <p style={{
+              fontSize: '0.875rem',
+              color: '#1e40af',
+              margin: 0,
+              lineHeight: '1.6',
+              fontWeight: '600',
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: '8px'
+            }}>
+              <span style={{ fontSize: '1.25rem' }}>💡</span>
+              <span><strong>Quick Tip:</strong> Click anywhere on the map below to place a marker for your clinic location. Your coordinates will be automatically saved.</span>
+            </p>
           </div>
         </div>
 
-        {/* Footer with Confirm Button */}
-        <div style={{
-          padding: '20px 24px',
-          borderTop: '2px solid #f3f4f6',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          background: '#fafafa'
+        {/* Map Container */}
+        <div style={{ 
+          flex: 1, 
+          position: 'relative',
+          background: '#f8fafc',
+          overflow: 'hidden'
         }}>
-          <p style={{
-            fontSize: '0.875rem',
-            color: '#6b7280',
-            margin: 0
+          <MapContainer
+            center={[position.lat, position.lng]}
+            zoom={13}
+            style={{ 
+              height: '100%', 
+              width: '100%',
+              borderRadius: '0'
+            }}
+            zoomControl={true}
+          >
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+            <LocationMarker position={position} setPosition={setPosition} />
+          </MapContainer>
+
+          {/* Enhanced Coordinates Display Card */}
+          <div style={{
+            position: 'absolute',
+            top: '24px',
+            left: '24px',
+            background: 'linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%)',
+            padding: '20px 24px',
+            borderRadius: '16px',
+            boxShadow: '0 10px 30px rgba(0, 0, 0, 0.15), 0 4px 12px rgba(59, 130, 246, 0.1)',
+            border: '2px solid #93c5fd',
+            backdropFilter: 'blur(12px)',
+            zIndex: 1000,
+            minWidth: '260px'
           }}>
-            {position ? '✓ Location selected' : 'Click on the map to select a location'}
-          </p>
-          <div style={{ display: 'flex', gap: '12px' }}>
-            <button
-              onClick={onClose}
-              style={{
-                padding: '12px 24px',
-                background: 'white',
-                color: '#374151',
-                border: '2px solid #e5e7eb',
-                borderRadius: '10px',
-                fontSize: '0.9375rem',
-                fontWeight: '600',
-                cursor: 'pointer',
-                transition: 'all 0.2s'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = '#f9fafb';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'white';
-              }}
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleConfirm}
-              disabled={!position}
-              style={{
-                padding: '12px 32px',
-                background: position 
-                  ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' 
-                  : '#d1d5db',
-                color: 'white',
-                border: 'none',
-                borderRadius: '10px',
-                fontSize: '0.9375rem',
-                fontWeight: '700',
-                cursor: position ? 'pointer' : 'not-allowed',
-                transition: 'all 0.2s',
-                boxShadow: position ? '0 4px 12px rgba(16, 185, 129, 0.3)' : 'none'
-              }}
-              onMouseEnter={(e) => {
-                if (position) {
+            <div style={{ 
+              color: '#2563eb', 
+              marginBottom: '12px', 
+              fontSize: '0.875rem', 
+              fontWeight: 800,
+              textTransform: 'uppercase',
+              letterSpacing: '0.08em',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}>
+              <MapPin size={18} strokeWidth={2.5} />
+              SELECTED LOCATION
+            </div>
+            <div style={{ 
+              color: '#1f2937',
+              marginBottom: '6px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <span style={{ color: '#6b7280', fontSize: '0.875rem', fontWeight: 600 }}>Latitude:</span>
+              <span style={{ fontFamily: 'monospace', fontSize: '0.9375rem', fontWeight: 700, color: '#0f172a' }}>{position.lat.toFixed(6)}</span>
+            </div>
+            <div style={{ 
+              color: '#1f2937',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <span style={{ color: '#6b7280', fontSize: '0.875rem', fontWeight: 600 }}>Longitude:</span>
+              <span style={{ fontFamily: 'monospace', fontSize: '0.9375rem', fontWeight: 700, color: '#0f172a' }}>{position.lng.toFixed(6)}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Enhanced Footer Section */}
+        <div style={{
+          padding: '24px',
+          borderTop: '2px solid #e0e7ff',
+          background: 'linear-gradient(180deg, #ffffff 0%, #f0f9ff 100%)'
+        }}>
+          {/* Yellow Tips Box */}
+          <div style={{ marginBottom: '20px' }}>
+            <div style={{
+              background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
+              padding: '18px 22px',
+              borderRadius: '14px',
+              border: '2px solid #fbbf24',
+              boxShadow: '0 4px 12px rgba(251, 191, 36, 0.2)'
+            }}>
+              <h4 style={{ 
+                fontSize: '0.9375rem', 
+                fontWeight: '800', 
+                color: '#92400e', 
+                margin: '0 0 10px 0',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                letterSpacing: '0.02em'
+              }}>
+                <span style={{ fontSize: '1.25rem' }}>💡</span>
+                QUICK TIPS
+              </h4>
+              <ul style={{ 
+                margin: 0, 
+                paddingLeft: '24px',
+                fontSize: '0.875rem',
+                color: '#78350f',
+                lineHeight: '1.8',
+                fontWeight: 500
+              }}>
+                <li>Use the <strong>zoom controls (+/-)</strong> on the left to adjust your view</li>
+                <li>Click the blue <strong>"Use my current location"</strong> button above for instant placement</li>
+                <li><strong>Click anywhere on the map</strong> to manually pin your clinic's exact location</li>
+              </ul>
+            </div>
+          </div>
+          
+          {/* Action Buttons Row */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
+            <div style={{ 
+              fontSize: '0.875rem', 
+              color: position ? '#10b981' : '#6b7280', 
+              fontWeight: 600,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px'
+            }}>
+              {position ? (
+                <>
+                  <span style={{ fontSize: '1.125rem' }}>✓</span>
+                  <span>Location selected and ready to use</span>
+                </>
+              ) : (
+                <span>Please select a location on the map</span>
+              )}
+            </div>
+            
+            <div style={{ display: 'flex', gap: '14px' }}>
+              <button
+                onClick={onClose}
+                style={{
+                  padding: '14px 28px',
+                  background: 'white',
+                  color: '#374151',
+                  border: '2px solid #d1d5db',
+                  borderRadius: '12px',
+                  fontSize: '1rem',
+                  fontWeight: '700',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = '#f3f4f6';
+                  e.currentTarget.style.borderColor = '#9ca3af';
                   e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = '0 6px 16px rgba(16, 185, 129, 0.4)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (position) {
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.12)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'white';
+                  e.currentTarget.style.borderColor = '#d1d5db';
                   e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.3)';
-                }
-              }}
-            >
-              Confirm Location
-            </button>
+                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.08)';
+                }}
+              >
+                Cancel
+              </button>
+              
+              <button
+                onClick={handleConfirm}
+                disabled={!position}
+                style={{
+                  padding: '14px 32px',
+                  background: position 
+                    ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' 
+                    : '#d1d5db',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '12px',
+                  fontSize: '1rem',
+                  fontWeight: '800',
+                  cursor: position ? 'pointer' : 'not-allowed',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  boxShadow: position ? '0 4px 16px rgba(16, 185, 129, 0.4)' : 'none',
+                  letterSpacing: '0.02em',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}
+                onMouseEnter={(e) => {
+                  if (position) {
+                    e.currentTarget.style.transform = 'translateY(-3px) scale(1.02)';
+                    e.currentTarget.style.boxShadow = '0 8px 24px rgba(16, 185, 129, 0.5)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (position) {
+                    e.currentTarget.style.transform = 'translateY(0) scale(1)';
+                    e.currentTarget.style.boxShadow = '0 4px 16px rgba(16, 185, 129, 0.4)';
+                  }
+                }}
+              >
+                <span style={{ fontSize: '1.125rem' }}>✓</span>
+                <span>Use this location</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
