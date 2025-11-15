@@ -81,20 +81,12 @@ export default function AddPetPage() {
           <div className={styles.welcomeBanner}>
             <div className={styles.bannerMeta}>
               <span>Pets</span>
-              <span className={styles.bulletPoint}>•</span>
-              <span className={styles.dateText}>
-                {new Date().toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric'
-                })}
-              </span>
             </div>
             
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
               <div>
                 <h1 className={styles.welcomeTitle}>My Pets</h1>
-                <p style={{ color: '#6b7280', marginTop: '4px', fontSize: '1rem' }}>
+                <p style={{ color: 'white', marginTop: '4px', fontSize: '1rem', fontWeight: 500 }}>
                   Manage your furry friends and their information
                 </p>
               </div>
@@ -103,7 +95,7 @@ export default function AddPetPage() {
                 onClick={() => setShowAddModal(true)}
                 style={{
                   padding: '14px 28px',
-                  background: 'linear-gradient(135deg, #ec4899 0%, #f472b6 100%)',
+                  background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
                   color: 'white',
                   border: 'none',
                   borderRadius: '12px',
@@ -113,16 +105,16 @@ export default function AddPetPage() {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '10px',
-                  boxShadow: '0 4px 16px rgba(236, 72, 153, 0.4)',
+                  boxShadow: '0 4px 16px rgba(59, 130, 246, 0.4)',
                   transition: 'all 0.2s ease'
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = '0 6px 20px rgba(236, 72, 153, 0.5)';
+                  e.currentTarget.style.boxShadow = '0 6px 20px rgba(59, 130, 246, 0.5)';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 4px 16px rgba(236, 72, 153, 0.4)';
+                  e.currentTarget.style.boxShadow = '0 4px 16px rgba(59, 130, 246, 0.4)';
                 }}
               >
                 <Plus size={20} strokeWidth={2.5} />
@@ -138,7 +130,7 @@ export default function AddPetPage() {
                 width: '56px', 
                 height: '56px', 
                 border: '4px solid #e5e7eb',
-                borderTopColor: '#ec4899',
+                borderTopColor: '#3b82f6',
                 borderRadius: '50%',
                 margin: '0 auto 16px',
                 animation: 'spin 1s linear infinite'
@@ -159,14 +151,14 @@ export default function AddPetPage() {
               <div style={{ 
                 width: '120px', 
                 height: '120px', 
-                background: 'linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%)', 
+                background: 'linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)', 
                 borderRadius: '24px', 
                 display: 'flex', 
                 alignItems: 'center', 
                 justifyContent: 'center', 
                 margin: '0 auto 24px' 
               }}>
-                <PawPrint size={56} color="#ec4899" />
+                <PawPrint size={56} color="#3b82f6" />
               </div>
               <h3 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1f2937', marginBottom: '12px' }}>
                 No pets yet
@@ -178,7 +170,7 @@ export default function AddPetPage() {
                 onClick={() => setShowAddModal(true)}
                 style={{
                   padding: '16px 36px',
-                  background: 'linear-gradient(135deg, #ec4899 0%, #f472b6 100%)',
+                  background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
                   color: 'white',
                   border: 'none',
                   borderRadius: '14px',
@@ -188,16 +180,16 @@ export default function AddPetPage() {
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '10px',
-                  boxShadow: '0 6px 20px rgba(236, 72, 153, 0.4)',
+                  boxShadow: '0 6px 20px rgba(59, 130, 246, 0.4)',
                   transition: 'all 0.2s ease'
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.transform = 'translateY(-3px)';
-                  e.currentTarget.style.boxShadow = '0 8px 28px rgba(236, 72, 153, 0.5)';
+                  e.currentTarget.style.boxShadow = '0 8px 28px rgba(59, 130, 246, 0.5)';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 6px 20px rgba(236, 72, 153, 0.4)';
+                  e.currentTarget.style.boxShadow = '0 6px 20px rgba(59, 130, 246, 0.4)';
                 }}
               >
                 <Plus size={22} strokeWidth={2.5} />
@@ -227,7 +219,7 @@ export default function AddPetPage() {
                   onMouseEnter={(e) => {
                     e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.12)';
                     e.currentTarget.style.transform = 'translateY(-4px)';
-                    e.currentTarget.style.borderColor = '#ec4899';
+                    e.currentTarget.style.borderColor = '#3b82f6';
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)';
@@ -240,11 +232,11 @@ export default function AddPetPage() {
                       width: '80px', 
                       height: '80px', 
                       borderRadius: '16px', 
-                      background: pet.avatarURL ? '#fff' : 'linear-gradient(135deg, #ec4899 0%, #f472b6 100%)',
+                      background: pet.avatarURL ? '#fff' : 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
                       display: 'flex', 
                       alignItems: 'center', 
                       justifyContent: 'center',
-                      boxShadow: '0 4px 12px rgba(236, 72, 153, 0.2)',
+                      boxShadow: '0 4px 12px rgba(59, 130, 246, 0.2)',
                       overflow: 'hidden',
                       flexShrink: 0
                     }}>
@@ -369,7 +361,7 @@ export default function AddPetPage() {
                       style={{
                         flex: 1,
                         padding: '12px',
-                        background: 'linear-gradient(135deg, #ec4899 0%, #f472b6 100%)',
+                        background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
                         color: 'white',
                         border: 'none',
                         borderRadius: '10px',
@@ -581,12 +573,12 @@ export default function AddPetPage() {
                   style={{ 
                     padding: '12px 32px', 
                     borderRadius: '10px', 
-                    background: editingLoading ? '#9ca3af' : 'linear-gradient(135deg, #ec4899 0%, #f472b6 100%)',
+                    background: editingLoading ? '#9ca3af' : 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
                     color: 'white',
                     border: 'none',
                     cursor: editingLoading ? 'not-allowed' : 'pointer',
                     fontWeight: 700,
-                    boxShadow: editingLoading ? 'none' : '0 4px 12px rgba(236, 72, 153, 0.3)'
+                    boxShadow: editingLoading ? 'none' : '0 4px 12px rgba(59, 130, 246, 0.3)'
                   }}
                 >
                   {editingLoading ? 'Saving...' : 'Save Changes'}
@@ -599,3 +591,4 @@ export default function AddPetPage() {
     </div>
   );
 }
+

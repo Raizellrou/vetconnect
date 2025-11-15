@@ -288,27 +288,36 @@ export default function OwnerDashboard() {
           </div>
 
           <div className={styles.appointmentSection}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
               <h2 className={styles.sectionTitle}>Appointments</h2>
               <button
                 onClick={() => navigate('/map')}
                 style={{
-                  padding: '12px 24px',
+                  padding: '10px 18px',
                   background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
                   color: 'white',
                   border: 'none',
-                  borderRadius: '10px',
-                  fontSize: '0.9375rem',
-                  fontWeight: 700,
+                  borderRadius: '8px',
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
                   cursor: 'pointer',
-                  boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
+                  boxShadow: '0 2px 8px rgba(16, 185, 129, 0.25)',
                   transition: 'all 0.2s ease',
-                  display: 'flex',
+                  display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '8px'
+                  gap: '6px',
+                  whiteSpace: 'nowrap'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.35)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(16, 185, 129, 0.25)';
                 }}
               >
-                <Calendar size={18} strokeWidth={2.5} />
+                <Calendar size={16} strokeWidth={2.5} />
                 <span>Find Clinic & Book</span>
               </button>
             </div>

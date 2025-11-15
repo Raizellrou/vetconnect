@@ -339,16 +339,6 @@ export default function MapPage() {
               )}
             </div>
 
-            <div style={{ marginBottom: 12 }}>
-              {loading ? (
-                <div style={{ padding: 12, background: 'white', borderRadius: 8 }}>Loading clinics...</div>
-              ) : error ? (
-                <div style={{ padding: 12, background: 'white', borderRadius: 8, color: '#b91c1c' }}>Failed to load clinics.</div>
-              ) : clinicMarkers.length === 0 ? (
-                <div style={{ padding: 12, background: 'white', borderRadius: 8 }}>No clinics available yet.</div>
-              ) : null}
-            </div>
-
             <div style={{ width: '100%', height: 500, borderRadius: 12, overflow: 'hidden' }}>
               <MapContainer center={[mapCenter.lat, mapCenter.lng]} zoom={13} style={{ height: '100%', width: '100%' }}>
                 <TileLayer

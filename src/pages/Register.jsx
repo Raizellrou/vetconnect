@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { auth, db } from "../firebase/firebase";
 import { doc, setDoc } from "firebase/firestore";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useNavigate } from "react-router-dom";
 import "../styles/Auth.css";
 import eye from "../assets/eyeOn.png";
@@ -32,26 +33,63 @@ export default function Register() {
     password: "",
     confirmPassword: "",
   });
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [loadingGoogle, setLoadingGoogle] = useState(false);
-  const [acceptTerms, setAcceptTerms] = useState(false);
-  const [acceptPrivacy, setAcceptPrivacy] = useState(false);
-  const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [loadingGoogle, setLoadingGoogle] = useState(false);
+  const [acceptTerms, setAcceptTerms] = useState(false);
+  const [acceptPrivacy, setAcceptPrivacy] = useState(false);
+  const [portfolioFile, setPortfolioFile] = useState(null);
+  const [portfolioPreview, setPortfolioPreview] = useState("");
+  const navigate = useNavigate();
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
 
-  const validateForm = () => {
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Validate file type (PDF, images, or documents)
+      const validTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+      if (!validTypes.includes(file.type)) {
+        setError("Please upload a valid file (PDF, JPG, PNG, or DOC)");
+        return;
+      }
+      
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setError("File size should not exceed 5MB");
+        return;
+      }
+      
+      setPortfolioFile(file);
+      setPortfolioPreview(file.name);
+      setError("");
+    }
+  };
+
+  const uploadPortfolio = async (userId) => {
+    try {
+      const storage = getStorage();
+      const portfolioRef = ref(storage, `portfolios/${userId}/${portfolioFile.name}`);
+      await uploadBytes(portfolioRef, portfolioFile);
+      const downloadURL = await getDownloadURL(portfolioRef);
+      return downloadURL;
+    } catch (error) {
+      console.error("Error uploading portfolio:", error);
+      throw error;
+    }
+  };
+
+  const validateForm = () => {
     if (!role) {
-      setError("Please select a role (Pet Owner or Clinic Staff)");
+      setError("Please select a role (Pet Owner or Veterinarian)");
       return false;
     }
     if (!formData.fullName || !formData.birthday || !formData.contactNo || 
@@ -59,18 +97,20 @@ export default function Register() {
       setError("All fields are required");
       return false;
     }
-    if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match");
-      return false;
-    }
-    if (!acceptTerms || !acceptPrivacy) {
-      setError("Please accept both Terms & Conditions and Privacy Policy");
-      return false;
-    }
-    return true;
-  };
-
-  const handleSubmit = async (e) => {
+    if (formData.password !== formData.confirmPassword) {
+      setError("Passwords do not match");
+      return false;
+    }
+      if (role === "Veterinarian" && !portfolioFile) {
+        setError("Portfolio upload is required for Veterinarian registration");
+      return false;
+    }
+    if (!acceptTerms || !acceptPrivacy) {
+      setError("Please accept both Terms & Conditions and Privacy Policy");
+      return false;
+    }
+    return true;
+  };  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
 
@@ -90,8 +130,9 @@ export default function Register() {
         contactNo: formData.contactNo,
         email: formData.email,
         role: role === "Pet Owner" ? "petOwner" : "clinicOwner",
+          portfolioURL: role === "Veterinarian" && portfolioFile ? await uploadPortfolio(userCredential.user.uid) : null,
         createdAt: new Date().toISOString()
-      });      navigate(role === "Pet Owner" ? "/owner-dashboard" : "/clinic-dashboard");
+      });      navigate(role === "Pet Owner" ? "/owner-dashboard" : "/clinic-dashboard");
     } catch (err) {
       console.error("Registration error:", err);
       setError(mapAuthError(err.code, err.message));
@@ -102,7 +143,7 @@ export default function Register() {
 
   const handleGoogle = async () => {
     if (!role) {
-      setError("Please select a role (Pet Owner or Clinic Staff) before continuing with Google");
+      setError("Please select a role (Pet Owner or Veterinarian) before continuing with Google");
       return;
     }
 
@@ -149,11 +190,11 @@ export default function Register() {
               Pet Owner
             </button>
             <button
-              className={`role-button ${role === "Clinic Staff" ? "active" : ""}`}
-              onClick={() => setRole("Clinic Staff")}
+              className={`role-button ${role === "Veterinarian" ? "active" : ""}`}
+              onClick={() => setRole("Veterinarian")}
               type="button"
             >
-              Clinic Staff
+              Veterinarian
             </button>
           </div>
         </div>
@@ -237,6 +278,69 @@ export default function Register() {
               onClick={() => setShowConfirmPassword(prev => !prev)}
             />
           </div>
+
+          {/* Portfolio Upload for Veterinarian */}
+          {role === "Veterinarian" && (
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{
+                display: 'block',
+                marginBottom: '8px',
+                color: '#64748b',
+                fontSize: '0.875rem',
+                fontWeight: 600,
+                textTransform: 'uppercase',
+                letterSpacing: '0.5px'
+              }}>
+                Portfolio/Credentials *
+              </label>
+              <div style={{
+                position: 'relative',
+                border: '2px dashed #cbd5e1',
+                borderRadius: '12px',
+                padding: '20px',
+                background: '#f8fafc',
+                transition: 'all 0.2s'
+              }}>
+                <input
+                  type="file"
+                  id="portfolio"
+                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                  onChange={handleFileChange}
+                  style={{ display: 'none' }}
+                />
+                <label htmlFor="portfolio" style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  cursor: 'pointer',
+                  gap: '8px'
+                }}>
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#818cf8" strokeWidth="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  {portfolioPreview ? (
+                    <div style={{
+                      textAlign: 'center',
+                      color: '#059669',
+                      fontWeight: 600
+                    }}>
+                      <p style={{ margin: '4px 0', fontSize: '0.9375rem' }}> {portfolioPreview}</p>
+                      <p style={{ margin: '4px 0', fontSize: '0.8125rem', color: '#6b7280' }}>Click to change file</p>
+                    </div>
+                  ) : (
+                    <div style={{ textAlign: 'center' }}>
+                      <p style={{ margin: '4px 0', color: '#1e293b', fontWeight: 600, fontSize: '0.9375rem' }}>
+                        Click to upload or drag and drop
+                      </p>
+                      <p style={{ margin: '4px 0', color: '#64748b', fontSize: '0.8125rem' }}>
+                        PDF, DOC, JPG, PNG (Max 5MB)
+                      </p>
+                    </div>
+                  )}
+                </label>
+              </div>
+            </div>
+          )}
 
           <div className="auth-checkboxes">
             <label className="checkbox-label">

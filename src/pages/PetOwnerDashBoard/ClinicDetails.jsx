@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { MapPin, Phone, Clock, Star, Bookmark, BookmarkCheck, Calendar, ArrowLeft } from 'lucide-react';
+import { MapPin, Phone, Clock, Star, Bookmark, BookmarkCheck, Calendar, X } from 'lucide-react';
 import TopBar from '../../components/layout/TopBar';
 import Sidebar from '../../components/layout/Sidebar';
 import { useAuth } from '../../contexts/AuthContext';
@@ -169,109 +169,108 @@ export default function ClinicDetails() {
       <div style={{ flex: 1, marginLeft: '200px' }}>
         <TopBar username={displayName} />
         
-        <main style={{ padding: '40px 32px', maxWidth: '1200px', margin: '0 auto' }}>
-          {/* Back Button */}
-          <button
-            onClick={() => navigate(-1)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              padding: '10px 20px',
-              background: 'white',
-              border: '2px solid #e5e7eb',
-              borderRadius: '10px',
-              cursor: 'pointer',
-              marginBottom: '24px',
-              fontSize: '0.875rem',
-              fontWeight: 600,
-              color: '#374151',
-              transition: 'all 0.2s'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = '#818cf8';
-              e.currentTarget.style.color = '#818cf8';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = '#e5e7eb';
-              e.currentTarget.style.color = '#374151';
-            }}
-          >
-            <ArrowLeft size={18} />
-            Back
-          </button>
-
+        <main style={{ padding: '80px 20px 24px 20px', maxWidth: '1400px', margin: '0 auto' }}>
           {/* Clinic Header */}
           <div style={{
             background: 'white',
             borderRadius: '20px',
             padding: '40px',
             marginBottom: '24px',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.08)'
+            boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+            position: 'relative'
           }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '24px', flexWrap: 'wrap' }}>
-              <div style={{ flex: 1, minWidth: '300px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px', flexWrap: 'wrap' }}>
-                  <h1 style={{ fontSize: '2.5rem', fontWeight: 700, color: '#1f2937', margin: 0 }}>
-                    {clinic.clinicName || clinic.name}
-                  </h1>
-                  {(clinic.averageRating || clinic.rating) && (
-                    <div style={{ 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      gap: '8px', 
-                      padding: '8px 16px', 
-                      background: '#fef3c7', 
-                      borderRadius: '10px',
-                      border: '2px solid #fbbf24'
-                    }}>
-                      <div style={{ display: 'flex', gap: '2px' }}>
-                        {renderStars(clinic.averageRating || clinic.rating)}
-                      </div>
-                      <span style={{ fontWeight: 700, color: '#92400e', fontSize: '1.125rem' }}>
-                        {(clinic.averageRating || clinic.rating).toFixed(1)}
-                      </span>
-                      <span style={{ fontSize: '0.875rem', color: '#78350f' }}>
-                        ({clinic.reviewCount || reviews.length} {(clinic.reviewCount || reviews.length) === 1 ? 'review' : 'reviews'})
-                      </span>
-                    </div>
-                  )}
-                </div>
+            {/* Close Button */}
+            <button
+              onClick={() => navigate(-1)}
+              style={{
+                position: 'absolute',
+                top: '20px',
+                right: '20px',
+                width: '40px',
+                height: '40px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: '#f3f4f6',
+                border: 'none',
+                borderRadius: '10px',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                color: '#6b7280'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = '#fee2e2';
+                e.currentTarget.style.color = '#dc2626';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = '#f3f4f6';
+                e.currentTarget.style.color = '#6b7280';
+              }}
+            >
+              <X size={20} />
+            </button>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
-                  {clinic.address && (
-                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
-                      <MapPin size={20} color="#6b7280" style={{ flexShrink: 0, marginTop: '2px' }} />
-                      <span style={{ color: '#374151', fontSize: '1rem' }}>{clinic.address}</span>
+            <div style={{ paddingRight: '50px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px', flexWrap: 'wrap' }}>
+                <h1 style={{ fontSize: '2.5rem', fontWeight: 700, color: '#1f2937', margin: 0 }}>
+                  {clinic.clinicName || clinic.name}
+                </h1>
+                {(clinic.averageRating || clinic.rating) && (
+                  <div style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '8px', 
+                    padding: '8px 16px', 
+                    background: '#fef3c7', 
+                    borderRadius: '10px',
+                    border: '2px solid #fbbf24'
+                  }}>
+                    <div style={{ display: 'flex', gap: '2px' }}>
+                      {renderStars(clinic.averageRating || clinic.rating)}
                     </div>
-                  )}
-                  {(clinic.contactNumber || clinic.phone) && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <Phone size={20} color="#6b7280" />
-                      <span style={{ color: '#374151', fontSize: '1rem' }}>{clinic.contactNumber || clinic.phone}</span>
-                    </div>
-                  )}
-                  {clinic.openHours && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <Clock size={20} color="#6b7280" />
-                      <span style={{ color: '#374151', fontSize: '1rem' }}>{clinic.openHours}</span>
-                    </div>
-                  )}
-                </div>
-
-                {clinic.description && (
-                  <p style={{ color: '#6b7280', lineHeight: '1.6', fontSize: '1rem' }}>
-                    {clinic.description}
-                  </p>
+                    <span style={{ fontWeight: 700, color: '#92400e', fontSize: '1.125rem' }}>
+                      {(clinic.averageRating || clinic.rating).toFixed(1)}
+                    </span>
+                    <span style={{ fontSize: '0.875rem', color: '#78350f' }}>
+                      ({clinic.reviewCount || reviews.length} {(clinic.reviewCount || reviews.length) === 1 ? 'review' : 'reviews'})
+                    </span>
+                  </div>
                 )}
               </div>
 
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
+                {clinic.address && (
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+                    <MapPin size={20} color="#6b7280" style={{ flexShrink: 0, marginTop: '2px' }} />
+                    <span style={{ color: '#374151', fontSize: '1rem' }}>{clinic.address}</span>
+                  </div>
+                )}
+                {(clinic.contactNumber || clinic.phone) && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <Phone size={20} color="#6b7280" />
+                    <span style={{ color: '#374151', fontSize: '1rem' }}>{clinic.contactNumber || clinic.phone}</span>
+                  </div>
+                )}
+                {clinic.openHours && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <Clock size={20} color="#6b7280" />
+                    <span style={{ color: '#374151', fontSize: '1rem' }}>{clinic.openHours}</span>
+                  </div>
+                )}
+              </div>
+
+              {clinic.description && (
+                <p style={{ color: '#6b7280', lineHeight: '1.6', fontSize: '1rem', marginBottom: '32px' }}>
+                  {clinic.description}
+                </p>
+              )}
+
               {/* Action Buttons */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', minWidth: '200px' }}>
+              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                 <button
                   onClick={handleMakeAppointment}
                   style={{
-                    padding: '16px 32px',
+                    padding: '14px 28px',
                     background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
                     color: 'white',
                     border: 'none',
@@ -287,8 +286,8 @@ export default function ClinicDetails() {
                     transition: 'all 0.3s ease'
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-3px)';
-                    e.currentTarget.style.boxShadow = '0 8px 24px rgba(16, 185, 129, 0.5)';
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 6px 20px rgba(16, 185, 129, 0.5)';
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.transform = 'translateY(0)';
@@ -308,7 +307,7 @@ export default function ClinicDetails() {
                     color: isBookmarked ? 'white' : '#374151',
                     border: `2px solid ${isBookmarked ? '#fbbf24' : '#e5e7eb'}`,
                     borderRadius: '12px',
-                    fontSize: '0.9375rem',
+                    fontSize: '1rem',
                     fontWeight: 600,
                     cursor: bookmarkLoading ? 'not-allowed' : 'pointer',
                     display: 'flex',
@@ -320,11 +319,11 @@ export default function ClinicDetails() {
                   }}
                   onMouseEnter={(e) => {
                     if (!bookmarkLoading) {
-                      e.currentTarget.style.transform = 'scale(1.05)';
+                      e.currentTarget.style.transform = 'translateY(-2px)';
                     }
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'scale(1)';
+                    e.currentTarget.style.transform = 'translateY(0)';
                   }}
                 >
                   {isBookmarked ? <BookmarkCheck size={18} /> : <Bookmark size={18} />}
@@ -340,7 +339,8 @@ export default function ClinicDetails() {
               background: 'white',
               borderRadius: '20px',
               padding: '32px',
-              boxShadow: '0 4px 20px rgba(0,0,0,0.08)'
+              boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+              marginBottom: '24px'
             }}>
               <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1f2937', marginBottom: '20px' }}>
                 Services Offered

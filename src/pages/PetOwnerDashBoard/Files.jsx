@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import TopBar from '../../components/layout/TopBar';
 import Sidebar from '../../components/layout/Sidebar';
+import { Trash2, AlertTriangle, Download, CheckCircle } from 'lucide-react';
 import '../../styles/Files.css';
 
 import { useCollection } from '../../hooks/useCollection';
@@ -11,6 +12,9 @@ const Files = () => {
   const displayName = userData?.fullName || userData?.displayName || userData?.email;
 
   const { docs: records = [], loading } = useCollection(currentUser ? `users/${currentUser.uid}/files` : null);
+
+  const [deleteModal, setDeleteModal] = useState({ isOpen: false, fileId: null, fileName: '' });
+  const [downloadModal, setDownloadModal] = useState({ isOpen: false, fileName: '' });
 
   // Dummy files for display
   const [dummyFiles, setDummyFiles] = useState([
@@ -38,10 +42,11 @@ const Files = () => {
   ]);
 
   const handleDownload = (record) => {
+    // Show download modal
+    setDownloadModal({ isOpen: true, fileName: record.name });
+    
     // For dummy files, simulate download
     if (record.id && record.id.startsWith('dummy-')) {
-      // Create a dummy file download
-      alert(`Downloading: ${record.name}`);
       // In a real scenario, you would trigger actual file download
       console.log('Download initiated for:', record.name);
       return;
@@ -50,30 +55,47 @@ const Files = () => {
     if (record?.downloadURL) window.open(record.downloadURL, '_blank');
   };
 
+  const closeDownloadModal = () => {
+    setDownloadModal({ isOpen: false, fileName: '' });
+  };
+
   const handleArchive = async (recordId) => {
     // archive implementation depends on your model; placeholder:
     console.log('Archiving record:', recordId);
   };
 
   const handleDelete = async (recordId) => {
-    // Check if it's a dummy file
-    if (recordId.startsWith('dummy-')) {
-      if (window.confirm('Are you sure you want to delete this file?')) {
-        setDummyFiles(prevFiles => prevFiles.filter(file => file.id !== recordId));
-        console.log('Deleted dummy file:', recordId);
-      }
-      return;
-    }
+    // Find the file name
+    const file = dummyFiles.find(f => f.id === recordId) || records.find(r => r.id === recordId);
+    const fileName = file?.name || 'this file';
     
-    // For real files
-    if (window.confirm('Are you sure you want to delete this record?')) {
+    // Open modal
+    setDeleteModal({ isOpen: true, fileId: recordId, fileName });
+  };
+
+  const confirmDelete = () => {
+    const { fileId } = deleteModal;
+    
+    // Check if it's a dummy file
+    if (fileId.startsWith('dummy-')) {
+      setDummyFiles(prevFiles => prevFiles.filter(file => file.id !== fileId));
+      console.log('Deleted dummy file:', fileId);
+    } else {
+      // For real files
       try {
+        console.log('Delete requested for record:', fileId);
         // optionally call a delete mutation if implemented
-        console.log('Delete requested for record:', recordId);
       } catch (error) {
         console.error('Error deleting record:', error);
       }
     }
+    
+    // Close modal
+    setDeleteModal({ isOpen: false, fileId: null, fileName: '' });
+  };
+
+  const cancelDelete = () => {
+    setDeleteModal({ isOpen: false, fileId: null, fileName: '' });
   };
 
   return (
@@ -84,17 +106,6 @@ const Files = () => {
         
         <main className="files-content">
           <header className="files-header-row">
-            <div className="files-breadcrumb">
-              <span>Files</span>
-              <span className="bullet-point">•</span>
-              <span className="date-text">
-                {new Date().toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric'
-                })}
-              </span>
-            </div>
             <h2 className="files-title">Medical Records</h2>
           </header>
 
@@ -190,6 +201,242 @@ const Files = () => {
           </section>
         </main>
       </div>
+
+      {/* Download Notification Modal */}
+      {downloadModal.isOpen && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999,
+          backdropFilter: 'blur(4px)'
+        }}>
+          <div style={{
+            background: 'white',
+            borderRadius: '20px',
+            padding: '32px',
+            maxWidth: '420px',
+            width: '90%',
+            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+            animation: 'modalFadeIn 0.3s ease-out'
+          }}>
+            {/* Icon */}
+            <div style={{
+              width: '64px',
+              height: '64px',
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 20px'
+            }}>
+              <CheckCircle size={32} color="#059669" strokeWidth={2.5} />
+            </div>
+
+            {/* Title */}
+            <h3 style={{
+              fontSize: '1.5rem',
+              fontWeight: 700,
+              color: '#1f2937',
+              textAlign: 'center',
+              marginBottom: '12px'
+            }}>
+              Download Started
+            </h3>
+
+            {/* Message */}
+            <p style={{
+              fontSize: '1rem',
+              color: '#6b7280',
+              textAlign: 'center',
+              lineHeight: '1.6',
+              marginBottom: '28px'
+            }}>
+              Downloading <strong style={{ color: '#374151' }}>{downloadModal.fileName}</strong>
+            </p>
+
+            {/* Button */}
+            <div style={{
+              display: 'flex',
+              justifyContent: 'center'
+            }}>
+              <button
+                onClick={closeDownloadModal}
+                style={{
+                  padding: '12px 32px',
+                  background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                  border: 'none',
+                  borderRadius: '12px',
+                  fontSize: '1rem',
+                  fontWeight: 600,
+                  color: 'white',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  minWidth: '120px',
+                  boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 6px 16px rgba(16, 185, 129, 0.4)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.3)';
+                }}
+              >
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteModal.isOpen && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.6)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999,
+          backdropFilter: 'blur(4px)'
+        }}>
+          <div style={{
+            background: 'white',
+            borderRadius: '20px',
+            padding: '32px',
+            maxWidth: '440px',
+            width: '90%',
+            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+            animation: 'modalFadeIn 0.3s ease-out'
+          }}>
+            {/* Icon */}
+            <div style={{
+              width: '64px',
+              height: '64px',
+              borderRadius: '50%',
+              background: 'linear-gradient(135deg, #fee2e2 0%, #fecaca 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              margin: '0 auto 20px'
+            }}>
+              <AlertTriangle size={32} color="#dc2626" strokeWidth={2.5} />
+            </div>
+
+            {/* Title */}
+            <h3 style={{
+              fontSize: '1.5rem',
+              fontWeight: 700,
+              color: '#1f2937',
+              textAlign: 'center',
+              marginBottom: '12px'
+            }}>
+              Delete File?
+            </h3>
+
+            {/* Message */}
+            <p style={{
+              fontSize: '1rem',
+              color: '#6b7280',
+              textAlign: 'center',
+              lineHeight: '1.6',
+              marginBottom: '28px'
+            }}>
+              Are you sure you want to delete <strong style={{ color: '#374151' }}>{deleteModal.fileName}</strong>? This action cannot be undone.
+            </p>
+
+            {/* Buttons */}
+            <div style={{
+              display: 'flex',
+              gap: '12px',
+              justifyContent: 'center'
+            }}>
+              <button
+                onClick={cancelDelete}
+                style={{
+                  padding: '12px 28px',
+                  background: 'white',
+                  border: '2px solid #e5e7eb',
+                  borderRadius: '12px',
+                  fontSize: '1rem',
+                  fontWeight: 600,
+                  color: '#374151',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  minWidth: '120px'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = '#f9fafb';
+                  e.currentTarget.style.borderColor = '#d1d5db';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'white';
+                  e.currentTarget.style.borderColor = '#e5e7eb';
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                style={{
+                  padding: '12px 28px',
+                  background: 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)',
+                  border: 'none',
+                  borderRadius: '12px',
+                  fontSize: '1rem',
+                  fontWeight: 600,
+                  color: 'white',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  minWidth: '120px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                  boxShadow: '0 4px 12px rgba(220, 38, 38, 0.3)'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 6px 16px rgba(220, 38, 38, 0.4)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(220, 38, 38, 0.3)';
+                }}
+              >
+                <Trash2 size={18} strokeWidth={2.5} />
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <style>{`
+        @keyframes modalFadeIn {
+          from {
+            opacity: 0;
+            transform: scale(0.95) translateY(-10px);
+          }
+          to {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+          }
+        }
+      `}</style>
     </div>
   );
 };

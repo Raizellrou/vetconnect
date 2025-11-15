@@ -132,13 +132,6 @@ function SavedClinicsList() {
         <main className={styles.page}>
           <header className={styles.headerRow}>
             <h2 className={styles.title}>Saved Clinics</h2>
-            <div className={styles.subtitle}>
-              {new Date().toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-              })}
-            </div>
           </header>
 
           {/* Error State */}

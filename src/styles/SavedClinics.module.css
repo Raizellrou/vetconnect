@@ -13,8 +13,10 @@
 }
 
 .page {
-  padding: 108px 32px 40px 32px;
+  padding: 80px 20px 24px 20px;
   box-sizing: border-box;
+  max-width: 1400px;
+  margin: 0 auto;
 }
 
 .headerRow {
@@ -38,7 +40,7 @@
 .listTableHeader { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; color:#6b7280; padding: 8px 12px; }
 
 .list { display: flex; flex-direction: column; gap: 10px; }
-.listRow { display: grid; grid-template-columns: 1fr 1fr auto; gap: 12px; align-items: center; background: transparent; padding: 12px; border-radius: 8px; cursor: pointer; }
+.listRow { display: grid; grid-template-columns: 1fr 1fr auto; gap: 24px; align-items: center; background: transparent; padding: 12px; border-radius: 8px; cursor: pointer; }
 .listRow:hover { background: rgba(17,24,39,0.02); }
 .rowName { font-weight: 600; }
 .rowLocation { color: #374151; }

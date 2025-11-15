@@ -132,12 +132,12 @@ export default function AddPetModal({ open, onClose, initialData = null }) {
       }}>
         {/* Header */}
         <div style={{
-          background: "linear-gradient(135deg, #ec4899 0%, #f472b6 100%)",
+          background: "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)",
           padding: "24px",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          boxShadow: "0 4px 12px rgba(236, 72, 153, 0.2)"
+          boxShadow: "0 4px 12px rgba(59, 130, 246, 0.2)"
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
             <div style={{
@@ -244,8 +244,8 @@ export default function AddPetModal({ open, onClose, initialData = null }) {
                     transition: "all 0.2s"
                   }}
                   onFocus={(e) => {
-                    e.target.style.borderColor = "#ec4899";
-                    e.target.style.boxShadow = "0 0 0 3px rgba(236, 72, 153, 0.1)";
+                    e.target.style.borderColor = "#3b82f6";
+                    e.target.style.boxShadow = "0 0 0 3px rgba(59, 130, 246, 0.1)";
                   }}
                   onBlur={(e) => {
                     e.target.style.borderColor = "#e5e7eb";
@@ -280,8 +280,8 @@ export default function AddPetModal({ open, onClose, initialData = null }) {
                     transition: "all 0.2s"
                   }}
                   onFocus={(e) => {
-                    e.target.style.borderColor = "#ec4899";
-                    e.target.style.boxShadow = "0 0 0 3px rgba(236, 72, 153, 0.1)";
+                    e.target.style.borderColor = "#3b82f6";
+                    e.target.style.boxShadow = "0 0 0 3px rgba(59, 130, 246, 0.1)";
                   }}
                   onBlur={(e) => {
                     e.target.style.borderColor = "#e5e7eb";
@@ -318,8 +318,8 @@ export default function AddPetModal({ open, onClose, initialData = null }) {
                     transition: "all 0.2s"
                   }}
                   onFocus={(e) => {
-                    e.target.style.borderColor = "#ec4899";
-                    e.target.style.boxShadow = "0 0 0 3px rgba(236, 72, 153, 0.1)";
+                    e.target.style.borderColor = "#3b82f6";
+                    e.target.style.boxShadow = "0 0 0 3px rgba(59, 130, 246, 0.1)";
                   }}
                   onBlur={(e) => {
                     e.target.style.borderColor = "#e5e7eb";
@@ -354,8 +354,8 @@ export default function AddPetModal({ open, onClose, initialData = null }) {
                     transition: "all 0.2s"
                   }}
                   onFocus={(e) => {
-                    e.target.style.borderColor = "#ec4899";
-                    e.target.style.boxShadow = "0 0 0 3px rgba(236, 72, 153, 0.1)";
+                    e.target.style.borderColor = "#3b82f6";
+                    e.target.style.boxShadow = "0 0 0 3px rgba(59, 130, 246, 0.1)";
                   }}
                   onBlur={(e) => {
                     e.target.style.borderColor = "#e5e7eb";
@@ -393,8 +393,8 @@ export default function AddPetModal({ open, onClose, initialData = null }) {
                     backgroundColor: "white"
                   }}
                   onFocus={(e) => {
-                    e.target.style.borderColor = "#ec4899";
-                    e.target.style.boxShadow = "0 0 0 3px rgba(236, 72, 153, 0.1)";
+                    e.target.style.borderColor = "#3b82f6";
+                    e.target.style.boxShadow = "0 0 0 3px rgba(59, 130, 246, 0.1)";
                   }}
                   onBlur={(e) => {
                     e.target.style.borderColor = "#e5e7eb";
@@ -436,8 +436,8 @@ export default function AddPetModal({ open, onClose, initialData = null }) {
                     transition: "all 0.2s"
                   }}
                   onFocus={(e) => {
-                    e.target.style.borderColor = "#ec4899";
-                    e.target.style.boxShadow = "0 0 0 3px rgba(236, 72, 153, 0.1)";
+                    e.target.style.borderColor = "#3b82f6";
+                    e.target.style.boxShadow = "0 0 0 3px rgba(59, 130, 246, 0.1)";
                   }}
                   onBlur={(e) => {
                     e.target.style.borderColor = "#e5e7eb";
@@ -473,8 +473,8 @@ export default function AddPetModal({ open, onClose, initialData = null }) {
                   transition: "all 0.2s"
                 }}
                 onFocus={(e) => {
-                  e.target.style.borderColor = "#ec4899";
-                  e.target.style.boxShadow = "0 0 0 3px rgba(236, 72, 153, 0.1)";
+                  e.target.style.borderColor = "#3b82f6";
+                  e.target.style.boxShadow = "0 0 0 3px rgba(59, 130, 246, 0.1)";
                 }}
                 onBlur={(e) => {
                   e.target.style.borderColor = "#e5e7eb";
@@ -512,8 +512,8 @@ export default function AddPetModal({ open, onClose, initialData = null }) {
                   fontFamily: "inherit"
                 }}
                 onFocus={(e) => {
-                  e.target.style.borderColor = "#ec4899";
-                  e.target.style.boxShadow = "0 0 0 3px rgba(236, 72, 153, 0.1)";
+                  e.target.style.borderColor = "#3b82f6";
+                  e.target.style.boxShadow = "0 0 0 3px rgba(59, 130, 246, 0.1)";
                 }}
                 onBlur={(e) => {
                   e.target.style.borderColor = "#e5e7eb";
@@ -558,7 +558,7 @@ export default function AddPetModal({ open, onClose, initialData = null }) {
             disabled={isSubmitting}
             style={{
               padding: "12px 32px",
-              background: isSubmitting ? "#9ca3af" : "linear-gradient(135deg, #ec4899 0%, #f472b6 100%)",
+              background: isSubmitting ? "#9ca3af" : "linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)",
               color: "white",
               border: "none",
               borderRadius: "10px",
@@ -566,7 +566,7 @@ export default function AddPetModal({ open, onClose, initialData = null }) {
               fontWeight: "700",
               cursor: isSubmitting ? "not-allowed" : "pointer",
               transition: "all 0.2s",
-              boxShadow: isSubmitting ? "none" : "0 4px 12px rgba(236, 72, 153, 0.3)"
+              boxShadow: isSubmitting ? "none" : "0 4px 12px rgba(59, 130, 246, 0.3)"
             }}
           >
             {isSubmitting ? "Adding..." : "Add Pet"}
