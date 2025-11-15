@@ -3,13 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { MapPin, Phone, Clock, Star, ChevronRight, Search } from 'lucide-react';
+import { MapPin, Phone, Clock, Star, ChevronRight, Search, Bookmark, BookmarkCheck } from 'lucide-react';
 import TopBar from '../../components/layout/TopBar';
 import Sidebar from '../../components/layout/Sidebar';
 import { useAuth } from '../../contexts/AuthContext';
 import styles from '../../styles/MapPage.module.css';
 import { collection, getDocs } from 'firebase/firestore';
 import { db } from '../../firebase/firebase';
+import { addBookmark, removeBookmark } from '../../firebase/firestoreHelpers';
+import { useCollection } from '../../hooks/useCollection';
 
 // Helper component: fit map to bounds when clinics change
 function FitBounds({ bounds }) {
@@ -50,6 +52,20 @@ export default function MapPage() {
   const [selectedClinicId, setSelectedClinicId] = useState(null);
   const [userLocation, setUserLocation] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [bookmarkLoading, setBookmarkLoading] = useState({});
+
+  // Real-time bookmarks listener
+  const {
+    docs: bookmarks = [],
+    loading: bookmarksLoading
+  } = useCollection(
+    currentUser?.uid ? `users/${currentUser.uid}/bookmarks` : null
+  );
+
+  // Create a Set of bookmarked clinic IDs for fast lookup
+  const bookmarkedClinicIds = useMemo(() => {
+    return new Set(bookmarks.map(b => b.clinicId));
+  }, [bookmarks]);
 
   // default Laoag City
   const defaultCenter = { lat: 18.1978, lng: 120.5936 };
@@ -93,6 +109,41 @@ export default function MapPage() {
       { enableHighAccuracy: false, timeout: 5000 }
     );
   }, []);
+
+  // Handle bookmark toggle
+  const handleBookmarkToggle = async (clinic, e) => {
+    if (e) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
+
+    if (!currentUser?.uid) {
+      alert('Please log in to bookmark clinics');
+      return;
+    }
+
+    const clinicId = clinic.id;
+    const isBookmarked = bookmarkedClinicIds.has(clinicId);
+
+    // Optimistic UI update
+    setBookmarkLoading(prev => ({ ...prev, [clinicId]: true }));
+
+    try {
+      if (isBookmarked) {
+        await removeBookmark(currentUser.uid, clinicId);
+      } else {
+        await addBookmark(currentUser.uid, clinicId, {
+          clinicName: clinic.name || clinic.clinicName,
+          address: clinic.address
+        });
+      }
+    } catch (error) {
+      console.error('Error toggling bookmark:', error);
+      alert(`Failed to ${isBookmarked ? 'remove' : 'add'} bookmark. Please try again.`);
+    } finally {
+      setBookmarkLoading(prev => ({ ...prev, [clinicId]: false }));
+    }
+  };
 
   // prepare markers (only those with numeric lat & lng)
   const clinicMarkers = useMemo(() => {
@@ -315,198 +366,240 @@ export default function MapPage() {
                   />
                 )}
 
-                {clinicMarkers.map((m) => (
-                  <Marker
-                    key={m.id}
-                    position={m.position}
-                    icon={makeIcon(selectedClinicId === m.id)}
-                    eventHandlers={{
-                      click: () => {
-                        setSelectedClinicId(m.id);
-                      }
-                    }}
-                  >
-                    <Popup 
-                      onClose={() => setSelectedClinicId(null)} 
-                      closeButton={false}
-                      className="custom-popup"
+                {clinicMarkers.map((m) => {
+                  const isBookmarked = bookmarkedClinicIds.has(m.id);
+                  const isLoading = bookmarkLoading[m.id];
+
+                  return (
+                    <Marker
+                      key={m.id}
+                      position={m.position}
+                      icon={makeIcon(selectedClinicId === m.id)}
+                      eventHandlers={{
+                        click: () => {
+                          setSelectedClinicId(m.id);
+                        }
+                      }}
                     >
-                      <div style={{
-                        minWidth: '280px',
-                        background: 'white',
-                        borderRadius: '16px',
-                        overflow: 'hidden',
-                        boxShadow: '0 10px 40px rgba(0, 0, 0, 0.15)'
-                      }}>
-                        {/* Header with gradient */}
+                      <Popup 
+                        onClose={() => setSelectedClinicId(null)} 
+                        closeButton={false}
+                        className="custom-popup"
+                      >
                         <div style={{
-                          background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-                          padding: '16px',
-                          color: 'white'
+                          minWidth: '280px',
+                          background: 'white',
+                          borderRadius: '16px',
+                          overflow: 'hidden',
+                          boxShadow: '0 10px 40px rgba(0, 0, 0, 0.15)'
                         }}>
+                          {/* Header with gradient and bookmark */}
                           <div style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '8px',
-                            marginBottom: '4px'
+                            background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                            padding: '16px',
+                            color: 'white',
+                            position: 'relative'
                           }}>
-                            <MapPin size={18} />
-                            <h3 style={{
-                              margin: 0,
-                              fontSize: '1.125rem',
-                              fontWeight: '700'
-                            }}>
-                              {m.name}
-                            </h3>
-                          </div>
-                          {m.rating !== null && (
-                            <div style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '4px',
-                              fontSize: '0.875rem',
-                              marginTop: '6px'
-                            }}>
-                              <Star size={14} fill="white" />
-                              <span>{m.rating}</span>
-                            </div>
-                          )}
-                        </div>
+                            {/* Bookmark button in header */}
+                            <button
+                              onClick={(e) => handleBookmarkToggle(m.raw, e)}
+                              disabled={isLoading}
+                              style={{
+                                position: 'absolute',
+                                top: '12px',
+                                right: '12px',
+                                width: '36px',
+                                height: '36px',
+                                background: 'rgba(255, 255, 255, 0.2)',
+                                border: 'none',
+                                borderRadius: '8px',
+                                cursor: isLoading ? 'not-allowed' : 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                transition: 'all 0.2s',
+                                opacity: isLoading ? 0.5 : 1
+                              }}
+                              onMouseEnter={(e) => {
+                                if (!isLoading) e.currentTarget.style.background = 'rgba(255, 255, 255, 0.3)';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
+                              }}
+                              title={isBookmarked ? 'Remove bookmark' : 'Add bookmark'}
+                            >
+                              {isBookmarked ? (
+                                <BookmarkCheck size={18} color="white" strokeWidth={2.5} />
+                              ) : (
+                                <Bookmark size={18} color="white" strokeWidth={2} />
+                              )}
+                            </button>
 
-                        {/* Content */}
-                        <div style={{ padding: '16px' }}>
-                          {/* Address */}
-                          {m.address && (
-                            <div style={{
-                              display: 'flex',
-                              gap: '8px',
-                              marginBottom: '12px',
-                              fontSize: '0.875rem',
-                              color: '#64748b'
-                            }}>
-                              <MapPin size={16} style={{ flexShrink: 0, marginTop: '2px', color: '#3b82f6' }} />
-                              <span>{m.address}</span>
-                            </div>
-                          )}
-
-                          {/* Phone */}
-                          {(m.phone || m.raw?.contactNumber) && (
                             <div style={{
                               display: 'flex',
                               alignItems: 'center',
                               gap: '8px',
-                              marginBottom: '12px',
-                              fontSize: '0.875rem',
-                              color: '#64748b'
+                              marginBottom: '4px',
+                              paddingRight: '40px'
                             }}>
-                              <Phone size={16} style={{ color: '#10b981' }} />
-                              <span>{m.phone || m.raw?.contactNumber}</span>
-                            </div>
-                          )}
-
-                          {/* Hours */}
-                          {m.raw?.openHours && (
-                            <div style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '8px',
-                              marginBottom: '12px',
-                              fontSize: '0.875rem',
-                              color: '#64748b'
-                            }}>
-                              <Clock size={16} style={{ color: '#f59e0b' }} />
-                              <span>{m.raw.openHours}</span>
-                            </div>
-                          )}
-
-                          {/* Services */}
-                          {m.services && m.services.length > 0 && (
-                            <div style={{
-                              marginTop: '12px',
-                              paddingTop: '12px',
-                              borderTop: '1px solid #e5e7eb'
-                            }}>
-                              <div style={{
-                                fontSize: '0.75rem',
-                                fontWeight: '600',
-                                color: '#6b7280',
-                                marginBottom: '6px',
-                                textTransform: 'uppercase',
-                                letterSpacing: '0.5px'
+                              <MapPin size={18} />
+                              <h3 style={{
+                                margin: 0,
+                                fontSize: '1.125rem',
+                                fontWeight: '700'
                               }}>
-                                Services
-                              </div>
+                                {m.name}
+                              </h3>
+                            </div>
+                            {m.rating !== null && (
                               <div style={{
                                 display: 'flex',
-                                flexWrap: 'wrap',
-                                gap: '6px'
+                                alignItems: 'center',
+                                gap: '4px',
+                                fontSize: '0.875rem',
+                                marginTop: '6px'
                               }}>
-                                {(Array.isArray(m.services) ? m.services.slice(0, 3) : [m.services]).map((service, idx) => (
-                                  <span
-                                    key={idx}
-                                    style={{
+                                <Star size={14} fill="white" />
+                                <span>{m.rating}</span>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Content */}
+                          <div style={{ padding: '16px' }}>
+                            {/* Address */}
+                            {m.address && (
+                              <div style={{
+                                display: 'flex',
+                                gap: '8px',
+                                marginBottom: '12px',
+                                fontSize: '0.875rem',
+                                color: '#64748b'
+                              }}>
+                                <MapPin size={16} style={{ flexShrink: 0, marginTop: '2px', color: '#3b82f6' }} />
+                                <span>{m.address}</span>
+                              </div>
+                            )}
+
+                            {/* Phone */}
+                            {(m.phone || m.raw?.contactNumber) && (
+                              <div style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                marginBottom: '12px',
+                                fontSize: '0.875rem',
+                                color: '#64748b'
+                              }}>
+                                <Phone size={16} style={{ color: '#10b981' }} />
+                                <span>{m.phone || m.raw?.contactNumber}</span>
+                              </div>
+                            )}
+
+                            {/* Hours */}
+                            {m.raw?.openHours && (
+                              <div style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                marginBottom: '12px',
+                                fontSize: '0.875rem',
+                                color: '#64748b'
+                              }}>
+                                <Clock size={16} style={{ color: '#f59e0b' }} />
+                                <span>{m.raw.openHours}</span>
+                              </div>
+                            )}
+
+                            {/* Services */}
+                            {m.services && m.services.length > 0 && (
+                              <div style={{
+                                marginTop: '12px',
+                                paddingTop: '12px',
+                                borderTop: '1px solid #e5e7eb'
+                              }}>
+                                <div style={{
+                                  fontSize: '0.75rem',
+                                  fontWeight: '600',
+                                  color: '#6b7280',
+                                  marginBottom: '6px',
+                                  textTransform: 'uppercase',
+                                  letterSpacing: '0.5px'
+                                }}>
+                                  Services
+                                </div>
+                                <div style={{
+                                  display: 'flex',
+                                  flexWrap: 'wrap',
+                                  gap: '6px'
+                                }}>
+                                  {(Array.isArray(m.services) ? m.services.slice(0, 3) : [m.services]).map((service, idx) => (
+                                    <span
+                                      key={idx}
+                                      style={{
+                                        fontSize: '0.75rem',
+                                        padding: '4px 10px',
+                                        background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
+                                        color: '#1e40af',
+                                        borderRadius: '12px',
+                                        fontWeight: '500'
+                                      }}
+                                    >
+                                      {service}
+                                    </span>
+                                  ))}
+                                  {Array.isArray(m.services) && m.services.length > 3 && (
+                                    <span style={{
                                       fontSize: '0.75rem',
                                       padding: '4px 10px',
-                                      background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
-                                      color: '#1e40af',
-                                      borderRadius: '12px',
-                                      fontWeight: '500'
-                                    }}
-                                  >
-                                    {service}
-                                  </span>
-                                ))}
-                                {Array.isArray(m.services) && m.services.length > 3 && (
-                                  <span style={{
-                                    fontSize: '0.75rem',
-                                    padding: '4px 10px',
-                                    color: '#6b7280'
-                                  }}>
-                                    +{m.services.length - 3} more
-                                  </span>
-                                )}
+                                      color: '#6b7280'
+                                    }}>
+                                      +{m.services.length - 3} more
+                                    </span>
+                                  )}
+                                </div>
                               </div>
-                            </div>
-                          )}
+                            )}
 
-                          {/* View Clinic Button */}
-                          <button
-                            onClick={() => navigate(`/saved/${m.id}`)}
-                            style={{
-                              width: '100%',
-                              marginTop: '16px',
-                              padding: '12px 16px',
-                              background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-                              color: 'white',
-                              border: 'none',
-                              borderRadius: '10px',
-                              fontSize: '0.9375rem',
-                              fontWeight: '600',
-                              cursor: 'pointer',
-                              transition: 'all 0.2s',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              gap: '8px',
-                              boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)'
-                            }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.transform = 'translateY(-2px)';
-                              e.currentTarget.style.boxShadow = '0 6px 16px rgba(59, 130, 246, 0.4)';
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.transform = 'translateY(0)';
-                              e.currentTarget.style.boxShadow = '0 4px 12px rgba(59, 130, 246, 0.3)';
-                            }}
-                          >
-                            View Clinic
-                            <ChevronRight size={18} />
-                          </button>
+                            {/* View Clinic Button */}
+                            <button
+                              onClick={() => navigate(`/saved/${m.id}`)}
+                              style={{
+                                width: '100%',
+                                marginTop: '16px',
+                                padding: '12px 16px',
+                                background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '10px',
+                                fontSize: '0.9375rem',
+                                fontWeight: '600',
+                                cursor: 'pointer',
+                                transition: 'all 0.2s',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '8px',
+                                boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)'
+                              }}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.transform = 'translateY(-2px)';
+                                e.currentTarget.style.boxShadow = '0 6px 16px rgba(59, 130, 246, 0.4)';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.transform = 'translateY(0)';
+                                e.currentTarget.style.boxShadow = '0 4px 12px rgba(59, 130, 246, 0.3)';
+                              }}
+                            >
+                              View Clinic
+                              <ChevronRight size={18} />
+                            </button>
+                          </div>
                         </div>
-                      </div>
-                    </Popup>
-                  </Marker>
-                ))}
+                      </Popup>
+                    </Marker>
+                  );
+                })}
               </MapContainer>
             </div>
           </section>

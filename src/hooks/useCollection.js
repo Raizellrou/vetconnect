@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { collection, onSnapshot, query } from "firebase/firestore";
 import { db } from "../firebase/firebase";
 
-export const useCollection = (path, constraints = []) => {
+export const useCollection = (path, constraints = [], orderConstraints = []) => {
   const [docs, setDocs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -15,7 +15,11 @@ export const useCollection = (path, constraints = []) => {
     }
     const parts = path.split("/").filter(Boolean);
     const ref = collection(db, ...parts);
-    const q = query(ref, ...constraints);
+
+    // Combine constraints and order constraints
+    const allConstraints = [...constraints, ...orderConstraints];
+    const q = allConstraints.length > 0 ? query(ref, ...allConstraints) : ref;
+
     const unsub = onSnapshot(
       q,
       (snap) => {
@@ -29,7 +33,7 @@ export const useCollection = (path, constraints = []) => {
     );
     return () => unsub();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [path, JSON.stringify(constraints)]);
+  }, [path, JSON.stringify(constraints), JSON.stringify(orderConstraints)]);
 
   return { docs, loading, error };
 };

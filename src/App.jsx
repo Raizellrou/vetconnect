@@ -128,6 +128,14 @@ export default function App() {
           path="/book-appointment"
           element={
             <RoleProtectedRoute allowedRoles={["petOwner"]}>
+              <Navigate to="/map" replace />
+            </RoleProtectedRoute>
+          }
+        />
+        <Route
+          path="/clinics/:clinicId/appointment"
+          element={
+            <RoleProtectedRoute allowedRoles={["petOwner"]}>
               <BookAppointment />
             </RoleProtectedRoute>
           }

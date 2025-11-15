@@ -1,72 +1,124 @@
-import React, { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { Calendar, Clock, PawPrint, AlertCircle, X, ChevronLeft } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { Calendar, Clock, FileText, AlertCircle, CheckCircle, Loader, PawPrint, ArrowLeft, MapPin } from 'lucide-react';
+import { bookAppointment } from '../../lib/firebaseMutations';
+import { toTimestamp } from '../../utils/dateUtils';
+import { useAuth } from '../../contexts/AuthContext';
+import { collection, getDocs, query, where, doc, getDoc } from 'firebase/firestore';
+import { db } from '../../firebase/firebase';
 import TopBar from '../../components/layout/TopBar';
 import Sidebar from '../../components/layout/Sidebar';
-import { useAuth } from '../../contexts/AuthContext';
-import styles from '../../styles/Dashboard.module.css';
 
 export default function BookAppointment() {
-  const { userData, currentUser } = useAuth();
-  const displayName = userData?.fullName || userData?.displayName || userData?.email;
   const navigate = useNavigate();
-  const location = useLocation();
+  const { clinicId } = useParams();
+  const { currentUser, userData } = useAuth();
   
-  // Get clinic info from navigation state if available
-  const clinicInfo = location.state?.clinic || { name: 'Selected Clinic' };
-
+  const displayName = userData?.fullName || userData?.displayName || userData?.email;
+  
   const [formData, setFormData] = useState({
-    petName: '',
-    petBreed: '',
-    petSpecies: '',
-    symptoms: '',
-    appointmentDate: '',
-    appointmentTime: '',
-    additionalNotes: ''
+    petId: '',
+    date: '',
+    time: '',
+    service: '',
+    reason: '',
+    notes: ''
   });
 
   const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState('');
+  const [submitSuccess, setSubmitSuccess] = useState(false);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-    // Clear error when user starts typing
-    if (errors[name]) {
-      setErrors(prev => ({
-        ...prev,
-        [name]: ''
-      }));
+  const [pets, setPets] = useState([]);
+  const [clinic, setClinic] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Redirect if no clinicId
+    if (!clinicId) {
+      navigate('/map', { replace: true });
+      return;
     }
-  };
+
+    const fetchData = async () => {
+      if (!currentUser?.uid) return;
+      
+      try {
+        setLoading(true);
+        
+        // Fetch clinic details
+        const clinicRef = doc(db, 'clinics', clinicId);
+        const clinicSnap = await getDoc(clinicRef);
+        
+        if (clinicSnap.exists()) {
+          setClinic({ id: clinicSnap.id, ...clinicSnap.data() });
+        } else {
+          setSubmitError('Clinic not found. Please select a valid clinic.');
+          return;
+        }
+
+        // Fetch user's pets
+        const petsQuery = query(
+          collection(db, 'users', currentUser.uid, 'pets')
+        );
+        const petsSnapshot = await getDocs(petsQuery);
+        const petsData = petsSnapshot.docs.map(doc => ({ 
+          id: doc.id, 
+          ...doc.data() 
+        }));
+        setPets(petsData);
+        
+        console.log('Fetched pets:', petsData);
+        console.log('Fetched clinic:', clinicSnap.data());
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        setSubmitError('Failed to load booking information. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [currentUser, clinicId, navigate]);
 
   const validateForm = () => {
     const newErrors = {};
-    
-    if (!formData.petName.trim()) {
-      newErrors.petName = 'Pet name is required';
-    }
-    
-    if (!formData.petSpecies.trim()) {
-      newErrors.petSpecies = 'Pet species is required';
-    }
-    
-    if (!formData.symptoms.trim()) {
-      newErrors.symptoms = 'Please describe the symptoms';
-    }
-    
-    if (!formData.appointmentDate) {
-      newErrors.appointmentDate = 'Appointment date is required';
-    }
-    
-    if (!formData.appointmentTime) {
-      newErrors.appointmentTime = 'Appointment time is required';
+
+    if (!formData.petId) newErrors.petId = 'Please select a pet';
+    if (!formData.date) newErrors.date = 'Date is required';
+    if (!formData.time) newErrors.time = 'Time is required';
+    if (!formData.reason.trim()) newErrors.reason = 'Reason for visit is required';
+
+    // Validate date is not in the past
+    if (formData.date && formData.time) {
+      try {
+        const appointmentTimestamp = toTimestamp(formData.date, formData.time);
+        const now = new Date();
+        
+        if (appointmentTimestamp.toDate() < now) {
+          newErrors.date = 'Appointment must be in the future';
+        }
+      } catch (err) {
+        newErrors.date = 'Invalid date or time format';
+      }
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    
+    // Clear error for this field
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+    
+    // Clear submit errors
+    if (submitError) setSubmitError('');
   };
 
   const handleSubmit = async (e) => {
@@ -76,580 +128,353 @@ export default function BookAppointment() {
       return;
     }
 
-    // TODO: Submit appointment to backend
-    console.log('Appointment data:', {
-      ...formData,
-      clinicId: clinicInfo.id,
-      userId: currentUser?.uid
-    });
+    if (!currentUser) {
+      setSubmitError('You must be logged in to book an appointment');
+      return;
+    }
 
-    // Show success message and navigate
-    alert('Appointment request submitted successfully!');
-    navigate('/owner-dashboard');
+    if (!clinicId) {
+      setSubmitError('Invalid clinic selection');
+      return;
+    }
+
+    setIsSubmitting(true);
+    setSubmitError('');
+    setSubmitSuccess(false);
+
+    try {
+      const dateTime = toTimestamp(formData.date, formData.time);
+
+      const appointmentData = {
+        clinicId: clinicId,
+        ownerId: currentUser.uid,
+        petId: formData.petId,
+        dateTime: dateTime,
+        status: 'pending',
+        meta: {
+          service: formData.service || '',
+          notes: formData.notes || '',
+          reason: formData.reason
+        }
+      };
+
+      console.log('Submitting appointment:', appointmentData);
+
+      const appointmentId = await bookAppointment(appointmentData);
+
+      console.log('Appointment booked successfully:', appointmentId);
+      
+      setSubmitSuccess(true);
+
+      setTimeout(() => {
+        navigate('/owner-dashboard', {
+          state: { message: 'Appointment booked successfully!' }
+        });
+      }, 1500);
+
+    } catch (error) {
+      console.error('Error booking appointment:', error);
+      setSubmitError(
+        error.message || 'Failed to book appointment. Please try again.'
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleCancel = () => {
-    navigate(-1);
+    navigate(`/saved/${clinicId}`);
   };
 
-  return (
-    <div className={styles.dashboard}>
-      <Sidebar />
-      <div className={styles.mainWrapper}>
-        <TopBar username={displayName} />
+  const minDate = new Date().toISOString().split('T')[0];
 
-        <main className={styles.mainContent}>
-          <div style={{
-            maxWidth: '900px',
-            margin: '0 auto'
-          }}>
-            {/* Header */}
-            <div style={{
-              marginBottom: '32px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px'
-            }}>
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', minHeight: '100vh' }}>
+        <Sidebar />
+        <div style={{ flex: 1, marginLeft: '200px' }}>
+          <TopBar username={displayName} />
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 'calc(100vh - 64px)', background: 'linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%)' }}>
+            <div style={{ textAlign: 'center' }}>
+              <Loader size={48} color="#818cf8" className="animate-spin" style={{ margin: '0 auto 16px' }} />
+              <p style={{ fontSize: '1.125rem', color: '#6b7280' }}>Loading...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!clinic) {
+    return (
+      <div style={{ display: 'flex', minHeight: '100vh' }}>
+        <Sidebar />
+        <div style={{ flex: 1, marginLeft: '200px' }}>
+          <TopBar username={displayName} />
+          <div style={{ padding: '40px', textAlign: 'center', background: 'linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%)', minHeight: 'calc(100vh - 64px)' }}>
+            <AlertCircle size={64} color="#ef4444" style={{ margin: '0 auto 24px' }} />
+            <h2 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '12px' }}>Clinic Not Found</h2>
+            <p style={{ color: '#6b7280', marginBottom: '24px' }}>Please select a clinic from the map or your saved clinics.</p>
+            <button 
+              onClick={() => navigate('/map')} 
+              style={{ padding: '14px 32px', background: 'linear-gradient(135deg, #818cf8 0%, #6366f1 100%)', color: 'white', border: 'none', borderRadius: '12px', fontSize: '1rem', fontWeight: 700, cursor: 'pointer' }}
+            >
+              Browse Clinics
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ display: 'flex', minHeight: '100vh' }}>
+      <Sidebar />
+      <div style={{ flex: 1, marginLeft: '200px' }}>
+        <TopBar username={displayName} />
+        
+        <div style={{ minHeight: 'calc(100vh - 64px)', background: 'linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%)', padding: '40px 20px' }}>
+          <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+            {/* Back Button */}
             <button
               onClick={handleCancel}
               style={{
-                padding: '10px',
-                background: 'white',
-                border: '1px solid #e5e7eb',
-                borderRadius: '8px',
-                cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center',
-                transition: 'all 0.2s',
-                color: '#6b7280'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = '#f9fafb';
-                e.currentTarget.style.borderColor = '#d1d5db';
-                e.currentTarget.style.color = '#374151';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'white';
-                e.currentTarget.style.borderColor = '#e5e7eb';
-                e.currentTarget.style.color = '#6b7280';
+                gap: '8px',
+                padding: '10px 20px',
+                background: 'white',
+                border: '2px solid #e5e7eb',
+                borderRadius: '10px',
+                cursor: 'pointer',
+                marginBottom: '24px',
+                fontSize: '0.875rem',
+                fontWeight: 600,
+                color: '#374151'
               }}
             >
-              <ChevronLeft size={20} />
+              <ArrowLeft size={18} />
+              Back to Clinic
             </button>
-            <div>
-              <h1 style={{
-                fontSize: '1.875rem',
-                fontWeight: '700',
-                color: '#1e293b',
-                margin: 0,
-                marginBottom: '4px'
-              }}>
-                Book Appointment
-              </h1>
-              <p style={{
-                color: '#64748b',
-                fontSize: '0.875rem',
-                margin: 0
-              }}>
-                Schedule a visit to {clinicInfo.name}
-              </p>
+
+            {/* Clinic Info Banner */}
+            <div style={{ background: 'white', borderRadius: '16px', padding: '20px 24px', marginBottom: '24px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)', border: '2px solid #e0e7ff' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{ width: '48px', height: '48px', background: 'linear-gradient(135deg, #818cf8 0%, #a78bfa 100%)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <MapPin size={24} color="white" />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <p style={{ margin: 0, fontSize: '0.875rem', color: '#6b7280', fontWeight: 600 }}>Booking appointment at</p>
+                  <h3 style={{ margin: '4px 0 0 0', fontSize: '1.25rem', fontWeight: 700, color: '#1f2937' }}>{clinic.clinicName || clinic.name}</h3>
+                </div>
+              </div>
+            </div>
+
+            {/* Header */}
+            <div style={{ background: 'white', borderRadius: '20px', padding: '32px', marginBottom: '24px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                <div style={{ width: '72px', height: '72px', background: 'linear-gradient(135deg, #818cf8 0%, #a78bfa 100%)', borderRadius: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Calendar size={36} color="white" />
+                </div>
+                <div>
+                  <h1 style={{ fontSize: '2rem', fontWeight: 700, color: '#1f2937', margin: 0 }}>Book Appointment</h1>
+                  <p style={{ fontSize: '1.125rem', color: '#6b7280', marginTop: 4 }}>Schedule a visit for your pet</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Success Message */}
+            {submitSuccess && (
+              <div style={{ background: 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)', padding: '20px 24px', borderRadius: '14px', border: '2px solid #6ee7b7', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <CheckCircle size={24} color="#059669" />
+                <div>
+                  <p style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: '#065f46' }}>Appointment Booked Successfully!</p>
+                  <p style={{ margin: '4px 0 0 0', fontSize: '0.875rem', color: '#047857' }}>Redirecting to dashboard...</p>
+                </div>
+              </div>
+            )}
+
+            {/* Error Message */}
+            {submitError && (
+              <div style={{ background: 'linear-gradient(135deg, #fee2e2 0%, #fecaca 100%)', padding: '20px 24px', borderRadius: '14px', border: '2px solid #f87171', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <AlertCircle size={24} color="#dc2626" />
+                <div>
+                  <p style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: '#991b1b' }}>Booking Failed</p>
+                  <p style={{ margin: '4px 0 0 0', fontSize: '0.875rem', color: '#b91c1c' }}>{submitError}</p>
+                </div>
+              </div>
+            )}
+
+            {/* Form */}
+            <div style={{ background: 'white', borderRadius: '20px', padding: '48px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}>
+              <form onSubmit={handleSubmit}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+                  {/* Pet Selection */}
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.9375rem', fontWeight: 700, color: '#374151', marginBottom: '12px' }}>
+                      Select Pet <span style={{ color: '#ef4444' }}>*</span>
+                    </label>
+                    {pets.length === 0 ? (
+                      <div style={{ padding: '20px', background: '#fef3c7', borderRadius: '12px', border: '2px solid #fbbf24', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <PawPrint size={24} color="#f59e0b" />
+                        <div>
+                          <p style={{ margin: 0, fontWeight: 600, color: '#92400e' }}>No pets found</p>
+                          <p style={{ margin: '4px 0 0 0', fontSize: '0.875rem', color: '#78350f' }}>
+                            Please add a pet first in the{' '}
+                            <button
+                              type="button"
+                              onClick={() => navigate('/pets')}
+                              style={{ color: '#1e40af', textDecoration: 'underline', background: 'none', border: 'none', cursor: 'pointer', padding: 0, font: 'inherit' }}
+                            >
+                              Pets page
+                            </button>
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <select
+                          name="petId"
+                          value={formData.petId}
+                          onChange={handleChange}
+                          disabled={isSubmitting}
+                          style={{ width: '100%', padding: '18px 20px', border: `2px solid ${errors.petId ? '#ef4444' : '#e5e7eb'}`, borderRadius: '14px', fontSize: '1.0625rem', cursor: 'pointer' }}
+                        >
+                          <option value="">Choose a pet...</option>
+                          {pets.map(pet => (
+                            <option key={pet.id} value={pet.id}>{pet.name} ({pet.species})</option>
+                          ))}
+                        </select>
+                        {errors.petId && <p style={{ color: '#ef4444', marginTop: '10px', fontSize: '0.875rem' }}>{errors.petId}</p>}
+                      </>
+                    )}
+                  </div>
+
+                  {/* Date and Time */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.9375rem', fontWeight: 700, color: '#374151', marginBottom: '12px' }}>
+                        Date <span style={{ color: '#ef4444' }}>*</span>
+                      </label>
+                      <div style={{ position: 'relative' }}>
+                        <Calendar size={20} style={{ position: 'absolute', left: '20px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af', pointerEvents: 'none' }} />
+                        <input
+                          type="date"
+                          name="date"
+                          value={formData.date}
+                          onChange={handleChange}
+                          min={minDate}
+                          disabled={isSubmitting}
+                          style={{ width: '100%', padding: '18px 20px 18px 52px', border: `2px solid ${errors.date ? '#ef4444' : '#e5e7eb'}`, borderRadius: '14px', fontSize: '1.0625rem' }}
+                        />
+                      </div>
+                      {errors.date && <p style={{ color: '#ef4444', marginTop: '10px', fontSize: '0.875rem' }}>{errors.date}</p>}
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.9375rem', fontWeight: 700, color: '#374151', marginBottom: '12px' }}>
+                        Time <span style={{ color: '#ef4444' }}>*</span>
+                      </label>
+                      <div style={{ position: 'relative' }}>
+                        <Clock size={20} style={{ position: 'absolute', left: '20px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af', pointerEvents: 'none' }} />
+                        <input
+                          type="time"
+                          name="time"
+                          value={formData.time}
+                          onChange={handleChange}
+                          disabled={isSubmitting}
+                          style={{ width: '100%', padding: '18px 20px 18px 52px', border: `2px solid ${errors.time ? '#ef4444' : '#e5e7eb'}`, borderRadius: '14px', fontSize: '1.0625rem' }}
+                        />
+                      </div>
+                      {errors.time && <p style={{ color: '#ef4444', marginTop: '10px', fontSize: '0.875rem' }}>{errors.time}</p>}
+                    </div>
+                  </div>
+
+                  {/* Service (Optional) */}
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.9375rem', fontWeight: 700, color: '#374151', marginBottom: '12px' }}>
+                      Service Type (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      name="service"
+                      value={formData.service}
+                      onChange={handleChange}
+                      placeholder="e.g., Vaccination, Checkup, Surgery"
+                      disabled={isSubmitting}
+                      style={{ width: '100%', padding: '18px 20px', border: '2px solid #e5e7eb', borderRadius: '14px', fontSize: '1.0625rem' }}
+                    />
+                  </div>
+
+                  {/* Reason */}
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.9375rem', fontWeight: 700, color: '#374151', marginBottom: '12px' }}>
+                      Reason for Visit <span style={{ color: '#ef4444' }}>*</span>
+                    </label>
+                    <div style={{ position: 'relative' }}>
+                      <FileText size={20} style={{ position: 'absolute', left: '20px', top: '20px', color: '#9ca3af', pointerEvents: 'none' }} />
+                      <textarea
+                        name="reason"
+                        value={formData.reason}
+                        onChange={handleChange}
+                        rows="3"
+                        placeholder="Describe the reason for this appointment"
+                        disabled={isSubmitting}
+                        style={{ width: '100%', padding: '18px 20px 18px 52px', border: `2px solid ${errors.reason ? '#ef4444' : '#e5e7eb'}`, borderRadius: '14px', fontSize: '1.0625rem', resize: 'vertical' }}
+                      />
+                    </div>
+                    {errors.reason && <p style={{ color: '#ef4444', marginTop: '10px', fontSize: '0.875rem' }}>{errors.reason}</p>}
+                  </div>
+
+                  {/* Additional Notes */}
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.9375rem', fontWeight: 700, color: '#374151', marginBottom: '12px' }}>
+                      Additional Notes (Optional)
+                    </label>
+                    <textarea
+                      name="notes"
+                      value={formData.notes}
+                      onChange={handleChange}
+                      rows="4"
+                      placeholder="Any additional information the vet should know..."
+                      disabled={isSubmitting}
+                      style={{ width: '100%', padding: '18px 20px', border: '2px solid #e5e7eb', borderRadius: '14px', fontSize: '1.0625rem', resize: 'vertical' }}
+                    />
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div style={{ marginTop: '32px', display: 'flex', gap: '16px', justifyContent: 'flex-end' }}>
+                  <button
+                    type="button"
+                    onClick={handleCancel}
+                    disabled={isSubmitting}
+                    style={{ padding: '16px 32px', background: 'white', border: '2px solid #e5e7eb', borderRadius: '14px', fontSize: '1rem', fontWeight: 600, color: '#6b7280', cursor: isSubmitting ? 'not-allowed' : 'pointer', opacity: isSubmitting ? 0.5 : 1 }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting || pets.length === 0}
+                    style={{ padding: '16px 40px', background: isSubmitting ? '#9ca3af' : 'linear-gradient(135deg, #10b981 0%, #059669 100%)', color: 'white', border: 'none', borderRadius: '14px', fontSize: '1rem', fontWeight: 700, cursor: (isSubmitting || pets.length === 0) ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '10px', boxShadow: isSubmitting ? 'none' : '0 4px 16px rgba(16, 185, 129, 0.4)' }}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader size={20} className="animate-spin" />
+                        Booking...
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle size={20} />
+                        Book Appointment
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
-
-          {/* Form Card */}
-          <div style={{
-            background: 'white',
-            borderRadius: '12px',
-            padding: '40px',
-            boxShadow: '0 1px 3px rgba(0, 0, 0, 0.08)',
-            maxWidth: '900px',
-            margin: '0 auto',
-            border: '1px solid #f3f4f6'
-          }}>
-            <form onSubmit={handleSubmit}>
-              {/* Pet Information Section */}
-              <div style={{ marginBottom: '40px' }}>
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                  marginBottom: '24px',
-                  paddingBottom: '16px',
-                  borderBottom: '1px solid #f1f5f9'
-                }}>
-                  <div style={{
-                    width: '44px',
-                    height: '44px',
-                    background: '#f0f9ff',
-                    borderRadius: '12px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }}>
-                    <PawPrint size={22} color="#0ea5e9" />
-                  </div>
-                  <h2 style={{
-                    fontSize: '1.125rem',
-                    fontWeight: '600',
-                    color: '#1e293b',
-                    margin: 0
-                  }}>
-                    Pet Information
-                  </h2>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                  {/* Pet Name */}
-                  <div>
-                    <label style={{
-                      display: 'block',
-                      fontSize: '0.875rem',
-                      fontWeight: '600',
-                      color: '#374151',
-                      marginBottom: '8px'
-                    }}>
-                      Pet Name <span style={{ color: '#ef4444' }}>*</span>
-                    </label>
-                    <input
-                      type="text"
-                      name="petName"
-                      value={formData.petName}
-                      onChange={handleChange}
-                      placeholder="e.g., Max, Bella"
-                      style={{
-                        width: '100%',
-                        padding: '12px 14px',
-                        border: `2px solid ${errors.petName ? '#ef4444' : '#e5e7eb'}`,
-                        borderRadius: '10px',
-                        fontSize: '1rem',
-                        outline: 'none',
-                        transition: 'all 0.2s'
-                      }}
-                      onFocus={(e) => {
-                        if (!errors.petName) {
-                          e.target.style.borderColor = '#3b82f6';
-                          e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
-                        }
-                      }}
-                      onBlur={(e) => {
-                        if (!errors.petName) {
-                          e.target.style.borderColor = '#e5e7eb';
-                          e.target.style.boxShadow = 'none';
-                        }
-                      }}
-                    />
-                    {errors.petName && (
-                      <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '4px',
-                        marginTop: '4px',
-                        color: '#ef4444',
-                        fontSize: '0.75rem'
-                      }}>
-                        <AlertCircle size={12} />
-                        {errors.petName}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Pet Species */}
-                  <div>
-                    <label style={{
-                      display: 'block',
-                      fontSize: '0.875rem',
-                      fontWeight: '600',
-                      color: '#374151',
-                      marginBottom: '8px'
-                    }}>
-                      Species <span style={{ color: '#ef4444' }}>*</span>
-                    </label>
-                    <input
-                      type="text"
-                      name="petSpecies"
-                      value={formData.petSpecies}
-                      onChange={handleChange}
-                      placeholder="e.g., Dog, Cat, Bird"
-                      style={{
-                        width: '100%',
-                        padding: '12px 14px',
-                        border: `2px solid ${errors.petSpecies ? '#ef4444' : '#e5e7eb'}`,
-                        borderRadius: '10px',
-                        fontSize: '1rem',
-                        outline: 'none',
-                        transition: 'all 0.2s'
-                      }}
-                      onFocus={(e) => {
-                        if (!errors.petSpecies) {
-                          e.target.style.borderColor = '#3b82f6';
-                          e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
-                        }
-                      }}
-                      onBlur={(e) => {
-                        if (!errors.petSpecies) {
-                          e.target.style.borderColor = '#e5e7eb';
-                          e.target.style.boxShadow = 'none';
-                        }
-                      }}
-                    />
-                    {errors.petSpecies && (
-                      <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '4px',
-                        marginTop: '4px',
-                        color: '#ef4444',
-                        fontSize: '0.75rem'
-                      }}>
-                        <AlertCircle size={12} />
-                        {errors.petSpecies}
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Pet Breed */}
-                <div style={{ marginTop: '16px' }}>
-                  <label style={{
-                    display: 'block',
-                    fontSize: '0.875rem',
-                    fontWeight: '600',
-                    color: '#374151',
-                    marginBottom: '8px'
-                  }}>
-                    Breed (Optional)
-                  </label>
-                  <input
-                    type="text"
-                    name="petBreed"
-                    value={formData.petBreed}
-                    onChange={handleChange}
-                    placeholder="e.g., Labrador, Persian, Parakeet"
-                    style={{
-                      width: '100%',
-                      padding: '12px 14px',
-                      border: '2px solid #e5e7eb',
-                      borderRadius: '10px',
-                      fontSize: '1rem',
-                      outline: 'none',
-                      transition: 'all 0.2s'
-                    }}
-                    onFocus={(e) => {
-                      e.target.style.borderColor = '#3b82f6';
-                      e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
-                    }}
-                    onBlur={(e) => {
-                      e.target.style.borderColor = '#e5e7eb';
-                      e.target.style.boxShadow = 'none';
-                    }}
-                  />
-                </div>
-
-                {/* Symptoms */}
-                <div style={{ marginTop: '16px' }}>
-                  <label style={{
-                    display: 'block',
-                    fontSize: '0.875rem',
-                    fontWeight: '600',
-                    color: '#374151',
-                    marginBottom: '8px'
-                  }}>
-                    Symptoms / Reason for Visit <span style={{ color: '#ef4444' }}>*</span>
-                  </label>
-                  <textarea
-                    name="symptoms"
-                    value={formData.symptoms}
-                    onChange={handleChange}
-                    placeholder="Please describe your pet's symptoms or reason for the visit..."
-                    rows={4}
-                    style={{
-                      width: '100%',
-                      padding: '12px 14px',
-                      border: `2px solid ${errors.symptoms ? '#ef4444' : '#e5e7eb'}`,
-                      borderRadius: '10px',
-                      fontSize: '1rem',
-                      outline: 'none',
-                      transition: 'all 0.2s',
-                      resize: 'vertical',
-                      fontFamily: 'inherit'
-                    }}
-                    onFocus={(e) => {
-                      if (!errors.symptoms) {
-                        e.target.style.borderColor = '#3b82f6';
-                        e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
-                      }
-                    }}
-                    onBlur={(e) => {
-                      if (!errors.symptoms) {
-                        e.target.style.borderColor = '#e5e7eb';
-                        e.target.style.boxShadow = 'none';
-                      }
-                    }}
-                  />
-                  {errors.symptoms && (
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                      marginTop: '4px',
-                      color: '#ef4444',
-                      fontSize: '0.75rem'
-                    }}>
-                      <AlertCircle size={12} />
-                      {errors.symptoms}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Appointment Schedule Section */}
-              <div style={{ marginBottom: '40px' }}>
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                  marginBottom: '24px',
-                  paddingBottom: '16px',
-                  borderBottom: '1px solid #f1f5f9'
-                }}>
-                  <div style={{
-                    width: '44px',
-                    height: '44px',
-                    background: '#eff6ff',
-                    borderRadius: '12px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }}>
-                    <Calendar size={22} color="#3b82f6" />
-                  </div>
-                  <h2 style={{
-                    fontSize: '1.125rem',
-                    fontWeight: '600',
-                    color: '#1e293b',
-                    margin: 0
-                  }}>
-                    Schedule
-                  </h2>
-                </div>
-
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                  {/* Date */}
-                  <div>
-                    <label style={{
-                      display: 'block',
-                      fontSize: '0.875rem',
-                      fontWeight: '600',
-                      color: '#374151',
-                      marginBottom: '8px'
-                    }}>
-                      Preferred Date <span style={{ color: '#ef4444' }}>*</span>
-                    </label>
-                    <input
-                      type="date"
-                      name="appointmentDate"
-                      value={formData.appointmentDate}
-                      onChange={handleChange}
-                      min={new Date().toISOString().split('T')[0]}
-                      style={{
-                        width: '100%',
-                        padding: '12px 14px',
-                        border: `2px solid ${errors.appointmentDate ? '#ef4444' : '#e5e7eb'}`,
-                        borderRadius: '10px',
-                        fontSize: '1rem',
-                        outline: 'none',
-                        transition: 'all 0.2s'
-                      }}
-                      onFocus={(e) => {
-                        if (!errors.appointmentDate) {
-                          e.target.style.borderColor = '#3b82f6';
-                          e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
-                        }
-                      }}
-                      onBlur={(e) => {
-                        if (!errors.appointmentDate) {
-                          e.target.style.borderColor = '#e5e7eb';
-                          e.target.style.boxShadow = 'none';
-                        }
-                      }}
-                    />
-                    {errors.appointmentDate && (
-                      <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '4px',
-                        marginTop: '4px',
-                        color: '#ef4444',
-                        fontSize: '0.75rem'
-                      }}>
-                        <AlertCircle size={12} />
-                        {errors.appointmentDate}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Time */}
-                  <div>
-                    <label style={{
-                      display: 'block',
-                      fontSize: '0.875rem',
-                      fontWeight: '600',
-                      color: '#374151',
-                      marginBottom: '8px'
-                    }}>
-                      Preferred Time <span style={{ color: '#ef4444' }}>*</span>
-                    </label>
-                    <input
-                      type="time"
-                      name="appointmentTime"
-                      value={formData.appointmentTime}
-                      onChange={handleChange}
-                      style={{
-                        width: '100%',
-                        padding: '12px 14px',
-                        border: `2px solid ${errors.appointmentTime ? '#ef4444' : '#e5e7eb'}`,
-                        borderRadius: '10px',
-                        fontSize: '1rem',
-                        outline: 'none',
-                        transition: 'all 0.2s'
-                      }}
-                      onFocus={(e) => {
-                        if (!errors.appointmentTime) {
-                          e.target.style.borderColor = '#3b82f6';
-                          e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
-                        }
-                      }}
-                      onBlur={(e) => {
-                        if (!errors.appointmentTime) {
-                          e.target.style.borderColor = '#e5e7eb';
-                          e.target.style.boxShadow = 'none';
-                        }
-                      }}
-                    />
-                    {errors.appointmentTime && (
-                      <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '4px',
-                        marginTop: '4px',
-                        color: '#ef4444',
-                        fontSize: '0.75rem'
-                      }}>
-                        <AlertCircle size={12} />
-                        {errors.appointmentTime}
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Additional Notes */}
-                <div style={{ marginTop: '16px' }}>
-                  <label style={{
-                    display: 'block',
-                    fontSize: '0.875rem',
-                    fontWeight: '600',
-                    color: '#374151',
-                    marginBottom: '8px'
-                  }}>
-                    Additional Notes (Optional)
-                  </label>
-                  <textarea
-                    name="additionalNotes"
-                    value={formData.additionalNotes}
-                    onChange={handleChange}
-                    placeholder="Any additional information you'd like to share..."
-                    rows={3}
-                    style={{
-                      width: '100%',
-                      padding: '12px 14px',
-                      border: '2px solid #e5e7eb',
-                      borderRadius: '10px',
-                      fontSize: '1rem',
-                      outline: 'none',
-                      transition: 'all 0.2s',
-                      resize: 'vertical',
-                      fontFamily: 'inherit'
-                    }}
-                    onFocus={(e) => {
-                      e.target.style.borderColor = '#3b82f6';
-                      e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1)';
-                    }}
-                    onBlur={(e) => {
-                      e.target.style.borderColor = '#e5e7eb';
-                      e.target.style.boxShadow = 'none';
-                    }}
-                  />
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div style={{
-                display: 'flex',
-                justifyContent: 'flex-end',
-                gap: '12px',
-                paddingTop: '32px',
-                borderTop: '1px solid #f1f5f9'
-              }}>
-                <button
-                  type="button"
-                  onClick={handleCancel}
-                  style={{
-                    padding: '12px 28px',
-                    background: 'white',
-                    color: '#64748b',
-                    border: '1px solid #e5e7eb',
-                    borderRadius: '8px',
-                    fontSize: '0.9375rem',
-                    fontWeight: '600',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = '#f9fafb';
-                    e.currentTarget.style.borderColor = '#d1d5db';
-                    e.currentTarget.style.color = '#374151';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'white';
-                    e.currentTarget.style.borderColor = '#e5e7eb';
-                    e.currentTarget.style.color = '#64748b';
-                  }}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  style={{
-                    padding: '12px 32px',
-                    background: '#06b6d4',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '8px',
-                    fontSize: '0.9375rem',
-                    fontWeight: '600',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s',
-                    boxShadow: '0 1px 3px rgba(6, 182, 212, 0.2)'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = '#0891b2';
-                    e.currentTarget.style.transform = 'translateY(-1px)';
-                    e.currentTarget.style.boxShadow = '0 4px 8px rgba(6, 182, 212, 0.25)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = '#06b6d4';
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = '0 1px 3px rgba(6, 182, 212, 0.2)';
-                  }}
-                >
-                  Book Appointment
-                </button>
-              </div>
-            </form>
-          </div>
-          </div>
-        </main>
+        </div>
       </div>
     </div>
   );

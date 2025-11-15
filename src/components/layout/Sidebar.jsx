@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, MapPin, Bookmark, FileText, Settings } from 'lucide-react';
+import { Home, MapPin, Bookmark, FileText, Settings, PawPrint } from 'lucide-react';
 import styles from '../../styles/Sidebar.module.css';
 import logo from '../../assets/logo.png';
 
@@ -29,6 +29,7 @@ export default function Sidebar() {
       <nav className={styles.nav}>
         <NavLink to="/owner-dashboard" icon={Home} label="Home" />
         <NavLink to="/map" icon={MapPin} label="Map" />
+        <NavLink to="/pets" icon={PawPrint} label="Pets" />
         <NavLink to="/saved" icon={Bookmark} label="Saved" />
         <NavLink to="/files" icon={FileText} label="Files" />
       </nav>

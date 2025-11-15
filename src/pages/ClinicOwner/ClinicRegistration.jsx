@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { MapPin, Phone, Clock, Building2, FileText, ArrowRight, ArrowLeft, CheckSquare, Search, X, Lock } from 'lucide-react';
 import { saveClinic, updateClinic } from '../../utils/clinicStorage';
+import { useAuth } from '../../contexts/AuthContext';
 
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
@@ -10,7 +11,7 @@ import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIcon from 'leaflet/dist/images/marker-icon.png';
 import markerShadow from 'leaflet/dist/images/marker-shadow.png';
 
-import { collection, addDoc } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../firebase/firebase';
 
 // Ensure Leaflet marker icons load with Vite
@@ -52,6 +53,9 @@ export default function ClinicRegistration() {
   const location = useLocation();
   const editingClinic = location.state?.clinic || null;
   const mode = editingClinic ? 'edit' : 'create';
+  
+  // Add useAuth to get currentUser
+  const { currentUser } = useAuth();
 
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 4;
@@ -242,18 +246,24 @@ export default function ClinicRegistration() {
     // Validate all steps
     if (!(validateStep(1) && validateStep(2) && validateStep(3))) return;
 
+    // Generate a unique ID for the clinic
+    const clinicId = mode === 'edit' && editingClinic?.id 
+      ? editingClinic.id 
+      : `clinic_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
     const payload = {
+      id: clinicId,
       clinicName: formData.clinicName,
       address: formData.address || '',
       contactNumber: formData.contactNumber || '',
       openHours: formData.openHours || '',
       services: selectedServices.join(', '),
-      description: formData.description || ''
+      description: formData.description || '',
+      ownerId: currentUser?.uid
     };
 
-    // include coordinates if selected -- normalize to numbers and include several shapes
+    // include coordinates if selected
     if (formData.coordinates) {
-      // support object { latitude, longitude } or array [lat, lng]
       const raw = formData.coordinates;
       let lat = null;
       let lng = null;
@@ -266,13 +276,10 @@ export default function ClinicRegistration() {
         lng = Number(raw.longitude ?? raw.lng ?? raw[1]);
       }
 
-      // if values are swapped (common bug) try to detect and fix:
-      // lat must be within [-90,90]; lng within [-180,180]
       const inLatRange = (v) => !Number.isNaN(v) && v >= -90 && v <= 90;
       const inLngRange = (v) => !Number.isNaN(v) && v >= -180 && v <= 180;
 
       if (!(inLatRange(lat) && inLngRange(lng)) && inLatRange(lng) && inLngRange(lat)) {
-        // swap
         const tmp = lat; lat = lng; lng = tmp;
       }
 
@@ -280,31 +287,41 @@ export default function ClinicRegistration() {
         payload.latitude = lat;
         payload.longitude = lng;
         payload.location = { lat, lng };
-        // also keep a coords array for backward compatibility
         payload.coords = [lat, lng];
+        payload.coordinates = { latitude: lat, longitude: lng };
       } else {
-        // invalid coords — omit but warn
         console.warn('Invalid coordinates not saved:', formData.coordinates);
       }
     }
 
     try {
+      console.log('Saving clinic with payload:', payload);
+
       if (mode === 'edit') {
-        // keep existing local storage helper
         updateClinic(editingClinic.id, { ...payload });
-        // optionally update Firestore here if you track docIds
-      } else {
-        // save locally (existing flow)
-        saveClinic({ ...payload });
-        // also attempt to add to Firestore so backend persists coordinates
+        
+        // Update in Firestore if it exists
         try {
-          await addDoc(collection(db, 'clinics'), {
-            ...payload,
-            ownerId: /* attempt to pick owner id if available via editingClinic or userData */ (editingClinic?.ownerId || null)
-          });
+          const clinicRef = doc(db, 'clinics', editingClinic.id);
+          await setDoc(clinicRef, payload, { merge: true });
+          console.log('Clinic updated in Firestore');
         } catch (err) {
-          // non-critical: Firestore may not be set up; log but proceed
-          console.warn('Firestore addDoc failed (non-fatal):', err);
+          console.warn('Firestore update failed (non-fatal):', err);
+        }
+      } else {
+        // Save to localStorage
+        const savedClinic = saveClinic({ ...payload });
+        console.log('Clinic saved to localStorage:', savedClinic);
+        
+        // Also save to Firestore
+        try {
+          await setDoc(doc(db, 'clinics', clinicId), {
+            ...payload,
+            createdAt: serverTimestamp()
+          });
+          console.log('Clinic saved to Firestore with ID:', clinicId);
+        } catch (err) {
+          console.warn('Firestore save failed (non-fatal):', err);
         }
       }
 
@@ -362,7 +379,7 @@ export default function ClinicRegistration() {
 
         {/* Form Content */}
         <div style={{ background: 'white', borderRadius: 20, padding: 48, boxShadow: '0 4px 20px rgba(0,0,0,0.08)', minHeight: 500 }}>
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} id="clinic-form">
             {/* Step 1: Basic Information */}
             {currentStep === 1 && (
               <div style={{ maxWidth: 600, margin: '0 auto' }}>
@@ -498,16 +515,38 @@ export default function ClinicRegistration() {
 
         {/* Navigation Footer */}
         <div style={{ marginTop: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <button type="button" onClick={currentStep === 1 ? handleCancel : handlePrevious} style={{ padding: '16px 32px', background: 'white', borderRadius: 14 }}>
+          <button type="button" onClick={currentStep === 1 ? handleCancel : handlePrevious} style={{ padding: '16px 32px', background: 'white', border: '2px solid #e5e7eb', borderRadius: 14, fontSize: '1rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <ArrowLeft size={20} /> {currentStep === 1 ? 'Cancel' : 'Previous'}
           </button>
 
           {currentStep < totalSteps ? (
-            <button type="button" onClick={handleNext} style={{ padding: '16px 40px', background: 'linear-gradient(135deg,#818cf8 0%,#6366f1 100%)', color: 'white', borderRadius: 14 }}>
+            <button type="button" onClick={handleNext} style={{ padding: '16px 40px', background: 'linear-gradient(135deg,#818cf8 0%,#6366f1 100%)', color: 'white', border: 'none', borderRadius: 14, fontSize: '1rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 4px 16px rgba(129, 140, 248, 0.4)', transition: 'all 0.2s' }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 6px 20px rgba(129, 140, 248, 0.5)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 4px 16px rgba(129, 140, 248, 0.4)';
+              }}>
               Next Step <ArrowRight size={20} />
             </button>
           ) : (
-            <button type="button" onClick={handleSubmit} style={{ padding: '16px 40px', background: 'linear-gradient(135deg,#10b981 0%,#059669 100%)', color: 'white', borderRadius: 14 }}>
+            <button 
+              type="button" 
+              onClick={(e) => {
+                e.preventDefault();
+                handleSubmit(e);
+              }}
+              style={{ padding: '16px 40px', background: 'linear-gradient(135deg,#10b981 0%,#059669 100%)', color: 'white', border: 'none', borderRadius: 14, fontSize: '1rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 4px 16px rgba(16, 185, 129, 0.4)', transition: 'all 0.2s' }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-2px)';
+                e.currentTarget.style.boxShadow = '0 6px 20px rgba(16, 185, 129, 0.5)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 4px 16px rgba(16, 185, 129, 0.4)';
+              }}>
               <CheckSquare size={20} /> {mode === 'edit' ? 'Update Clinic' : 'Save Clinic'}
             </button>
           )}

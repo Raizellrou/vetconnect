@@ -1,116 +1,258 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import { X, Map, MapPin, Calendar, Clock, MessageSquare } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Calendar } from 'lucide-react';
 import TopBar from '../../components/layout/TopBar';
 import Sidebar from '../../components/layout/Sidebar';
 import AppointmentStatusLegend from '../../components/AppointmentStatusLegend';
 import AppointmentCard from '../../components/AppointmentCard';
 import AppointmentDetailsCard from '../../components/AppointmentDetailsCard';
 import RatingCommentForm from '../../components/RatingCommentForm';
-import EditAppointmentForm from '../../components/EditAppointmentForm';
+import CancelAppointmentDialog from '../../components/CancelAppointmentDialog';
+import AppointmentFilters from '../../components/filters/AppointmentFilters';
+import FilterResultsSummary from '../../components/filters/FilterResultsSummary';
+import EmptyAppointmentsState from '../../components/states/EmptyAppointmentsState';
+import LoadingState from '../../components/states/LoadingState';
+import ErrorState from '../../components/states/ErrorState';
+import InstructionsModal from '../../components/modals/InstructionsModal';
+import SuccessMessage from '../../components/messages/SuccessMessage';
 import styles from '../../styles/Dashboard.module.css';
+import { useCollection } from '../../hooks/useCollection';
+import { where } from 'firebase/firestore';
+import { formatShortDate, formatTime } from '../../utils/dateUtils';
+import { collection, getDocs, query as firestoreQuery } from 'firebase/firestore';
+import { db } from '../../firebase/firebase';
+import { cancelAppointment, updateAppointment } from '../../lib/firebaseMutations';
+import { addReview } from '../../firebase/firestoreHelpers';
+import { useAppointmentFilters } from '../../hooks/useAppointmentFilters';
 
 const VIEW_STATES = {
   APPOINTMENT_LIST: 'list',
   VIEW_DETAILS: 'detail',
-  RATING_FORM: 'rating',
-  EDIT_FORM: 'edit'
+  RATING_FORM: 'rating'
 };
 
 export default function OwnerDashboard() {
-  const { userData, logout } = useAuth();
+  const { userData, currentUser } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [viewState, setViewState] = useState(VIEW_STATES.APPOINTMENT_LIST);
   const [showInstructions, setShowInstructions] = useState(false);
-
-  const [appointments, setAppointments] = useState([
-    {
-      id: 'a1',
-      clinicName: 'Animal Care Clinic',
-      petName: 'Max',
-      petType: 'Dog',
-      petBreed: 'Beagle',
-      symptoms: 'Coughing, low energy',
-      date: 'Nov 3, 2025',
-      time: '10:00 AM',
-      status: 'ready'
-    },
-    {
-      id: 'a2',
-      clinicName: 'Pet Wellness Center',
-      petName: 'Luna',
-      petType: 'Cat',
-      petBreed: 'Siamese',
-      symptoms: 'Itching',
-      date: 'Nov 5, 2025',
-      time: '2:30 PM',
-      status: 'pending'
-    },
-    {
-      id: 'a3',
-      clinicName: 'Vet Partners',
-      petName: 'Charlie',
-      petType: 'Dog',
-      petBreed: 'Labrador',
-      symptoms: 'Annual checkup',
-      date: 'Nov 1, 2025',
-      time: '11:15 AM',
-      status: 'finished'
-    }
-  ]);
-
   const [selected, setSelected] = useState(null);
+  const [successMessage, setSuccessMessage] = useState('');
+  
+  const [pets, setPets] = useState([]);
+  const [clinics, setClinics] = useState([]);
+  const [dataLoading, setDataLoading] = useState(true);
+  const [appointmentToCancel, setAppointmentToCancel] = useState(null);
+  const [isCancelling, setIsCancelling] = useState(false);
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+
+  // Use custom hook for filtering
+  const {
+    statusFilter,
+    setStatusFilter,
+    dateFilter,
+    setDateFilter,
+    customDateStart,
+    setCustomDateStart,
+    customDateEnd,
+    setCustomDateEnd,
+    searchQuery,
+    setSearchQuery,
+    clearFilters,
+    hasActiveFilters
+  } = useAppointmentFilters();
+
+  // Real-time listener for appointments
+  const {
+    docs: appointments = [],
+    loading: appointmentsLoading,
+    error: appointmentsError
+  } = useCollection(
+    currentUser?.uid ? 'appointments' : null,
+    currentUser?.uid ? [where('ownerId', '==', currentUser.uid)] : []
+  );
+
+  // Load success message from navigation state
+  useEffect(() => {
+    if (location.state?.message) {
+      setSuccessMessage(location.state.message);
+      const timer = setTimeout(() => setSuccessMessage(''), 5000);
+      window.history.replaceState({}, document.title);
+      return () => clearTimeout(timer);
+    }
+  }, [location]);
+
+  // Load pets and clinics for display
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!currentUser?.uid) return;
+      
+      try {
+        setDataLoading(true);
+        
+        // Fetch pets
+        const petsQuery = firestoreQuery(
+          collection(db, 'users', currentUser.uid, 'pets')
+        );
+        const petsSnapshot = await getDocs(petsQuery);
+        const petsData = petsSnapshot.docs.map(doc => ({ 
+          id: doc.id, 
+          ...doc.data() 
+        }));
+        setPets(petsData);
+
+        // Fetch clinics
+        const clinicsSnapshot = await getDocs(collection(db, 'clinics'));
+        const clinicsData = clinicsSnapshot.docs.map(doc => ({ 
+          id: doc.id, 
+          ...doc.data() 
+        }));
+        setClinics(clinicsData);
+        
+        console.log('Fetched pets:', petsData);
+        console.log('Fetched clinics:', clinicsData);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        setDataLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [currentUser]);
 
   const handleLogout = async () => {
     await logout();
     navigate('/');
   };
 
-  if (!userData) return <p>Loading...</p>;
+  const displayName = userData?.fullName || userData?.displayName || userData?.email;
 
-  const displayName = userData.fullName || userData.displayName || userData.email;
+  // Helper functions
+  const getPetName = (petId) => pets.find(p => p.id === petId)?.name || 'Unknown Pet';
+  const getClinicName = (clinicId) => clinics.find(c => c.id === clinicId)?.clinicName || clinics.find(c => c.id === clinicId)?.name || 'Unknown Clinic';
 
-  const handleCardClick = (id) => {
-    const appt = appointments.find((a) => a.id === id);
-    setSelected(appt);
-    if (!appt) return;
-    if (appt.status === 'finished') setViewState(VIEW_STATES.RATING_FORM);
-    else setViewState(VIEW_STATES.VIEW_DETAILS);
-  };
-
-  const handleEdit = (id) => {
-    const appt = appointments.find((a) => a.id === id);
-    setSelected(appt);
-    setViewState(VIEW_STATES.EDIT_FORM);
-  };
-
-  const handleDelete = (id) => {
-    setAppointments((prev) => prev.filter((p) => p.id !== id));
-    setViewState(VIEW_STATES.APPOINTMENT_LIST);
-  };
-
-  const handleSaveEdit = (form) => {
-    setAppointments((prev) => prev.map((p) => (p.id === selected.id ? { ...p, petName: form.pet, symptoms: form.symptoms, date: form.date, time: form.time } : p)));
+  // Event handlers
+  const handleCardClick = (appointment) => {
+    setSelected(appointment);
     setViewState(VIEW_STATES.VIEW_DETAILS);
   };
 
-  const handleDoneRating = ({ rating, comment }) => {
-    console.log('rating', rating, 'comment', comment);
-    setViewState(VIEW_STATES.APPOINTMENT_LIST);
+  const handleCancelClick = (appointment) => setAppointmentToCancel(appointment);
+
+  const handleConfirmCancel = async (reason) => {
+    if (!appointmentToCancel) return;
+    
+    setIsCancelling(true);
+    try {
+      await cancelAppointment(appointmentToCancel.id, reason);
+      setAppointmentToCancel(null);
+      setSuccessMessage('Appointment cancelled successfully');
+    } catch (error) {
+      console.error('Error cancelling appointment:', error);
+      alert('Failed to cancel appointment. Please try again.');
+    } finally {
+      setIsCancelling(false);
+    }
   };
 
-  const rejectedLabel = 
-    viewState === VIEW_STATES.VIEW_DETAILS || viewState === VIEW_STATES.EDIT_FORM 
-      ? 'Not Ready' 
-      : 'Rejected';
-  const pendingLabel = 
-    viewState === VIEW_STATES.RATING_FORM || 
-    viewState === VIEW_STATES.VIEW_DETAILS || 
-    viewState === VIEW_STATES.EDIT_FORM
-      ? 'For Approval' 
-      : 'Pending';
+  const handleDoneRating = async ({ rating, comment }) => {
+    if (!selected || !currentUser?.uid || selected.hasReview) {
+      if (selected.hasReview) alert('You have already reviewed this appointment.');
+      setViewState(VIEW_STATES.APPOINTMENT_LIST);
+      return;
+    }
+    
+    setIsSubmittingReview(true);
+    try {
+      await addReview(currentUser.uid, selected.clinicId, {
+        rating,
+        comment,
+        appointmentId: selected.id
+      });
+
+      await updateAppointment(selected.id, { 
+        hasReview: true,
+        reviewedAt: new Date()
+      });
+
+      setSuccessMessage('Thank you for your review!');
+      setViewState(VIEW_STATES.APPOINTMENT_LIST);
+      setSelected(null);
+    } catch (error) {
+      console.error('Error submitting review:', error);
+      alert('Failed to submit review. Please try again.');
+    } finally {
+      setIsSubmittingReview(false);
+    }
+  };
+
+  // Filter appointments
+  const getFilteredAppointments = () => {
+    let filtered = [...appointments].filter(apt => apt.status !== 'cancelled');
+
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(apt => apt.status === statusFilter);
+    }
+
+    if (dateFilter === 'today') {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      
+      filtered = filtered.filter(apt => {
+        const aptDate = apt.dateTime?.toDate ? apt.dateTime.toDate() : new Date(apt.dateTime);
+        return aptDate >= today && aptDate < tomorrow;
+      });
+    } else if (dateFilter === 'upcoming') {
+      const now = new Date();
+      filtered = filtered.filter(apt => {
+        const aptDate = apt.dateTime?.toDate ? apt.dateTime.toDate() : new Date(apt.dateTime);
+        return aptDate > now;
+      });
+    } else if (dateFilter === 'past') {
+      const now = new Date();
+      filtered = filtered.filter(apt => {
+        const aptDate = apt.dateTime?.toDate ? apt.dateTime.toDate() : new Date(apt.dateTime);
+        return aptDate < now;
+      });
+    } else if (dateFilter === 'custom' && customDateStart && customDateEnd) {
+      const start = new Date(customDateStart);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(customDateEnd);
+      end.setHours(23, 59, 59, 999);
+      
+      filtered = filtered.filter(apt => {
+        const aptDate = apt.dateTime?.toDate ? apt.dateTime.toDate() : new Date(apt.dateTime);
+        return aptDate >= start && aptDate <= end;
+      });
+    }
+
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(apt => 
+        getClinicName(apt.clinicId).toLowerCase().includes(query) ||
+        getPetName(apt.petId).toLowerCase().includes(query) ||
+        apt.meta?.reason?.toLowerCase().includes(query)
+      );
+    }
+
+    filtered.sort((a, b) => {
+      const dateA = a.dateTime?.toDate ? a.dateTime.toDate() : new Date(a.dateTime);
+      const dateB = b.dateTime?.toDate ? b.dateTime.toDate() : new Date(b.dateTime);
+      return dateB - dateA;
+    });
+
+    return filtered;
+  };
+
+  const filteredAppointments = getFilteredAppointments();
+
+  if (!userData) return <LoadingState message="Loading user data..." />;
 
   return (
     <div className={styles.dashboard}>
@@ -118,179 +260,165 @@ export default function OwnerDashboard() {
       <div className={styles.mainWrapper}>
         <TopBar username={displayName} />
         <main className={styles.mainContent}>
-        <div className={styles.welcomeBanner}>
-          <div className={styles.bannerMeta}>
-            <span>Home</span>
-            <span className={styles.bulletPoint}>•</span>
-            <span className={styles.dateText}>
-              {new Date().toLocaleDateString('en-US', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-              })}
-            </span>
+          <SuccessMessage message={successMessage} />
+
+          <div className={styles.welcomeBanner}>
+            <div className={styles.bannerMeta}>
+              <span>Home</span>
+              <span className={styles.bulletPoint}>•</span>
+              <span className={styles.dateText}>
+                {new Date().toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
+                })}
+              </span>
+            </div>
+
+            <h1 className={styles.welcomeTitle}>Hello, {displayName}!</h1>
+
+            <p className={styles.welcomeSubtitle}>
+              <button 
+                onClick={() => setShowInstructions(true)}
+                className={styles.instructionsLink}
+              >
+                Instructions: How to Use VetConnect
+              </button>
+            </p>
           </div>
 
-          {/* ── CLEAN HEADER (no button) ────────────────────────────────────────── */}
-          <h1 className={styles.welcomeTitle}>Hello, {displayName}!</h1>
-          {/* ─────────────────────────────────────────────────────────────────────── */}
+          <div className={styles.appointmentSection}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h2 className={styles.sectionTitle}>Appointments</h2>
+              <button
+                onClick={() => navigate('/map')}
+                style={{
+                  padding: '12px 24px',
+                  background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '10px',
+                  fontSize: '0.9375rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
+                  transition: 'all 0.2s ease',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}
+              >
+                <Calendar size={18} strokeWidth={2.5} />
+                <span>Find Clinic & Book</span>
+              </button>
+            </div>
 
-          <p className={styles.welcomeSubtitle}>
-            <button 
-              onClick={() => setShowInstructions(true)}
-              className={styles.instructionsLink}
-            >
-              Instructions: How to Use VetConnect
-            </button>
-          </p>
-        </div>
+            <AppointmentStatusLegend />
 
-        <div className={styles.appointmentSection}>
-          <h2 className={styles.sectionTitle}>Appointments</h2>
+            {/* Filters */}
+            {!appointmentsLoading && !dataLoading && appointments.length > 0 && viewState === VIEW_STATES.APPOINTMENT_LIST && (
+              <>
+                <AppointmentFilters
+                  statusFilter={statusFilter}
+                  dateFilter={dateFilter}
+                  searchQuery={searchQuery}
+                  customDateStart={customDateStart}
+                  customDateEnd={customDateEnd}
+                  onStatusChange={setStatusFilter}
+                  onDateFilterChange={setDateFilter}
+                  onSearchChange={setSearchQuery}
+                  onCustomDateStartChange={setCustomDateStart}
+                  onCustomDateEndChange={setCustomDateEnd}
+                  onClearFilters={clearFilters}
+                  showClearButton={hasActiveFilters}
+                />
 
-          <AppointmentStatusLegend rejectedLabel={rejectedLabel} pendingLabel={pendingLabel} />
+                <FilterResultsSummary
+                  filteredCount={filteredAppointments.length}
+                  totalCount={appointments.filter(apt => apt.status !== 'cancelled').length}
+                  showClearButton={hasActiveFilters}
+                  onClearFilters={clearFilters}
+                />
+              </>
+            )}
 
-          <div className={styles.divider} />
+            <div className={styles.divider} />
 
-          {viewState === VIEW_STATES.APPOINTMENT_LIST && (
+            {/* States */}
+            {(appointmentsLoading || dataLoading) && <LoadingState message="Loading appointments..." />}
+            {appointmentsError && <ErrorState title="Error Loading Appointments" message={appointmentsError.message || 'Please try refreshing the page'} />}
+            {!appointmentsLoading && !dataLoading && !appointmentsError && appointments.length === 0 && <EmptyAppointmentsState />}
+
+            {/* Appointments List */}
+            {!appointmentsLoading && !dataLoading && !appointmentsError && viewState === VIEW_STATES.APPOINTMENT_LIST && appointments.length > 0 && (
               <div className={styles.appointmentList}>
-                {appointments.map((a) => (
+                {filteredAppointments.map((appointment) => (
                   <AppointmentCard
-                    key={a.id}
-                    id={a.id}
-                    clinicName={a.clinicName}
-                    petName={a.petName}
-                    date={a.date}
-                    time={a.time}
-                    status={a.status}
-                    onClick={() => handleCardClick(a.id)}
-                    onEditClick={() => handleEdit(a.id)}
-                    onRateClick={() => {
-                      setSelected(a);
+                    key={appointment.id}
+                    id={appointment.id}
+                    clinicName={getClinicName(appointment.clinicId)}
+                    petName={getPetName(appointment.petId)}
+                    date={formatShortDate(appointment.dateTime)}
+                    time={formatTime(appointment.dateTime)}
+                    status={appointment.status}
+                    hasReview={appointment.hasReview}
+                    onClick={() => handleCardClick(appointment)}
+                    onCancelClick={() => handleCancelClick(appointment)}
+                    onRateClick={appointment.status === 'completed' && !appointment.hasReview ? () => {
+                      setSelected(appointment);
                       setViewState(VIEW_STATES.RATING_FORM);
+                    } : undefined}
+                    onViewClick={() => {
+                      setSelected(appointment);
+                      setViewState(VIEW_STATES.VIEW_DETAILS);
                     }}
-                    onDeleteClick={() => handleDelete(a.id)}
                   />
                 ))}
               </div>
             )}
 
+            {/* Detail Views */}
             {viewState === VIEW_STATES.VIEW_DETAILS && selected && (
               <AppointmentDetailsCard
-                appointment={selected}
-                onEdit={() => handleEdit(selected.id)}
-                onDelete={() => handleDelete(selected.id)}
+                appointment={{
+                  ...selected,
+                  clinicName: getClinicName(selected.clinicId),
+                  petName: getPetName(selected.petId),
+                  date: formatShortDate(selected.dateTime),
+                  time: formatTime(selected.dateTime),
+                  symptoms: selected.meta?.reason || 'N/A',
+                  hasReview: selected.hasReview
+                }}
+                onBack={() => setViewState(VIEW_STATES.APPOINTMENT_LIST)}
+                onRate={() => setViewState(VIEW_STATES.RATING_FORM)}
               />
             )}
 
             {viewState === VIEW_STATES.RATING_FORM && selected && (
-              <RatingCommentForm onDone={handleDoneRating} />
-            )}
-
-            {viewState === VIEW_STATES.EDIT_FORM && selected && (
-              <EditAppointmentForm
-                appointment={selected}
-                onSave={handleSaveEdit}
-                onCancel={() => setViewState(VIEW_STATES.VIEW_DETAILS)}
+              <RatingCommentForm 
+                clinicId={selected.clinicId}
+                appointmentId={selected.id}
+                onDone={handleDoneRating}
+                isSubmitting={isSubmittingReview}
               />
             )}
           </div>
         </main>
       </div>
 
-      {/* Instructions Modal */}
-      {showInstructions && (
-        <div className={styles.modalOverlay} onClick={() => setShowInstructions(false)}>
-          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-            <div className={styles.modalHeader}>
-              <h2 className={styles.modalTitle}>How to Use VetConnect</h2>
-              <button 
-                className={styles.modalCloseBtn}
-                onClick={() => setShowInstructions(false)}
-                aria-label="Close"
-              >
-                <X size={24} />
-              </button>
-            </div>
+      <InstructionsModal isOpen={showInstructions} onClose={() => setShowInstructions(false)} />
 
-            <div className={styles.modalBody}>
-              <p className={styles.modalIntro}>
-                Welcome to VetConnect! Follow these simple steps to book and manage your pet's appointments:
-              </p>
-
-              <div className={styles.instructionsList}>
-                <div className={styles.instructionStep}>
-                  <div className={styles.stepNumber}>
-                    <Map size={24} />
-                  </div>
-                  <div className={styles.stepContent}>
-                    <h3 className={styles.stepTitle}>1. Go to the Map</h3>
-                    <p className={styles.stepDescription}>
-                      Access the map feature from the sidebar to view all nearby veterinary clinics in your area.
-                    </p>
-                  </div>
-                </div>
-
-                <div className={styles.instructionStep}>
-                  <div className={styles.stepNumber}>
-                    <MapPin size={24} />
-                  </div>
-                  <div className={styles.stepContent}>
-                    <h3 className={styles.stepTitle}>2. Locate a Clinic</h3>
-                    <p className={styles.stepDescription}>
-                      Browse through the available clinics and select your preferred veterinary clinic from the options shown.
-                    </p>
-                  </div>
-                </div>
-
-                <div className={styles.instructionStep}>
-                  <div className={styles.stepNumber}>
-                    <Calendar size={24} />
-                  </div>
-                  <div className={styles.stepContent}>
-                    <h3 className={styles.stepTitle}>3. Book an Appointment</h3>
-                    <p className={styles.stepDescription}>
-                      Choose a date and time that fits your schedule, provide your pet's information and symptoms.
-                    </p>
-                  </div>
-                </div>
-
-                <div className={styles.instructionStep}>
-                  <div className={styles.stepNumber}>
-                    <Clock size={24} />
-                  </div>
-                  <div className={styles.stepContent}>
-                    <h3 className={styles.stepTitle}>4. Wait for Approval</h3>
-                    <p className={styles.stepDescription}>
-                      The clinic will review and confirm your appointment request. You'll see the status update on your dashboard.
-                    </p>
-                  </div>
-                </div>
-
-                <div className={styles.instructionStep}>
-                  <div className={styles.stepNumber}>
-                    <MessageSquare size={24} />
-                  </div>
-                  <div className={styles.stepContent}>
-                    <h3 className={styles.stepTitle}>5. After the Appointment</h3>
-                    <p className={styles.stepDescription}>
-                      Share your experience by leaving a comment and rating to help other pet owners make informed decisions.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className={styles.modalFooter}>
-                <button 
-                  className={styles.modalCloseButton}
-                  onClick={() => setShowInstructions(false)}
-                >
-                  Got it!
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+      {appointmentToCancel && (
+        <CancelAppointmentDialog
+          appointment={{
+            ...appointmentToCancel,
+            clinicName: getClinicName(appointmentToCancel.clinicId),
+            petName: getPetName(appointmentToCancel.petId)
+          }}
+          onConfirm={handleConfirmCancel}
+          onCancel={() => setAppointmentToCancel(null)}
+          isLoading={isCancelling}
+        />
       )}
     </div>
   );

@@ -1,8 +1,11 @@
 import React from 'react';
-import { PenSquare, Trash2, Star } from 'lucide-react';
+import { XCircle, Star, Eye } from 'lucide-react';
 import styles from '../styles/Dashboard.module.css';
 
-export default function AppointmentCard({ id, clinicName, petName, date, time, status, onClick, onEditClick, onRateClick, onDeleteClick }) {
+export default function AppointmentCard({ id, clinicName, petName, date, time, status, onClick, onCancelClick, onRateClick, onViewClick, hasReview }) {
+  const canCancel = ['pending', 'confirmed'].includes(status);
+  const canRate = status === 'completed' && !hasReview && onRateClick; // Only if not reviewed AND onRateClick exists
+  
   return (
     <div className={`${styles.appointmentCard} ${styles[status]}`} onClick={onClick} role="button" tabIndex={0} onKeyDown={(e)=>{ if(e.key === 'Enter') onClick && onClick(); }}>
       <div className={styles.cardLeft}>
@@ -17,18 +20,36 @@ export default function AppointmentCard({ id, clinicName, petName, date, time, s
       <div className={styles.cardTime}>{time}</div>
 
       <div className={styles.cardActions} onClick={(e)=>e.stopPropagation()}>
-        {status === 'finished' ? (
-          <button className={styles.iconBtn} title="Rate" onClick={onRateClick}>
+        {canRate && (
+          <button 
+            className={styles.iconBtn} 
+            title="Rate & Review" 
+            onClick={onRateClick}
+            style={{ color: '#fbbf24' }}
+          >
             <Star size={18} />
           </button>
-        ) : (
-          <button className={styles.iconBtn} title="Edit" onClick={onEditClick}>
-            <PenSquare size={18} />
+        )}
+        
+        {status === 'completed' && (
+          <button 
+            className={styles.iconBtn} 
+            title="View Details" 
+            onClick={onViewClick}
+          >
+            <Eye size={18} />
           </button>
         )}
-        <button className={`${styles.iconBtn} ${styles.iconBtnDelete}`} title="Delete" onClick={onDeleteClick}>
-          <Trash2 size={18} />
-        </button>
+        
+        {canCancel && (
+          <button 
+            className={`${styles.iconBtn} ${styles.iconBtnDelete}`} 
+            title="Cancel Appointment" 
+            onClick={onCancelClick}
+          >
+            <XCircle size={18} />
+          </button>
+        )}
       </div>
     </div>
   );

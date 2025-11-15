@@ -16,6 +16,9 @@ export default function AddPetModal({ open, onClose, initialData = null }) {
     avatarURL: ""
   });
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
+
   useEffect(() => {
     if (initialData) {
       setForm({
@@ -31,8 +34,6 @@ export default function AddPetModal({ open, onClose, initialData = null }) {
     }
   }, [initialData]);
 
-  if (!open) return null;
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((s) => ({ ...s, [name]: value }));
@@ -40,10 +41,24 @@ export default function AddPetModal({ open, onClose, initialData = null }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
     if (!currentUser) {
-      console.error("No authenticated user");
+      setError("No authenticated user");
       return;
     }
+
+    if (!form.name.trim()) {
+      setError("Pet name is required");
+      return;
+    }
+
+    if (!form.species.trim()) {
+      setError("Species is required");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError('');
 
     const payload = {
       name: form.name,
@@ -58,6 +73,8 @@ export default function AddPetModal({ open, onClose, initialData = null }) {
 
     try {
       await addPet(currentUser.uid, payload);
+      
+      // Reset form
       setForm({
         name: "",
         species: "",
@@ -68,11 +85,20 @@ export default function AddPetModal({ open, onClose, initialData = null }) {
         notes: "",
         avatarURL: ""
       });
-      onClose && onClose();
+      
+      // Show success briefly before closing
+      setTimeout(() => {
+        onClose && onClose();
+      }, 300);
     } catch (err) {
       console.error("Failed to add pet:", err);
+      setError(err.message || "Failed to add pet. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
+
+  if (!open) return null;
 
   return (
     <div style={{
@@ -89,7 +115,7 @@ export default function AddPetModal({ open, onClose, initialData = null }) {
       padding: "16px"
     }}
     onClick={(e) => {
-      if (e.target === e.currentTarget) onClose && onClose();
+      if (e.target === e.currentTarget && !isSubmitting) onClose && onClose();
     }}
     >
       <div style={{
@@ -166,6 +192,22 @@ export default function AddPetModal({ open, onClose, initialData = null }) {
             <X size={24} color="white" />
           </button>
         </div>
+
+        {/* Error Message */}
+        {error && (
+          <div style={{
+            margin: '20px 24px 0',
+            padding: '14px 18px',
+            background: 'linear-gradient(135deg, #fee2e2 0%, #fecaca 100%)',
+            border: '2px solid #f87171',
+            borderRadius: '10px',
+            color: '#991b1b',
+            fontSize: '0.875rem',
+            fontWeight: 600
+          }}>
+            {error}
+          </div>
+        )}
 
         {/* Form Content */}
         <form onSubmit={handleSubmit} style={{
@@ -493,7 +535,8 @@ export default function AddPetModal({ open, onClose, initialData = null }) {
         }}>
           <button
             type="button"
-            onClick={() => onClose && onClose()}
+            onClick={() => !isSubmitting && onClose && onClose()}
+            disabled={isSubmitting}
             style={{
               padding: "12px 24px",
               background: "white",
@@ -502,14 +545,9 @@ export default function AddPetModal({ open, onClose, initialData = null }) {
               borderRadius: "10px",
               fontSize: "0.9375rem",
               fontWeight: "600",
-              cursor: "pointer",
-              transition: "all 0.2s"
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = "#f9fafb";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = "white";
+              cursor: isSubmitting ? "not-allowed" : "pointer",
+              transition: "all 0.2s",
+              opacity: isSubmitting ? 0.5 : 1
             }}
           >
             Cancel
@@ -517,28 +555,21 @@ export default function AddPetModal({ open, onClose, initialData = null }) {
           <button
             type="submit"
             onClick={handleSubmit}
+            disabled={isSubmitting}
             style={{
               padding: "12px 32px",
-              background: "linear-gradient(135deg, #ec4899 0%, #f472b6 100%)",
+              background: isSubmitting ? "#9ca3af" : "linear-gradient(135deg, #ec4899 0%, #f472b6 100%)",
               color: "white",
               border: "none",
               borderRadius: "10px",
               fontSize: "0.9375rem",
               fontWeight: "700",
-              cursor: "pointer",
+              cursor: isSubmitting ? "not-allowed" : "pointer",
               transition: "all 0.2s",
-              boxShadow: "0 4px 12px rgba(236, 72, 153, 0.3)"
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = "translateY(-2px)";
-              e.currentTarget.style.boxShadow = "0 6px 16px rgba(236, 72, 153, 0.4)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = "translateY(0)";
-              e.currentTarget.style.boxShadow = "0 4px 12px rgba(236, 72, 153, 0.3)";
+              boxShadow: isSubmitting ? "none" : "0 4px 12px rgba(236, 72, 153, 0.3)"
             }}
           >
-            Add Pet
+            {isSubmitting ? "Adding..." : "Add Pet"}
           </button>
         </div>
       </div>

@@ -1,6 +1,6 @@
 // Clinic storage utilities using localStorage
-const CLINICS_KEY = 'vetconnect-clinics';
-const ACTIVE_CLINIC_KEY = 'vetconnect-active-clinic';
+const CLINICS_KEY = 'clinics';
+const ACTIVE_CLINIC_KEY = 'activeClinic';
 
 /**
  * Get all clinics from localStorage
@@ -11,7 +11,7 @@ export const getAllClinics = () => {
     const clinics = localStorage.getItem(CLINICS_KEY);
     return clinics ? JSON.parse(clinics) : [];
   } catch (error) {
-    console.error('Error reading clinics from storage:', error);
+    console.error('Error reading clinics:', error);
     return [];
   }
 };
@@ -24,7 +24,7 @@ export const getAllClinics = () => {
 export const getClinicById = (clinicId) => {
   try {
     const clinics = getAllClinics();
-    return clinics.find(clinic => clinic.id === clinicId) || null;
+    return clinics.find(c => c.id === clinicId) || null;
   } catch (error) {
     console.error('Error getting clinic by ID:', error);
     return null;
@@ -40,11 +40,11 @@ export const saveClinic = (clinicData) => {
   try {
     const clinics = getAllClinics();
     const newClinic = {
-      id: `clinic_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       ...clinicData,
-      createdAt: new Date().toISOString(),
-      active: true
+      id: clinicData.id || `clinic_${Date.now()}`,
+      createdAt: new Date().toISOString()
     };
+    
     clinics.push(newClinic);
     localStorage.setItem(CLINICS_KEY, JSON.stringify(clinics));
     
@@ -53,6 +53,7 @@ export const saveClinic = (clinicData) => {
       setActiveClinic(newClinic.id);
     }
     
+    console.log('Clinic saved to localStorage:', newClinic);
     return newClinic;
   } catch (error) {
     console.error('Error saving clinic:', error);
@@ -69,22 +70,20 @@ export const saveClinic = (clinicData) => {
 export const updateClinic = (clinicId, updates) => {
   try {
     const clinics = getAllClinics();
-    const index = clinics.findIndex(clinic => clinic.id === clinicId);
+    const index = clinics.findIndex(c => c.id === clinicId);
     
-    if (index === -1) {
-      console.error('Clinic not found:', clinicId);
-      return null;
+    if (index !== -1) {
+      clinics[index] = {
+        ...clinics[index],
+        ...updates,
+        updatedAt: new Date().toISOString()
+      };
+      localStorage.setItem(CLINICS_KEY, JSON.stringify(clinics));
+      console.log('Clinic updated in localStorage:', clinics[index]);
+      return clinics[index];
     }
     
-    clinics[index] = {
-      ...clinics[index],
-      ...updates,
-      id: clinicId, // Preserve original ID
-      updatedAt: new Date().toISOString()
-    };
-    
-    localStorage.setItem(CLINICS_KEY, JSON.stringify(clinics));
-    return clinics[index];
+    throw new Error('Clinic not found');
   } catch (error) {
     console.error('Error updating clinic:', error);
     throw error;
@@ -99,26 +98,15 @@ export const updateClinic = (clinicId, updates) => {
 export const deleteClinic = (clinicId) => {
   try {
     const clinics = getAllClinics();
-    const filtered = clinics.filter(clinic => clinic.id !== clinicId);
-    
-    if (filtered.length === clinics.length) {
-      console.error('Clinic not found for deletion:', clinicId);
-      return false;
-    }
-    
+    const filtered = clinics.filter(c => c.id !== clinicId);
     localStorage.setItem(CLINICS_KEY, JSON.stringify(filtered));
     
-    // If deleted clinic was active, set first remaining clinic as active
-    const activeId = getActiveClinicId();
-    if (activeId === clinicId) {
-      if (filtered.length > 0) {
-        setActiveClinic(filtered[0].id);
-      } else {
-        localStorage.removeItem(ACTIVE_CLINIC_KEY);
-      }
+    // Clear active clinic if it was deleted
+    if (getActiveClinic()?.id === clinicId) {
+      localStorage.removeItem(ACTIVE_CLINIC_KEY);
     }
     
-    return true;
+    console.log('Clinic deleted from localStorage:', clinicId);
   } catch (error) {
     console.error('Error deleting clinic:', error);
     throw error;
@@ -126,14 +114,18 @@ export const deleteClinic = (clinicId) => {
 };
 
 /**
- * Get the active clinic ID
- * @returns {string|null} Active clinic ID or null
+ * Get the active clinic object
+ * @returns {Object|null} Active clinic object or null
  */
-export const getActiveClinicId = () => {
+export const getActiveClinic = () => {
   try {
-    return localStorage.getItem(ACTIVE_CLINIC_KEY);
+    const activeId = localStorage.getItem(ACTIVE_CLINIC_KEY);
+    if (!activeId) return null;
+    
+    const clinics = getAllClinics();
+    return clinics.find(c => c.id === activeId) || null;
   } catch (error) {
-    console.error('Error getting active clinic ID:', error);
+    console.error('Error getting active clinic:', error);
     return null;
   }
 };
@@ -145,30 +137,9 @@ export const getActiveClinicId = () => {
  */
 export const setActiveClinic = (clinicId) => {
   try {
-    const clinic = getClinicById(clinicId);
-    if (!clinic) {
-      console.error('Cannot set non-existent clinic as active:', clinicId);
-      return false;
-    }
     localStorage.setItem(ACTIVE_CLINIC_KEY, clinicId);
-    return true;
+    console.log('Active clinic set:', clinicId);
   } catch (error) {
     console.error('Error setting active clinic:', error);
-    return false;
-  }
-};
-
-/**
- * Get the active clinic object
- * @returns {Object|null} Active clinic object or null
- */
-export const getActiveClinic = () => {
-  try {
-    const activeId = getActiveClinicId();
-    if (!activeId) return null;
-    return getClinicById(activeId);
-  } catch (error) {
-    console.error('Error getting active clinic:', error);
-    return null;
   }
 };
