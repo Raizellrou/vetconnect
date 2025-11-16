@@ -3,6 +3,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import { useAuth } from "./contexts/AuthContext";
 import LandingPage from "./pages/LandingPage";
+import LoadingSpinner from "./components/LoadingSpinner";
 // OwnerDashboard lives under the PetOwnerDashBoard folder
 import OwnerDashboard from "./pages/PetOwnerDashBoard/OwnerDashboard";
 import ClinicOwnerDashboard from "./pages/ClinicOwner/ClinicOwnerDashboard";
@@ -32,7 +33,11 @@ export default function App() {
   function DashboardRedirect() {
     if (!currentUser) return <Navigate to="/" />;
     // if userData available use it, otherwise show fallback while AuthContext loads data
-    if (!userData) return <p>Loading...</p>;
+    if (!userData) return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
+        <LoadingSpinner size="large" message="Loading..." />
+      </div>
+    );
     if (userData.role === "clinicOwner") return <Navigate to="/clinic-dashboard" />;
     return <Navigate to="/owner-dashboard" />;
   }

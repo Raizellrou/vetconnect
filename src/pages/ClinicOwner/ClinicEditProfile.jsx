@@ -19,6 +19,7 @@ export default function ClinicEditProfile() {
     phone: userData?.phone || '',
     address: userData?.address || '',
     clinicName: userData?.clinicName || '',
+    portfolio: userData?.portfolio || '',
   });
 
   const [photoURL, setPhotoURL] = useState(userData?.photoURL || '');
@@ -237,6 +238,21 @@ export default function ClinicEditProfile() {
                     onChange={handleInputChange}
                     className={styles.input}
                     placeholder="Street, City, Province"
+                  />
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label htmlFor="portfolio" className={styles.label}>
+                    Portfolio URL
+                  </label>
+                  <input
+                    type="url"
+                    id="portfolio"
+                    name="portfolio"
+                    value={formData.portfolio}
+                    onChange={handleInputChange}
+                    className={styles.input}
+                    placeholder="https://your-portfolio-website.com"
                   />
                 </div>
               </div>

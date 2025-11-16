@@ -23,7 +23,7 @@ import { formatShortDate, formatTime } from '../../utils/dateUtils';
 import { collection, getDocs, query as firestoreQuery } from 'firebase/firestore';
 import { db } from '../../firebase/firebase';
 import { cancelAppointment, updateAppointment } from '../../lib/firebaseMutations';
-import { addReview } from '../../firebase/firestoreHelpers';
+import { addReview, sendNotification } from '../../firebase/firestoreHelpers';
 import { useAppointmentFilters } from '../../hooks/useAppointmentFilters';
 
 const VIEW_STATES = {
@@ -149,6 +149,26 @@ export default function OwnerDashboard() {
     setIsCancelling(true);
     try {
       await cancelAppointment(appointmentToCancel.id, reason);
+      
+      // Send notification to clinic owner
+      const clinic = clinics.find(c => c.id === appointmentToCancel.clinicId);
+      if (clinic?.ownerId) {
+        const petName = getPetName(appointmentToCancel.petId);
+        const clinicName = getClinicName(appointmentToCancel.clinicId);
+        
+        await sendNotification({
+          toUserId: clinic.ownerId,
+          title: 'Appointment Cancelled',
+          body: `Appointment for ${petName} has been cancelled by the pet owner${reason ? `: ${reason}` : ''}`,
+          appointmentId: appointmentToCancel.id,
+          data: {
+            petName,
+            clinicName,
+            reason: reason || 'No reason provided'
+          }
+        });
+      }
+      
       setAppointmentToCancel(null);
       setSuccessMessage('Appointment cancelled successfully');
     } catch (error) {

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Star, Loader, CheckCircle, AlertCircle } from 'lucide-react';
+import { Star, CheckCircle, AlertCircle } from 'lucide-react';
+import LoadingSpinner from './LoadingSpinner';
 import { addReview } from '../firebase/firestoreHelpers';
 import { useAuth } from '../contexts/AuthContext';
 import styles from '../styles/Dashboard.module.css';
@@ -170,7 +171,9 @@ export default function RatingCommentForm({ clinicId, appointmentId, onDone }) {
         >
           {isSubmitting ? (
             <>
-              <Loader size={18} className="animate-spin" />
+              <div style={{ width: '18px', height: '18px' }}>
+                <LoadingSpinner size="small" />
+              </div>
               SUBMITTING...
             </>
           ) : success ? (

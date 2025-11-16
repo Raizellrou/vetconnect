@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { MapPin, Phone, Clock, Star, Bookmark, BookmarkCheck, Calendar, X } from 'lucide-react';
+import { MapPin, Phone, Clock, Star, Bookmark, BookmarkCheck, Calendar, ArrowLeft, X } from 'lucide-react';
+import LoadingSpinner from '../../components/LoadingSpinner';
 import TopBar from '../../components/layout/TopBar';
 import Sidebar from '../../components/layout/Sidebar';
 import { useAuth } from '../../contexts/AuthContext';
@@ -136,10 +137,10 @@ export default function ClinicDetails() {
     return (
       <div style={{ display: 'flex', minHeight: '100vh' }}>
         <Sidebar />
-        <div style={{ flex: 1, marginLeft: '200px' }}>
+        <div style={{ flex: 1, marginLeft: '240px' }}>
           <TopBar username={displayName} />
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 'calc(100vh - 64px)' }}>
-            <p>Loading clinic details...</p>
+            <LoadingSpinner size="large" message="Loading clinic details..." />
           </div>
         </div>
       </div>
@@ -150,7 +151,7 @@ export default function ClinicDetails() {
     return (
       <div style={{ display: 'flex', minHeight: '100vh' }}>
         <Sidebar />
-        <div style={{ flex: 1, marginLeft: '200px' }}>
+        <div style={{ flex: 1, marginLeft: '240px' }}>
           <TopBar username={displayName} />
           <div style={{ padding: '40px', textAlign: 'center' }}>
             <h2>Clinic not found</h2>
@@ -166,7 +167,7 @@ export default function ClinicDetails() {
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: '#f9fafb' }}>
       <Sidebar />
-      <div style={{ flex: 1, marginLeft: '200px' }}>
+      <div style={{ flex: 1, marginLeft: '240px' }}>
         <TopBar username={displayName} />
         
         <main style={{ padding: '80px 20px 24px 20px', maxWidth: '1400px', margin: '0 auto' }}>
@@ -380,8 +381,7 @@ export default function ClinicDetails() {
 
             {reviewsLoading ? (
               <div style={{ textAlign: 'center', padding: '40px 20px' }}>
-                <Loader size={40} color="#818cf8" className="animate-spin" style={{ margin: '0 auto 12px' }} />
-                <p style={{ color: '#6b7280' }}>Loading reviews...</p>
+                <LoadingSpinner size="medium" message="Loading reviews..." />
               </div>
             ) : reviews.length === 0 ? (
               <div style={{

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PawPrint, Plus, Edit, Calendar, Weight, User } from 'lucide-react';
+import { PawPrint, Plus, Edit, Calendar, Weight, User, ImageIcon, FileText, X } from 'lucide-react';
 import Sidebar from '../../components/layout/Sidebar';
 import TopBar from '../../components/layout/TopBar';
 import { useAuth } from '../../contexts/AuthContext';
@@ -431,160 +431,541 @@ export default function AddPetPage() {
           display: 'flex', 
           alignItems: 'center', 
           justifyContent: 'center', 
-          background: 'rgba(0,0,0,0.5)', 
+          background: 'rgba(0, 0, 0, 0.6)', 
+          backdropFilter: 'blur(8px)',
           zIndex: 9999,
-          padding: '16px'
+          padding: '16px',
+          animation: 'fadeIn 0.2s ease-out'
         }}
         onClick={(e) => {
           if (e.target === e.currentTarget && !editingLoading) setEditingPet(null);
         }}>
           <div style={{ 
             width: '100%', 
-            maxWidth: '640px', 
+            maxWidth: '720px', 
             background: 'white', 
-            borderRadius: '20px', 
-            padding: '32px',
-            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+            borderRadius: '24px', 
+            boxShadow: '0 25px 70px rgba(0, 0, 0, 0.35)',
             maxHeight: '90vh',
-            overflowY: 'auto'
+            overflowY: 'auto',
+            animation: 'slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
           }}>
-            <h3 style={{ margin: '0 0 24px 0', fontSize: '1.5rem', fontWeight: 700, color: '#1f2937' }}>Edit Pet</h3>
-            
-            {editError && (
-              <div style={{
-                marginBottom: '20px',
-                padding: '14px 18px',
-                background: 'linear-gradient(135deg, #fee2e2 0%, #fecaca 100%)',
-                border: '2px solid #f87171',
-                borderRadius: '10px',
-                color: '#991b1b',
-                fontSize: '0.875rem',
-                fontWeight: 600
-              }}>
-                {editError}
+            {/* Header */}
+            <div style={{
+              padding: '32px 40px',
+              borderBottom: '2px solid #f3f4f6',
+              background: 'linear-gradient(135deg, rgba(129, 140, 248, 0.08) 0%, rgba(167, 139, 250, 0.08) 100%)',
+              borderRadius: '24px 24px 0 0',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <div style={{
+                  width: '56px',
+                  height: '56px',
+                  background: 'linear-gradient(135deg, #818cf8 0%, #a78bfa 100%)',
+                  borderRadius: '16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 8px 20px rgba(129, 140, 248, 0.4)'
+                }}>
+                  <Edit size={28} color="white" strokeWidth={2.5} />
+                </div>
+                <div>
+                  <h3 style={{ 
+                    margin: 0, 
+                    fontSize: '1.75rem', 
+                    fontWeight: 700, 
+                    color: '#1f2937',
+                    background: 'linear-gradient(135deg, #818cf8 0%, #a78bfa 100%)',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent'
+                  }}>
+                    Edit Pet Profile
+                  </h3>
+                  <p style={{ margin: '4px 0 0 0', fontSize: '0.875rem', color: '#6b7280', fontWeight: 500 }}>
+                    Update {editingPet.name}'s information
+                  </p>
+                </div>
               </div>
-            )}
-            
-            <form
-              onSubmit={async (e) => {
-                e.preventDefault();
-                const fd = new FormData(e.target);
-                const upd = {
-                  name: fd.get('name'),
-                  species: fd.get('species'),
-                  breed: fd.get('breed'),
-                  dob: fd.get('dob'),
-                  gender: fd.get('gender'),
-                  weightKg: fd.get('weightKg'),
-                  notes: fd.get('notes'),
-                  avatarURL: fd.get('avatarURL')
-                };
-                await handleEditSave(upd);
-              }}
-              style={{ display: 'grid', gap: '20px' }}
-            >
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                <input 
-                  name="name" 
-                  defaultValue={editingPet.name || ''} 
-                  placeholder="Name" 
-                  required
-                  style={{ padding: '14px 16px', border: '2px solid #e5e7eb', borderRadius: '10px', fontSize: '1rem' }} 
-                />
-                <input 
-                  name="species" 
-                  defaultValue={editingPet.species || ''} 
-                  placeholder="Species" 
-                  required
-                  style={{ padding: '14px 16px', border: '2px solid #e5e7eb', borderRadius: '10px', fontSize: '1rem' }} 
-                />
-                <input 
-                  name="breed" 
-                  defaultValue={editingPet.breed || ''} 
-                  placeholder="Breed" 
-                  style={{ padding: '14px 16px', border: '2px solid #e5e7eb', borderRadius: '10px', fontSize: '1rem' }} 
-                />
-                <input
-                  name="dob"
-                  type="date"
-                  defaultValue={
-                    editingPet.dob
-                      ? (editingPet.dob.toDate ? editingPet.dob.toDate().toISOString().slice(0, 10) : new Date(editingPet.dob).toISOString().slice(0, 10))
-                      : ''
+              <button
+                onClick={() => !editingLoading && setEditingPet(null)}
+                disabled={editingLoading}
+                style={{
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '10px',
+                  border: '2px solid #e5e7eb',
+                  background: 'white',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: editingLoading ? 'not-allowed' : 'pointer',
+                  transition: 'all 0.2s',
+                  opacity: editingLoading ? 0.5 : 1
+                }}
+                onMouseEnter={(e) => {
+                  if (!editingLoading) {
+                    e.currentTarget.style.background = '#f9fafb';
+                    e.currentTarget.style.borderColor = '#d1d5db';
                   }
-                  style={{ padding: '14px 16px', border: '2px solid #e5e7eb', borderRadius: '10px', fontSize: '1rem' }}
-                />
-                <select 
-                  name="gender" 
-                  defaultValue={editingPet.gender || ''} 
-                  style={{ padding: '14px 16px', border: '2px solid #e5e7eb', borderRadius: '10px', fontSize: '1rem' }}
-                >
-                  <option value="">Select Gender</option>
-                  <option value="Male">Male</option>
-                  <option value="Female">Female</option>
-                  <option value="Other">Other</option>
-                </select>
-                <input 
-                  name="weightKg" 
-                  type="number" 
-                  step="0.1" 
-                  defaultValue={editingPet.weightKg ?? ''} 
-                  placeholder="Weight (kg)" 
-                  style={{ padding: '14px 16px', border: '2px solid #e5e7eb', borderRadius: '10px', fontSize: '1rem' }} 
-                />
-              </div>
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'white';
+                  e.currentTarget.style.borderColor = '#e5e7eb';
+                }}
+              >
+                <X size={20} color="#6b7280" />
+              </button>
+            </div>
 
-              <input 
-                name="avatarURL" 
-                placeholder="Avatar URL" 
-                defaultValue={editingPet.avatarURL || ''} 
-                style={{ padding: '14px 16px', border: '2px solid #e5e7eb', borderRadius: '10px', fontSize: '1rem', width: '100%' }} 
-              />
+            {/* Content */}
+            <div style={{ padding: '32px 40px' }}>
+              {editError && (
+                <div style={{
+                  marginBottom: '24px',
+                  padding: '16px 20px',
+                  background: 'linear-gradient(135deg, #fee2e2 0%, #fecaca 100%)',
+                  border: '2px solid #f87171',
+                  borderRadius: '12px',
+                  color: '#991b1b',
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px'
+                }}>
+                  <div style={{
+                    width: '24px',
+                    height: '24px',
+                    borderRadius: '50%',
+                    background: '#dc2626',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0
+                  }}>
+                    <X size={14} color="white" strokeWidth={3} />
+                  </div>
+                  {editError}
+                </div>
+              )}
               
-              <textarea 
-                name="notes" 
-                placeholder="Notes" 
-                defaultValue={editingPet.notes || ''} 
-                rows={4}
-                style={{ padding: '14px 16px', border: '2px solid #e5e7eb', borderRadius: '10px', fontSize: '1rem', width: '100%', resize: 'vertical' }} 
-              />
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  const fd = new FormData(e.target);
+                  const upd = {
+                    name: fd.get('name'),
+                    species: fd.get('species'),
+                    breed: fd.get('breed'),
+                    dob: fd.get('dob'),
+                    gender: fd.get('gender'),
+                    weightKg: fd.get('weightKg'),
+                    notes: fd.get('notes'),
+                    avatarURL: fd.get('avatarURL')
+                  };
+                  await handleEditSave(upd);
+                }}
+              >
+                {/* Basic Information Section */}
+                <div style={{ marginBottom: '28px' }}>
+                  <div style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '10px', 
+                    marginBottom: '16px',
+                    paddingBottom: '12px',
+                    borderBottom: '2px solid #f3f4f6'
+                  }}>
+                    <PawPrint size={20} color="#818cf8" strokeWidth={2.5} />
+                    <h4 style={{ margin: 0, fontSize: '1.125rem', fontWeight: 700, color: '#374151' }}>
+                      Basic Information
+                    </h4>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                    <div>
+                      <label style={{ 
+                        display: 'block', 
+                        marginBottom: '8px', 
+                        fontSize: '0.875rem', 
+                        fontWeight: 600, 
+                        color: '#4b5563' 
+                      }}>
+                        Pet Name *
+                      </label>
+                      <input 
+                        name="name" 
+                        defaultValue={editingPet.name || ''} 
+                        placeholder="Enter pet name" 
+                        required
+                        style={{ 
+                          width: '100%',
+                          padding: '14px 16px', 
+                          border: '2px solid #e5e7eb', 
+                          borderRadius: '12px', 
+                          fontSize: '1rem',
+                          transition: 'all 0.2s',
+                          outline: 'none'
+                        }}
+                        onFocus={(e) => {
+                          e.target.style.borderColor = '#818cf8';
+                          e.target.style.boxShadow = '0 0 0 3px rgba(129, 140, 248, 0.1)';
+                        }}
+                        onBlur={(e) => {
+                          e.target.style.borderColor = '#e5e7eb';
+                          e.target.style.boxShadow = 'none';
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ 
+                        display: 'block', 
+                        marginBottom: '8px', 
+                        fontSize: '0.875rem', 
+                        fontWeight: 600, 
+                        color: '#4b5563' 
+                      }}>
+                        Species *
+                      </label>
+                      <input 
+                        name="species" 
+                        defaultValue={editingPet.species || ''} 
+                        placeholder="Dog, Cat, Bird, etc." 
+                        required
+                        style={{ 
+                          width: '100%',
+                          padding: '14px 16px', 
+                          border: '2px solid #e5e7eb', 
+                          borderRadius: '12px', 
+                          fontSize: '1rem',
+                          transition: 'all 0.2s',
+                          outline: 'none'
+                        }}
+                        onFocus={(e) => {
+                          e.target.style.borderColor = '#818cf8';
+                          e.target.style.boxShadow = '0 0 0 3px rgba(129, 140, 248, 0.1)';
+                        }}
+                        onBlur={(e) => {
+                          e.target.style.borderColor = '#e5e7eb';
+                          e.target.style.boxShadow = 'none';
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ 
+                        display: 'block', 
+                        marginBottom: '8px', 
+                        fontSize: '0.875rem', 
+                        fontWeight: 600, 
+                        color: '#4b5563' 
+                      }}>
+                        Breed
+                      </label>
+                      <input 
+                        name="breed" 
+                        defaultValue={editingPet.breed || ''} 
+                        placeholder="Enter breed" 
+                        style={{ 
+                          width: '100%',
+                          padding: '14px 16px', 
+                          border: '2px solid #e5e7eb', 
+                          borderRadius: '12px', 
+                          fontSize: '1rem',
+                          transition: 'all 0.2s',
+                          outline: 'none'
+                        }}
+                        onFocus={(e) => {
+                          e.target.style.borderColor = '#818cf8';
+                          e.target.style.boxShadow = '0 0 0 3px rgba(129, 140, 248, 0.1)';
+                        }}
+                        onBlur={(e) => {
+                          e.target.style.borderColor = '#e5e7eb';
+                          e.target.style.boxShadow = 'none';
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ 
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        marginBottom: '8px', 
+                        fontSize: '0.875rem', 
+                        fontWeight: 600, 
+                        color: '#4b5563' 
+                      }}>
+                        <Calendar size={16} color="#818cf8" />
+                        Date of Birth
+                      </label>
+                      <input
+                        name="dob"
+                        type="date"
+                        defaultValue={
+                          editingPet.dob
+                            ? (editingPet.dob.toDate ? editingPet.dob.toDate().toISOString().slice(0, 10) : new Date(editingPet.dob).toISOString().slice(0, 10))
+                            : ''
+                        }
+                        style={{ 
+                          width: '100%',
+                          padding: '14px 16px', 
+                          border: '2px solid #e5e7eb', 
+                          borderRadius: '12px', 
+                          fontSize: '1rem',
+                          transition: 'all 0.2s',
+                          outline: 'none'
+                        }}
+                        onFocus={(e) => {
+                          e.target.style.borderColor = '#818cf8';
+                          e.target.style.boxShadow = '0 0 0 3px rgba(129, 140, 248, 0.1)';
+                        }}
+                        onBlur={(e) => {
+                          e.target.style.borderColor = '#e5e7eb';
+                          e.target.style.boxShadow = 'none';
+                        }}
+                      />
+                    </div>
+                    <div>
+                      <label style={{ 
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        marginBottom: '8px', 
+                        fontSize: '0.875rem', 
+                        fontWeight: 600, 
+                        color: '#4b5563' 
+                      }}>
+                        <User size={16} color="#818cf8" />
+                        Gender
+                      </label>
+                      <select 
+                        name="gender" 
+                        defaultValue={editingPet.gender || ''} 
+                        style={{ 
+                          width: '100%',
+                          padding: '14px 16px', 
+                          border: '2px solid #e5e7eb', 
+                          borderRadius: '12px', 
+                          fontSize: '1rem',
+                          transition: 'all 0.2s',
+                          outline: 'none',
+                          background: 'white'
+                        }}
+                        onFocus={(e) => {
+                          e.target.style.borderColor = '#818cf8';
+                          e.target.style.boxShadow = '0 0 0 3px rgba(129, 140, 248, 0.1)';
+                        }}
+                        onBlur={(e) => {
+                          e.target.style.borderColor = '#e5e7eb';
+                          e.target.style.boxShadow = 'none';
+                        }}
+                      >
+                        <option value="">Select Gender</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label style={{ 
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        marginBottom: '8px', 
+                        fontSize: '0.875rem', 
+                        fontWeight: 600, 
+                        color: '#4b5563' 
+                      }}>
+                        <Weight size={16} color="#818cf8" />
+                        Weight (kg)
+                      </label>
+                      <input 
+                        name="weightKg" 
+                        type="number" 
+                        step="0.1" 
+                        defaultValue={editingPet.weightKg ?? ''} 
+                        placeholder="Enter weight" 
+                        style={{ 
+                          width: '100%',
+                          padding: '14px 16px', 
+                          border: '2px solid #e5e7eb', 
+                          borderRadius: '12px', 
+                          fontSize: '1rem',
+                          transition: 'all 0.2s',
+                          outline: 'none'
+                        }}
+                        onFocus={(e) => {
+                          e.target.style.borderColor = '#818cf8';
+                          e.target.style.boxShadow = '0 0 0 3px rgba(129, 140, 248, 0.1)';
+                        }}
+                        onBlur={(e) => {
+                          e.target.style.borderColor = '#e5e7eb';
+                          e.target.style.boxShadow = 'none';
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
 
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '8px' }}>
-                <button 
-                  type="button" 
-                  onClick={() => !editingLoading && setEditingPet(null)} 
-                  disabled={editingLoading}
-                  style={{ 
-                    padding: '12px 28px', 
-                    borderRadius: '10px', 
-                    background: '#f3f4f6',
-                    color: '#374151',
-                    border: '2px solid #e5e7eb',
-                    cursor: editingLoading ? 'not-allowed' : 'pointer',
-                    fontWeight: 600,
-                    opacity: editingLoading ? 0.5 : 1
-                  }}
-                >
-                  Cancel
-                </button>
-                <button 
-                  type="submit" 
-                  disabled={editingLoading} 
-                  style={{ 
-                    padding: '12px 32px', 
-                    borderRadius: '10px', 
-                    background: editingLoading ? '#9ca3af' : 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-                    color: 'white',
-                    border: 'none',
-                    cursor: editingLoading ? 'not-allowed' : 'pointer',
-                    fontWeight: 700,
-                    boxShadow: editingLoading ? 'none' : '0 4px 12px rgba(59, 130, 246, 0.3)'
-                  }}
-                >
-                  {editingLoading ? 'Saving...' : 'Save Changes'}
-                </button>
-              </div>
-            </form>
+                {/* Additional Information Section */}
+                <div style={{ marginBottom: '28px' }}>
+                  <div style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '10px', 
+                    marginBottom: '16px',
+                    paddingBottom: '12px',
+                    borderBottom: '2px solid #f3f4f6'
+                  }}>
+                    <ImageIcon size={20} color="#818cf8" strokeWidth={2.5} />
+                    <h4 style={{ margin: 0, fontSize: '1.125rem', fontWeight: 700, color: '#374151' }}>
+                      Additional Information
+                    </h4>
+                  </div>
+                  <div style={{ marginBottom: '16px' }}>
+                    <label style={{ 
+                      display: 'block', 
+                      marginBottom: '8px', 
+                      fontSize: '0.875rem', 
+                      fontWeight: 600, 
+                      color: '#4b5563' 
+                    }}>
+                      Avatar URL
+                    </label>
+                    <input 
+                      name="avatarURL" 
+                      placeholder="https://example.com/pet-photo.jpg" 
+                      defaultValue={editingPet.avatarURL || ''} 
+                      style={{ 
+                        width: '100%',
+                        padding: '14px 16px', 
+                        border: '2px solid #e5e7eb', 
+                        borderRadius: '12px', 
+                        fontSize: '1rem',
+                        transition: 'all 0.2s',
+                        outline: 'none'
+                      }}
+                      onFocus={(e) => {
+                        e.target.style.borderColor = '#818cf8';
+                        e.target.style.boxShadow = '0 0 0 3px rgba(129, 140, 248, 0.1)';
+                      }}
+                      onBlur={(e) => {
+                        e.target.style.borderColor = '#e5e7eb';
+                        e.target.style.boxShadow = 'none';
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ 
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      marginBottom: '8px', 
+                      fontSize: '0.875rem', 
+                      fontWeight: 600, 
+                      color: '#4b5563' 
+                    }}>
+                      <FileText size={16} color="#818cf8" />
+                      Notes
+                    </label>
+                    <textarea 
+                      name="notes" 
+                      placeholder="Add any additional notes about your pet..." 
+                      defaultValue={editingPet.notes || ''} 
+                      rows={4}
+                      style={{ 
+                        width: '100%',
+                        padding: '14px 16px', 
+                        border: '2px solid #e5e7eb', 
+                        borderRadius: '12px', 
+                        fontSize: '1rem', 
+                        resize: 'vertical',
+                        fontFamily: 'inherit',
+                        transition: 'all 0.2s',
+                        outline: 'none'
+                      }}
+                      onFocus={(e) => {
+                        e.target.style.borderColor = '#818cf8';
+                        e.target.style.boxShadow = '0 0 0 3px rgba(129, 140, 248, 0.1)';
+                      }}
+                      onBlur={(e) => {
+                        e.target.style.borderColor = '#e5e7eb';
+                        e.target.style.boxShadow = 'none';
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div style={{ 
+                  display: 'flex', 
+                  justifyContent: 'flex-end', 
+                  gap: '12px', 
+                  paddingTop: '24px',
+                  borderTop: '2px solid #f3f4f6'
+                }}>
+                  <button 
+                    type="button" 
+                    onClick={() => !editingLoading && setEditingPet(null)} 
+                    disabled={editingLoading}
+                    style={{ 
+                      padding: '14px 32px', 
+                      borderRadius: '12px', 
+                      background: 'white',
+                      color: '#374151',
+                      border: '2px solid #e5e7eb',
+                      cursor: editingLoading ? 'not-allowed' : 'pointer',
+                      fontWeight: 600,
+                      fontSize: '1rem',
+                      opacity: editingLoading ? 0.5 : 1,
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!editingLoading) {
+                        e.currentTarget.style.background = '#f9fafb';
+                        e.currentTarget.style.borderColor = '#d1d5db';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'white';
+                      e.currentTarget.style.borderColor = '#e5e7eb';
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    type="submit" 
+                    disabled={editingLoading} 
+                    style={{ 
+                      padding: '14px 36px', 
+                      borderRadius: '12px', 
+                      background: editingLoading ? '#9ca3af' : 'linear-gradient(135deg, #818cf8 0%, #a78bfa 100%)',
+                      color: 'white',
+                      border: 'none',
+                      cursor: editingLoading ? 'not-allowed' : 'pointer',
+                      fontWeight: 700,
+                      fontSize: '1rem',
+                      boxShadow: editingLoading ? 'none' : '0 8px 20px rgba(129, 140, 248, 0.4)',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!editingLoading) {
+                        e.currentTarget.style.transform = 'translateY(-2px)';
+                        e.currentTarget.style.boxShadow = '0 12px 28px rgba(129, 140, 248, 0.5)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = '0 8px 20px rgba(129, 140, 248, 0.4)';
+                    }}
+                  >
+                    {editingLoading ? 'Saving...' : 'Save Changes'}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       )}

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { X, Calendar, Users, DollarSign, UserCog, BarChart3, Settings, MapPin, FileText, ClipboardList, ChevronDown, Building2 } from 'lucide-react';
 import TopBar from '../../components/layout/TopBar';
 import ClinicSidebar from '../../components/layout/ClinicSidebar';
+import LoadingSpinner from '../../components/LoadingSpinner';
 import { getAllClinics, getActiveClinic, setActiveClinic } from '../../utils/clinicStorage';
 import styles from '../../styles/ClinicDashboard.module.css';
 
@@ -45,19 +46,14 @@ export default function ClinicOwnerDashboard() {
     navigate('/');
   };
 
-  if (!userData) return <p>Loading...</p>;
+  if (!userData) return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
+      <LoadingSpinner size="large" message="Loading..." />
+    </div>
+  );
 
   // Dashboard navigation cards data
   const dashboardSections = [
-    {
-      id: 'appointments',
-      title: 'Appointments',
-      description: 'Manage and confirm pet bookings',
-      icon: Calendar,
-      color: '#818cf8',
-      path: '/clinic/appointments',
-      stats: '12 Pending'
-    },
     {
       id: 'clients',
       title: 'Clients / Pet Records',
@@ -66,24 +62,6 @@ export default function ClinicOwnerDashboard() {
       color: '#22c55e',
       path: '/clinic/clients',
       stats: '48 Active'
-    },
-    {
-      id: 'services',
-      title: 'Services & Pricing',
-      description: 'Configure veterinary services and rates',
-      icon: DollarSign,
-      color: '#f97316',
-      path: '/clinic/services',
-      stats: '15 Services'
-    },
-    {
-      id: 'reports',
-      title: 'Reports / Analytics',
-      description: 'Monitor booking data and metrics',
-      icon: BarChart3,
-      color: '#06b6d4',
-      path: '/clinic/reports',
-      stats: 'View Insights'
     },
     {
       id: 'settings',

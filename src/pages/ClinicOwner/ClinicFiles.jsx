@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import TopBar from '../../components/layout/TopBar';
 import ClinicSidebar from '../../components/layout/ClinicSidebar';
+import SuccessModal from '../../components/modals/SuccessModal';
+import DeleteConfirmModal from '../../components/modals/DeleteConfirmModal';
+import DownloadModal from '../../components/modals/DownloadModal';
 import { useAuth } from '../../contexts/AuthContext';
 import { Upload, FileText, Download, Trash2, Calendar, User, Dog } from 'lucide-react';
 import styles from '../../styles/ClinicDashboard.module.css';
@@ -41,6 +44,12 @@ export default function ClinicFiles() {
   ]);
 
   const [uploading, setUploading] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showDownloadModal, setShowDownloadModal] = useState(false);
+  const [fileToDelete, setFileToDelete] = useState(null);
+  const [uploadedFileName, setUploadedFileName] = useState('');
+  const [downloadFileName, setDownloadFileName] = useState('');
 
   const handleFileUpload = (e) => {
     const file = e.target.files?.[0];
@@ -62,19 +71,34 @@ export default function ClinicFiles() {
       
       setUploadedFiles(prev => [newFile, ...prev]);
       setUploading(false);
+      setUploadedFileName(file.name);
+      setShowSuccessModal(true);
       e.target.value = '';
     }, 1000);
   };
 
   const handleDownload = (file) => {
-    alert(`Downloading: ${file.fileName}`);
+    setDownloadFileName(file.fileName);
+    setShowDownloadModal(true);
     console.log('Download initiated for:', file.fileName);
   };
 
-  const handleDelete = (fileId) => {
-    if (window.confirm('Are you sure you want to delete this file?')) {
-      setUploadedFiles(prev => prev.filter(file => file.id !== fileId));
+  const handleDeleteClick = (file) => {
+    setFileToDelete(file);
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (fileToDelete) {
+      setUploadedFiles(prev => prev.filter(file => file.id !== fileToDelete.id));
+      setShowDeleteModal(false);
+      setFileToDelete(null);
     }
+  };
+
+  const handleCancelDelete = () => {
+    setShowDeleteModal(false);
+    setFileToDelete(null);
   };
 
   return (
@@ -279,7 +303,7 @@ export default function ClinicFiles() {
                         <Download size={18} />
                       </button>
                       <button
-                        onClick={() => handleDelete(file.id)}
+                        onClick={() => handleDeleteClick(file)}
                         style={{
                           padding: '10px',
                           background: '#ef4444',
@@ -306,6 +330,31 @@ export default function ClinicFiles() {
           </div>
         </main>
       </div>
+
+      {/* Success Modal */}
+      <SuccessModal
+        isOpen={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+        title="File Uploaded Successfully!"
+        message={`${uploadedFileName} has been uploaded and is now available in your medical records.`}
+      />
+
+      {/* Download Modal */}
+      <DownloadModal
+        isOpen={showDownloadModal}
+        onClose={() => setShowDownloadModal(false)}
+        fileName={downloadFileName}
+      />
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmModal
+        isOpen={showDeleteModal}
+        onClose={handleCancelDelete}
+        onConfirm={handleConfirmDelete}
+        title="Delete Medical Record"
+        message={`Are you sure you want to delete "${fileToDelete?.fileName}"? This action cannot be undone.`}
+        confirmText="Delete File"
+      />
     </div>
   );
 }

@@ -6,48 +6,52 @@
 
 .mainWrapper {
   flex: 1;
-  margin-left: 200px;
+  margin-left: 240px;
   display: flex;
   flex-direction: column;
 }
 
 .content {
-  padding: 80px 20px 24px 20px;
-  max-width: 100%;
-  margin: 0;
+  padding: calc(var(--vc-header-height) + 24px) 32px 32px 32px;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .headerRow {
-  margin-bottom: 32px;
+  margin-bottom: var(--vc-spacing-xl);
 }
 
 .breadcrumb {
   display: flex;
   align-items: center;
-  gap: 8px;
-  color: #64748b;
+  gap: var(--vc-spacing-sm);
+  color: var(--vc-text-muted);
   font-size: 0.875rem;
-  margin-bottom: 8px;
+  margin-bottom: var(--vc-spacing-sm);
+  font-weight: 500;
 }
 
 .breadcrumbLink {
   cursor: pointer;
-  transition: color 0.2s;
+  transition: color 0.2s ease;
 }
 
 .breadcrumbLink:hover {
-  color: #818cf8;
+  color: var(--vc-primary);
 }
 
 .bullet {
-  color: #cbd5e1;
+  color: var(--vc-text-light);
+  opacity: 0.6;
 }
 
 .title {
   font-size: 2rem;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--vc-text-dark);
   margin: 0;
+  letter-spacing: -0.02em;
 }
 
 .profileCard {
@@ -297,9 +301,16 @@
   transform: none;
 }
 
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .mainWrapper {
+    margin-left: 0;
+  }
+}
+
 @media (max-width: 768px) {
   .content {
-    padding: 96px 16px 24px 16px;
+    padding: calc(var(--vc-header-height) + 20px) 20px 24px 20px;
   }
 
   .profileCard {

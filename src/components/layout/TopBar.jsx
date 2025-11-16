@@ -1,7 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Bell, User, LogOut, Clock, Check, X, UserCircle } from 'lucide-react';
+import { Bell, User, LogOut, Clock, Check, X, UserCircle, Calendar, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { useCollection } from '../../hooks/useCollection';
+import { markNotificationAsRead, markAllNotificationsAsRead } from '../../firebase/firestoreHelpers';
+import { deleteDoc, doc, orderBy } from 'firebase/firestore';
+import { db } from '../../firebase/firebase';
 import styles from '../../styles/TopBar.module.css';
 
 export default function TopBar({ username }) {
@@ -9,36 +13,15 @@ export default function TopBar({ username }) {
   const [showNotifications, setShowNotifications] = useState(false);
   const dropdownRef = useRef(null);
   const notificationRef = useRef(null);
-  const { logout, userData } = useAuth();
+  const { logout, userData, currentUser } = useAuth();
   const navigate = useNavigate();
 
-  // Mock notifications data - replace with real data later
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      type: 'success',
-      title: 'Appointment Confirmed',
-      message: 'Your appointment with Animal Care Clinic has been confirmed for Nov 3, 2025',
-      time: '2 hours ago',
-      read: false
-    },
-    {
-      id: 2,
-      type: 'pending',
-      title: 'Appointment Pending',
-      message: 'Your appointment request is waiting for approval from Pet Wellness Center',
-      time: '5 hours ago',
-      read: false
-    },
-    {
-      id: 3,
-      type: 'info',
-      title: 'Medical Record Updated',
-      message: 'New medical record has been added for Max',
-      time: '1 day ago',
-      read: true
-    }
-  ]);
+  // Real-time notifications from Firestore
+  const { docs: notifications = [], loading: notificationsLoading } = useCollection(
+    currentUser?.uid ? `users/${currentUser.uid}/notifications` : null,
+    [],
+    [orderBy('createdAt', 'desc')]
+  );
 
   const computeInitials = (name) => {
     if (!name) return 'U';
@@ -86,32 +69,87 @@ export default function TopBar({ username }) {
     navigate(isClinicOwner ? '/clinic/edit-profile' : '/edit-profile');
   };
 
-  const markAsRead = (id) => {
-    setNotifications(prev =>
-      prev.map(notif =>
-        notif.id === id ? { ...notif, read: true } : notif
-      )
-    );
-  };
-
-  const markAllAsRead = () => {
-    setNotifications(prev =>
-      prev.map(notif => ({ ...notif, read: true }))
-    );
-  };
-
-  const deleteNotification = (id) => {
-    setNotifications(prev => prev.filter(notif => notif.id !== id));
-  };
-
-  const unreadCount = notifications.filter(n => !n.read).length;
-
-  const getNotificationIcon = (type) => {
-    switch (type) {
-      case 'success': return <Check size={18} className={styles.iconSuccess} />;
-      case 'pending': return <Clock size={18} className={styles.iconPending} />;
-      default: return <Bell size={18} className={styles.iconInfo} />;
+  const markAsRead = async (id) => {
+    if (!currentUser?.uid) return;
+    try {
+      await markNotificationAsRead(currentUser.uid, id);
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
     }
+  };
+
+  const markAllAsRead = async () => {
+    if (!currentUser?.uid) return;
+    try {
+      await markAllNotificationsAsRead(currentUser.uid);
+    } catch (error) {
+      console.error('Error marking all notifications as read:', error);
+    }
+  };
+
+  const deleteNotification = async (id) => {
+    if (!currentUser?.uid) return;
+    try {
+      await deleteDoc(doc(db, 'users', currentUser.uid, 'notifications', id));
+    } catch (error) {
+      console.error('Error deleting notification:', error);
+    }
+  };
+
+  const unreadCount = notifications.filter(n => n.status === 'unread').length;
+
+  // Helper function to get relative time
+  const getRelativeTime = (timestamp) => {
+    if (!timestamp) return 'Just now';
+    
+    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+    const now = new Date();
+    const diffInSeconds = Math.floor((now - date) / 1000);
+    
+    if (diffInSeconds < 60) return 'Just now';
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} min ago`;
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`;
+    if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)} days ago`;
+    return date.toLocaleDateString();
+  };
+
+  const getNotificationIcon = (notification) => {
+    const title = notification.title?.toLowerCase() || '';
+    const body = notification.body?.toLowerCase() || '';
+    
+    if (title.includes('confirmed') || title.includes('approved')) {
+      return (
+        <div className={styles.iconWrapperSuccess}>
+          <Check size={20} strokeWidth={2.5} />
+        </div>
+      );
+    }
+    if (title.includes('cancelled') || title.includes('rejected')) {
+      return (
+        <div className={styles.iconWrapperError}>
+          <X size={20} strokeWidth={2.5} />
+        </div>
+      );
+    }
+    if (title.includes('pending') || title.includes('waiting')) {
+      return (
+        <div className={styles.iconWrapperPending}>
+          <Clock size={20} strokeWidth={2.5} />
+        </div>
+      );
+    }
+    if (title.includes('appointment') || body.includes('appointment')) {
+      return (
+        <div className={styles.iconWrapperInfo}>
+          <Calendar size={20} strokeWidth={2.5} />
+        </div>
+      );
+    }
+    return (
+      <div className={styles.iconWrapperInfo}>
+        <AlertCircle size={20} strokeWidth={2.5} />
+      </div>
+    );
   };
 
   return (
@@ -154,16 +192,14 @@ export default function TopBar({ username }) {
                     notifications.map(notif => (
                       <div
                         key={notif.id}
-                        className={`${styles.notificationItem} ${notif.read ? styles.read : styles.unread}`}        
+                        className={`${styles.notificationItem} ${notif.status === 'read' ? styles.read : styles.unread}`}        
                         onClick={() => markAsRead(notif.id)}
                       >
-                        <div className={styles.notifIcon}>
-                          {getNotificationIcon(notif.type)}
-                        </div>
+                        {getNotificationIcon(notif)}
                         <div className={styles.notifContent}>
                           <div className={styles.notifTitle}>{notif.title}</div>
-                          <div className={styles.notifMessage}>{notif.message}</div>
-                          <div className={styles.notifTime}>{notif.time}</div>
+                          <div className={styles.notifMessage}>{notif.body}</div>
+                          <div className={styles.notifTime}>{getRelativeTime(notif.createdAt)}</div>
                         </div>
                         <button
                           className={styles.deleteBtn}

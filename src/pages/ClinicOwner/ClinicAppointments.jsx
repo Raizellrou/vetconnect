@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import TopBar from '../../components/layout/TopBar';
 import ClinicSidebar from '../../components/layout/ClinicSidebar';
 import { useAuth } from '../../contexts/AuthContext';
-import { Calendar, Clock, User, Dog, CheckCircle, XCircle, Loader, AlertCircle, ArrowLeft, Building2, Filter, Search, ChevronRight, FileText, Plus } from 'lucide-react';
+import { Calendar, Clock, User, Dog, CheckCircle, XCircle, AlertCircle, ArrowLeft, Building2, Filter, Search, ChevronRight, FileText, Plus } from 'lucide-react';
+import LoadingSpinner from '../../components/LoadingSpinner';
 import styles from '../../styles/ClinicDashboard.module.css';
 import { useCollection } from '../../hooks/useCollection';
 import { where } from 'firebase/firestore';
@@ -176,8 +177,8 @@ export default function ClinicAppointments() {
       
       // Send notification to pet owner
       const notificationTitle = newStatus === 'confirmed' 
-        ? '✅ Appointment Confirmed' 
-        : '❌ Appointment Rejected';
+        ? 'Appointment Confirmed' 
+        : 'Appointment Rejected';
       
       const notificationBody = newStatus === 'confirmed'
         ? `Your appointment at ${selectedClinic.clinicName || selectedClinic.name} has been confirmed!`
@@ -370,8 +371,7 @@ export default function ClinicAppointments() {
           <TopBar username={displayName} />
           <main className={styles.mainContent}>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '400px' }}>
-              <Loader size={48} color="#818cf8" className="animate-spin" style={{ margin: '0 auto 16px' }} />
-              <p style={{ fontSize: '1.125rem', color: '#6b7280' }}>Loading your clinics...</p>
+              <LoadingSpinner size="large" message="Loading your clinics..." />
             </div>
           </main>
         </div>
@@ -714,10 +714,10 @@ export default function ClinicAppointments() {
                   marginBottom: '24px',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '12px'
+                  gap: '12px',
+                  justifyContent: 'center'
                 }}>
-                  <Loader size={16} color="#818cf8" className="animate-spin" />
-                  <span style={{ fontSize: '0.875rem', color: '#4338ca' }}>Loading appointment details...</span>
+                  <LoadingSpinner size="small" message="Loading appointment details..." />
                 </div>
               )}
 

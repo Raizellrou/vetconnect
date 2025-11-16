@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import TopBar from '../../components/layout/TopBar';
 import Sidebar from '../../components/layout/Sidebar';
-import { Trash2, AlertTriangle, Download, CheckCircle } from 'lucide-react';
+import DownloadModal from '../../components/modals/DownloadModal';
+import DeleteConfirmModal from '../../components/modals/DeleteConfirmModal';
 import '../../styles/Files.css';
 
 import { useCollection } from '../../hooks/useCollection';
@@ -13,8 +14,11 @@ const Files = () => {
 
   const { docs: records = [], loading } = useCollection(currentUser ? `users/${currentUser.uid}/files` : null);
 
-  const [deleteModal, setDeleteModal] = useState({ isOpen: false, fileId: null, fileName: '' });
-  const [downloadModal, setDownloadModal] = useState({ isOpen: false, fileName: '' });
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showDownloadModal, setShowDownloadModal] = useState(false);
+  const [fileToDelete, setFileToDelete] = useState(null);
+  const [downloadFileName, setDownloadFileName] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Dummy files for display
   const [dummyFiles, setDummyFiles] = useState([
@@ -43,7 +47,8 @@ const Files = () => {
 
   const handleDownload = (record) => {
     // Show download modal
-    setDownloadModal({ isOpen: true, fileName: record.name });
+    setDownloadFileName(record.name);
+    setShowDownloadModal(true);
     
     // For dummy files, simulate download
     if (record.id && record.id.startsWith('dummy-')) {
@@ -55,47 +60,45 @@ const Files = () => {
     if (record?.downloadURL) window.open(record.downloadURL, '_blank');
   };
 
-  const closeDownloadModal = () => {
-    setDownloadModal({ isOpen: false, fileName: '' });
-  };
-
   const handleArchive = async (recordId) => {
     // archive implementation depends on your model; placeholder:
     console.log('Archiving record:', recordId);
   };
 
   const handleDelete = async (recordId) => {
-    // Find the file name
+    // Find the file
     const file = dummyFiles.find(f => f.id === recordId) || records.find(r => r.id === recordId);
-    const fileName = file?.name || 'this file';
-    
-    // Open modal
-    setDeleteModal({ isOpen: true, fileId: recordId, fileName });
+    setFileToDelete(file);
+    setShowDeleteModal(true);
   };
 
-  const confirmDelete = () => {
-    const { fileId } = deleteModal;
+  const handleConfirmDelete = async () => {
+    if (!fileToDelete) return;
     
-    // Check if it's a dummy file
-    if (fileId.startsWith('dummy-')) {
-      setDummyFiles(prevFiles => prevFiles.filter(file => file.id !== fileId));
-      console.log('Deleted dummy file:', fileId);
-    } else {
-      // For real files
-      try {
-        console.log('Delete requested for record:', fileId);
+    setIsDeleting(true);
+    
+    try {
+      // Check if it's a dummy file
+      if (fileToDelete.id.startsWith('dummy-')) {
+        setDummyFiles(prevFiles => prevFiles.filter(file => file.id !== fileToDelete.id));
+        console.log('Deleted dummy file:', fileToDelete.id);
+      } else {
+        // For real files
+        console.log('Delete requested for record:', fileToDelete.id);
         // optionally call a delete mutation if implemented
-      } catch (error) {
-        console.error('Error deleting record:', error);
       }
+    } catch (error) {
+      console.error('Error deleting record:', error);
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteModal(false);
+      setFileToDelete(null);
     }
-    
-    // Close modal
-    setDeleteModal({ isOpen: false, fileId: null, fileName: '' });
   };
 
-  const cancelDelete = () => {
-    setDeleteModal({ isOpen: false, fileId: null, fileName: '' });
+  const handleCancelDelete = () => {
+    setShowDeleteModal(false);
+    setFileToDelete(null);
   };
 
   return (
@@ -202,241 +205,23 @@ const Files = () => {
         </main>
       </div>
 
-      {/* Download Notification Modal */}
-      {downloadModal.isOpen && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 9999,
-          backdropFilter: 'blur(4px)'
-        }}>
-          <div style={{
-            background: 'white',
-            borderRadius: '20px',
-            padding: '32px',
-            maxWidth: '420px',
-            width: '90%',
-            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
-            animation: 'modalFadeIn 0.3s ease-out'
-          }}>
-            {/* Icon */}
-            <div style={{
-              width: '64px',
-              height: '64px',
-              borderRadius: '50%',
-              background: 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              margin: '0 auto 20px'
-            }}>
-              <CheckCircle size={32} color="#059669" strokeWidth={2.5} />
-            </div>
-
-            {/* Title */}
-            <h3 style={{
-              fontSize: '1.5rem',
-              fontWeight: 700,
-              color: '#1f2937',
-              textAlign: 'center',
-              marginBottom: '12px'
-            }}>
-              Download Started
-            </h3>
-
-            {/* Message */}
-            <p style={{
-              fontSize: '1rem',
-              color: '#6b7280',
-              textAlign: 'center',
-              lineHeight: '1.6',
-              marginBottom: '28px'
-            }}>
-              Downloading <strong style={{ color: '#374151' }}>{downloadModal.fileName}</strong>
-            </p>
-
-            {/* Button */}
-            <div style={{
-              display: 'flex',
-              justifyContent: 'center'
-            }}>
-              <button
-                onClick={closeDownloadModal}
-                style={{
-                  padding: '12px 32px',
-                  background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                  border: 'none',
-                  borderRadius: '12px',
-                  fontSize: '1rem',
-                  fontWeight: 600,
-                  color: 'white',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  minWidth: '120px',
-                  boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = '0 6px 16px rgba(16, 185, 129, 0.4)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.3)';
-                }}
-              >
-                OK
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Download Modal */}
+      <DownloadModal
+        isOpen={showDownloadModal}
+        onClose={() => setShowDownloadModal(false)}
+        fileName={downloadFileName}
+      />
 
       {/* Delete Confirmation Modal */}
-      {deleteModal.isOpen && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.6)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 9999,
-          backdropFilter: 'blur(4px)'
-        }}>
-          <div style={{
-            background: 'white',
-            borderRadius: '20px',
-            padding: '32px',
-            maxWidth: '440px',
-            width: '90%',
-            boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
-            animation: 'modalFadeIn 0.3s ease-out'
-          }}>
-            {/* Icon */}
-            <div style={{
-              width: '64px',
-              height: '64px',
-              borderRadius: '50%',
-              background: 'linear-gradient(135deg, #fee2e2 0%, #fecaca 100%)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              margin: '0 auto 20px'
-            }}>
-              <AlertTriangle size={32} color="#dc2626" strokeWidth={2.5} />
-            </div>
-
-            {/* Title */}
-            <h3 style={{
-              fontSize: '1.5rem',
-              fontWeight: 700,
-              color: '#1f2937',
-              textAlign: 'center',
-              marginBottom: '12px'
-            }}>
-              Delete File?
-            </h3>
-
-            {/* Message */}
-            <p style={{
-              fontSize: '1rem',
-              color: '#6b7280',
-              textAlign: 'center',
-              lineHeight: '1.6',
-              marginBottom: '28px'
-            }}>
-              Are you sure you want to delete <strong style={{ color: '#374151' }}>{deleteModal.fileName}</strong>? This action cannot be undone.
-            </p>
-
-            {/* Buttons */}
-            <div style={{
-              display: 'flex',
-              gap: '12px',
-              justifyContent: 'center'
-            }}>
-              <button
-                onClick={cancelDelete}
-                style={{
-                  padding: '12px 28px',
-                  background: 'white',
-                  border: '2px solid #e5e7eb',
-                  borderRadius: '12px',
-                  fontSize: '1rem',
-                  fontWeight: 600,
-                  color: '#374151',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  minWidth: '120px'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = '#f9fafb';
-                  e.currentTarget.style.borderColor = '#d1d5db';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'white';
-                  e.currentTarget.style.borderColor = '#e5e7eb';
-                }}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={confirmDelete}
-                style={{
-                  padding: '12px 28px',
-                  background: 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)',
-                  border: 'none',
-                  borderRadius: '12px',
-                  fontSize: '1rem',
-                  fontWeight: 600,
-                  color: 'white',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease',
-                  minWidth: '120px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px',
-                  boxShadow: '0 4px 12px rgba(220, 38, 38, 0.3)'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = '0 6px 16px rgba(220, 38, 38, 0.4)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(220, 38, 38, 0.3)';
-                }}
-              >
-                <Trash2 size={18} strokeWidth={2.5} />
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <style>{`
-        @keyframes modalFadeIn {
-          from {
-            opacity: 0;
-            transform: scale(0.95) translateY(-10px);
-          }
-          to {
-            opacity: 1;
-            transform: scale(1) translateY(0);
-          }
-        }
-      `}</style>
+      <DeleteConfirmModal
+        isOpen={showDeleteModal}
+        onClose={handleCancelDelete}
+        onConfirm={handleConfirmDelete}
+        title="Delete Pet Medical Record"
+        message={`Are you sure you want to delete "${fileToDelete?.name}"? This action cannot be undone and the file will be permanently removed from your pet's records.`}
+        confirmText="Delete Record"
+        isLoading={isDeleting}
+      />
     </div>
   );
 };

@@ -141,36 +141,52 @@ export default function Register() {
     }
   };
 
-  const handleGoogle = async () => {
-    if (!role) {
+  const handleGoogle = async () => {
+    if (!role) {
       setError("Please select a role (Pet Owner or Veterinarian) before continuing with Google");
-      return;
-    }
+      return;
+    }
 
-    setLoadingGoogle(true);
-    setError("");
+    // Validate portfolio for Veterinarian
+    if (role === "Veterinarian" && !portfolioFile) {
+      setError("Please upload your credentials/portfolio before continuing with Google");
+      return;
+    }
 
-    try {
-      const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      
-      await setDoc(doc(db, "users", result.user.uid), {
-        fullName: result.user.displayName || "",
-        email: result.user.email,
-        role: role === "Pet Owner" ? "petOwner" : "clinicOwner",
-        createdAt: new Date().toISOString()
-      });
+    if (!acceptTerms || !acceptPrivacy) {
+      setError("Please accept both Terms & Conditions and Privacy Policy");
+      return;
+    }
 
-      navigate(role === "Pet Owner" ? "/owner-dashboard" : "/clinic-dashboard");
-    } catch (err) {
-      console.error("Google sign-up error:", err);
-      setError(mapAuthError(err.code, err.message));
-    } finally {
-      setLoadingGoogle(false);
-    }
-  };
+    setLoadingGoogle(true);
+    setError("");
 
-  return (
+    try {
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      
+      // Upload portfolio for Veterinarian
+      let portfolioURL = null;
+      if (role === "Veterinarian" && portfolioFile) {
+        portfolioURL = await uploadPortfolio(result.user.uid);
+      }
+      
+      await setDoc(doc(db, "users", result.user.uid), {
+        fullName: result.user.displayName || "",
+        email: result.user.email,
+        role: role === "Pet Owner" ? "petOwner" : "clinicOwner",
+        portfolioURL: portfolioURL,
+        createdAt: new Date().toISOString()
+      });
+
+      navigate(role === "Pet Owner" ? "/owner-dashboard" : "/clinic-dashboard");
+    } catch (err) {
+      console.error("Google sign-up error:", err);
+      setError(mapAuthError(err.code, err.message));
+    } finally {
+      setLoadingGoogle(false);
+    }
+  };  return (
     <div className="auth-page">
       <div className="auth-container register">
         <div className="logo-container">

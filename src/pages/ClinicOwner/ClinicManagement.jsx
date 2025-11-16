@@ -57,7 +57,7 @@ export default function ClinicManagement() {
     <div style={{ display: 'flex', minHeight: '100vh', background: '#f9fafb' }}>
       <ClinicSidebar />
       
-      <div style={{ flex: 1, marginLeft: '200px', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ flex: 1, marginLeft: '240px', display: 'flex', flexDirection: 'column' }}>
         <TopBar />
         
         <main style={{ padding: '108px 32px 40px 32px', maxWidth: '1400px', margin: '0 auto', width: '100%' }}>
@@ -67,17 +67,53 @@ export default function ClinicManagement() {
             borderRadius: '20px',
             padding: '32px 40px',
             marginBottom: '32px',
-            boxShadow: '0 8px 24px rgba(129, 140, 248, 0.25)'
+            boxShadow: '0 8px 24px rgba(129, 140, 248, 0.25)',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
           }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-              <MapPin size={32} color="white" />
-              <h1 style={{ fontSize: '2rem', fontWeight: 'bold', color: 'white', margin: 0 }}>
-                Clinic Management
-              </h1>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
+                <MapPin size={32} color="white" />
+                <h1 style={{ fontSize: '2rem', fontWeight: 'bold', color: 'white', margin: 0 }}>
+                  Clinic Management
+                </h1>
+              </div>
+              <p style={{ color: 'rgba(255, 255, 255, 0.9)', fontSize: '1rem', margin: 0 }}>
+                Manage all your clinic branches and locations
+              </p>
             </div>
-            <p style={{ color: 'rgba(255, 255, 255, 0.9)', fontSize: '1rem', margin: 0 }}>
-              Manage all your clinic branches and locations
-            </p>
+            <button
+              onClick={handleAddClinic}
+              style={{
+                padding: '12px 28px',
+                background: 'white',
+                color: '#6366f1',
+                border: 'none',
+                borderRadius: '10px',
+                fontSize: '0.875rem',
+                fontWeight: '600',
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                transition: 'all 0.2s ease',
+                whiteSpace: 'nowrap'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'scale(1.05)';
+                e.currentTarget.style.boxShadow = '0 6px 16px rgba(0, 0, 0, 0.2)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'scale(1)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+              }}
+            >
+              <Plus size={18} />
+              ADD CLINIC
+            </button>
           </div>
 
           {/* Clinics List */}
@@ -145,8 +181,8 @@ export default function ClinicManagement() {
                       key={clinic.id}
                       style={{
                         background: 'white',
-                        borderRadius: '16px',
-                        padding: '24px',
+                        borderRadius: '12px',
+                        padding: '16px',
                         boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
                         transition: 'all 0.3s ease',
                         border: '1px solid #e5e7eb'
@@ -164,45 +200,45 @@ export default function ClinicManagement() {
                       <div style={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: '12px',
-                        marginBottom: '20px',
-                        paddingBottom: '16px',
-                        borderBottom: '2px solid #eef2ff'
+                        gap: '10px',
+                        marginBottom: '14px',
+                        paddingBottom: '12px',
+                        borderBottom: '1px solid #e5e7eb'
                       }}>
                         <div style={{
-                          width: '48px',
-                          height: '48px',
+                          width: '36px',
+                          height: '36px',
                           background: 'linear-gradient(135deg, #818cf8 0%, #a78bfa 100%)',
-                          borderRadius: '12px',
+                          borderRadius: '8px',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center'
                         }}>
-                          <Briefcase size={24} color="white" />
+                          <Briefcase size={18} color="white" />
                         </div>
                         <div>
-                          <h3 style={{ fontSize: '1.25rem', fontWeight: '700', color: '#1f2937', margin: 0 }}>
+                          <h3 style={{ fontSize: '1rem', fontWeight: '700', color: '#1f2937', margin: 0 }}>
                             {clinic.clinicName}
                           </h3>
-                          <p style={{ fontSize: '0.875rem', color: '#6b7280', margin: 0 }}>Clinic Branch</p>
+                          <p style={{ fontSize: '0.75rem', color: '#6b7280', margin: 0 }}>Clinic Branch</p>
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                         {/* Left Column */}
-                        <div className="space-y-3">
-                          <div className="flex items-start gap-3">
+                        <div className="space-y-2.5">
+                          <div className="flex items-start gap-2.5">
                             <div style={{
-                              width: '36px',
-                              height: '36px',
+                              width: '28px',
+                              height: '28px',
                               background: '#eef2ff',
-                              borderRadius: '8px',
+                              borderRadius: '6px',
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
                               flexShrink: 0
                             }}>
-                              <MapPin size={18} color="#818cf8" />
+                              <MapPin size={14} color="#818cf8" />
                             </div>
                             <div className="flex-1 min-w-0">
                               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Address</p>
@@ -210,18 +246,18 @@ export default function ClinicManagement() {
                             </div>
                           </div>
 
-                          <div className="flex items-start gap-3">
+                          <div className="flex items-start gap-2.5">
                             <div style={{
-                              width: '36px',
-                              height: '36px',
+                              width: '28px',
+                              height: '28px',
                               background: '#f0fdf4',
-                              borderRadius: '8px',
+                              borderRadius: '6px',
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
                               flexShrink: 0
                             }}>
-                              <Phone size={18} color="#22c55e" />
+                              <Phone size={14} color="#22c55e" />
                             </div>
                             <div className="flex-1 min-w-0">
                               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Contact</p>
@@ -231,19 +267,19 @@ export default function ClinicManagement() {
                         </div>
 
                         {/* Right Column */}
-                        <div className="space-y-3">
-                          <div className="flex items-start gap-3">
+                        <div className="space-y-2.5">
+                          <div className="flex items-start gap-2.5">
                             <div style={{
-                              width: '36px',
-                              height: '36px',
+                              width: '28px',
+                              height: '28px',
                               background: '#fff7ed',
-                              borderRadius: '8px',
+                              borderRadius: '6px',
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
                               flexShrink: 0
                             }}>
-                              <Clock size={18} color="#f97316" />
+                              <Clock size={14} color="#f97316" />
                             </div>
                             <div className="flex-1 min-w-0">
                               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Schedule</p>
@@ -251,18 +287,18 @@ export default function ClinicManagement() {
                             </div>
                           </div>
 
-                          <div className="flex items-start gap-3">
+                          <div className="flex items-start gap-2.5">
                             <div style={{
-                              width: '36px',
-                              height: '36px',
+                              width: '28px',
+                              height: '28px',
                               background: '#fef2f2',
-                              borderRadius: '8px',
+                              borderRadius: '6px',
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
                               flexShrink: 0
                             }}>
-                              <Briefcase size={18} color="#ef4444" />
+                              <Briefcase size={14} color="#ef4444" />
                             </div>
                             <div className="flex-1 min-w-0">
                               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Services Offered</p>
@@ -273,8 +309,8 @@ export default function ClinicManagement() {
                           {clinic.description && (
                             <div style={{
                               background: '#f9fafb',
-                              padding: '12px',
-                              borderRadius: '8px',
+                              padding: '8px 10px',
+                              borderRadius: '6px',
                               border: '1px solid #e5e7eb'
                             }}>
                               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Description</p>
@@ -285,16 +321,16 @@ export default function ClinicManagement() {
                       </div>
 
                       {/* Action Buttons */}
-                      <div className="flex gap-3 mt-6 pt-6 border-t border-gray-200">
+                      <div className="flex gap-2.5 mt-4 pt-4 border-t border-gray-200">
                         <button
                           onClick={() => handleEditClinic(clinic)}
                           style={{
-                            padding: '10px 24px',
+                            padding: '8px 20px',
                             background: 'linear-gradient(135deg, #818cf8 0%, #6366f1 100%)',
                             color: 'white',
                             border: 'none',
-                            borderRadius: '10px',
-                            fontSize: '0.875rem',
+                            borderRadius: '8px',
+                            fontSize: '0.8125rem',
                             fontWeight: '600',
                             cursor: 'pointer',
                             display: 'inline-flex',
@@ -315,12 +351,12 @@ export default function ClinicManagement() {
                         <button
                           onClick={() => handleDeleteClick(clinic)}
                           style={{
-                            padding: '10px 24px',
+                            padding: '8px 20px',
                             background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
                             color: 'white',
                             border: 'none',
-                            borderRadius: '10px',
-                            fontSize: '0.875rem',
+                            borderRadius: '8px',
+                            fontSize: '0.8125rem',
                             fontWeight: '600',
                             cursor: 'pointer',
                             display: 'inline-flex',
@@ -341,41 +377,6 @@ export default function ClinicManagement() {
                       </div>
                     </div>
                   ))}
-
-                  {/* Add Clinic Button */}
-                  <div className="pt-4">
-                    <button
-                      onClick={handleAddClinic}
-                      style={{
-                        width: '100%',
-                        padding: '20px',
-                        background: 'linear-gradient(135deg, #818cf8 0%, #6366f1 100%)',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '16px',
-                        fontSize: '1.125rem',
-                        fontWeight: '700',
-                        cursor: 'pointer',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '12px',
-                        boxShadow: '0 8px 24px rgba(129, 140, 248, 0.4)',
-                        transition: 'all 0.3s ease'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.transform = 'translateY(-2px)';
-                        e.currentTarget.style.boxShadow = '0 12px 32px rgba(129, 140, 248, 0.5)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.transform = 'translateY(0)';
-                        e.currentTarget.style.boxShadow = '0 8px 24px rgba(129, 140, 248, 0.4)';
-                      }}
-                    >
-                      <Plus size={24} />
-                      ADD CLINIC
-                    </button>
-                  </div>
                 </>
               )}
             </div>

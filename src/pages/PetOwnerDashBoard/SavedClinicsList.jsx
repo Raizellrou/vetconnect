@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BookmarkX, MapPin, Loader, AlertCircle } from 'lucide-react';
+import { BookmarkX, MapPin, AlertCircle } from 'lucide-react';
+import LoadingSpinner from '../../components/LoadingSpinner';
 import TopBar from '../../components/layout/TopBar';
 import Sidebar from '../../components/layout/Sidebar';
 import UnsaveDialog from '../../components/UnsaveDialog';
@@ -159,10 +160,10 @@ function SavedClinicsList() {
           {/* Loading State */}
           {(bookmarksLoading || enriching) && (
             <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-              <Loader size={48} color="#818cf8" className="animate-spin" style={{ margin: '0 auto 16px' }} />
-              <p style={{ fontSize: '1.125rem', color: '#6b7280' }}>
-                {bookmarksLoading ? 'Loading saved clinics...' : 'Loading clinic details...'}
-              </p>
+              <LoadingSpinner 
+                size="large" 
+                message={bookmarksLoading ? 'Loading saved clinics...' : 'Loading clinic details...'} 
+              />
             </div>
           )}
 

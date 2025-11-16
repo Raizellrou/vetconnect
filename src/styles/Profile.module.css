@@ -6,50 +6,59 @@
 
 .mainWrapper {
   flex: 1;
-  margin-left: 200px;
+  margin-left: 240px;
   display: flex;
   flex-direction: column;
 }
 
 .content {
-  padding: 80px 20px 24px 20px;
+  padding: calc(var(--vc-header-height) + 24px) 32px 32px 32px;
   max-width: 100%;
   margin: 0;
 }
 
 .headerRow {
-  margin-bottom: 32px;
+  margin-bottom: var(--vc-spacing-xl);
 }
 
 .breadcrumb {
   display: flex;
   align-items: center;
-  gap: 8px;
-  color: #64748b;
+  gap: var(--vc-spacing-sm);
+  color: var(--vc-text-muted);
   font-size: 0.875rem;
-  margin-bottom: 8px;
+  margin-bottom: var(--vc-spacing-sm);
+  font-weight: 500;
 }
 
 .bullet {
-  color: #cbd5e1;
+  color: var(--vc-text-light);
+  opacity: 0.6;
 }
 
 .dateText {
-  color: #94a3b8;
+  color: var(--vc-text-light);
 }
 
 .title {
   font-size: 2rem;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--vc-text-dark);
   margin: 0;
+  letter-spacing: -0.02em;
 }
 
 .profileCard {
   background: var(--vc-bg-card);
-  border-radius: 16px;
+  border-radius: var(--vc-border-radius);
   padding: 40px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
+  border: 1px solid var(--vc-border);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.profileCard:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
 }
 
 .profileHeader {
@@ -63,22 +72,29 @@
 .avatarSection {
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: 28px;
 }
 
 .avatarLarge {
-  width: 120px;
-  height: 120px;
+  width: 128px;
+  height: 128px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #818cf8 0%, #c084fc 100%);
+  background: linear-gradient(135deg, var(--vc-primary) 0%, #a78bfa 100%);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 3rem;
-  font-weight: 600;
+  font-weight: 700;
   color: white;
   overflow: hidden;
   flex-shrink: 0;
+  box-shadow: 0 8px 24px rgba(129, 140, 248, 0.35), 0 0 0 4px white, 0 0 0 6px rgba(129, 140, 248, 0.1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.avatarLarge:hover {
+  transform: scale(1.05);
+  box-shadow: 0 12px 32px rgba(129, 140, 248, 0.4), 0 0 0 4px white, 0 0 0 6px rgba(129, 140, 248, 0.2);
 }
 
 .avatarImg {
@@ -89,12 +105,13 @@
 
 .avatarInitials {
   user-select: none;
+  letter-spacing: -0.02em;
 }
 
 .userInfo {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 
 .userName {

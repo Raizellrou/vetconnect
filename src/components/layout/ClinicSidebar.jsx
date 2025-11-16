@@ -22,7 +22,7 @@ export default function ClinicSidebar() {
     <aside className={styles.sidebar}>
       <div className={styles.brand}>
         <img src={vetconnectLogo} alt="VetConnect" className={styles.logo} />
-        <span className={styles.brandName}>VETCONNECT</span>
+        <span className={styles.brandName}>VetConnect</span>
       </div>
 
       <nav className={styles.nav}>

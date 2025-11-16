@@ -14,35 +14,36 @@
 .dialog {
   background: white;
   border-radius: 12px;
-  padding: 24px;
+  padding: 20px;
   width: 100%;
-  max-width: 400px;
+  max-width: 360px;
   box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
 }
 
 .title {
-  font-size: 20px;
+  font-size: 1.125rem;
   font-weight: 600;
-  margin: 0 0 12px 0;
+  margin: 0 0 8px 0;
   color: #111827;
 }
 
 .message {
   color: #374151;
-  margin: 0 0 20px 0;
+  margin: 0 0 16px 0;
   line-height: 1.5;
+  font-size: 0.875rem;
 }
 
 .actions {
   display: flex;
   justify-content: flex-end;
-  gap: 12px;
+  gap: 8px;
 }
 
 .button {
-  padding: 8px 16px;
+  padding: 8px 20px;
   border-radius: 6px;
-  font-size: 14px;
+  font-size: 0.8125rem;
   font-weight: 500;
   cursor: pointer;
   transition: background-color 0.2s;

@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Calendar, Clock, FileText, AlertCircle, CheckCircle, Loader, PawPrint, ArrowLeft, MapPin } from 'lucide-react';
+import { Calendar, Clock, FileText, AlertCircle, CheckCircle, PawPrint, ArrowLeft, MapPin, X } from 'lucide-react';
+import LoadingSpinner from '../../components/LoadingSpinner';
 import { bookAppointment } from '../../lib/firebaseMutations';
 import { toTimestamp } from '../../utils/dateUtils';
 import { useAuth } from '../../contexts/AuthContext';
 import { collection, getDocs, query, where, doc, getDoc } from 'firebase/firestore';
 import { db } from '../../firebase/firebase';
+import { sendNotification } from '../../firebase/firestoreHelpers';
 import TopBar from '../../components/layout/TopBar';
 import Sidebar from '../../components/layout/Sidebar';
 
@@ -160,14 +162,35 @@ export default function BookAppointment() {
 
       console.log('Submitting appointment:', appointmentData);
 
-      const appointmentId = await bookAppointment(appointmentData);
+      const appointmentRef = await bookAppointment(appointmentData);
+      const appointmentId = appointmentRef.id;
 
       console.log('Appointment booked successfully:', appointmentId);
+      
+      // Send notification to clinic owner
+      if (clinic?.ownerId) {
+        const selectedPet = pets.find(p => p.id === formData.petId);
+        const petName = selectedPet?.name || 'Unknown Pet';
+        
+        await sendNotification({
+          toUserId: clinic.ownerId,
+          title: 'New Appointment Request',
+          body: `New appointment request for ${petName} on ${formData.date} at ${formData.time}`,
+          appointmentId: appointmentId,
+          data: {
+            petName,
+            ownerName: userData?.fullName || userData?.displayName || 'A pet owner',
+            clinicId: clinicId,
+            date: formData.date,
+            time: formData.time
+          }
+        });
+      }
       
       setSubmitSuccess(true);
 
       setTimeout(() => {
-        navigate('/owner-dashboard', {
+        navigate(-1, {
           state: { message: 'Appointment booked successfully!' }
         });
       }, 1500);
@@ -183,7 +206,7 @@ export default function BookAppointment() {
   };
 
   const handleCancel = () => {
-    navigate(`/saved/${clinicId}`);
+    navigate(-1);
   };
 
   const minDate = new Date().toISOString().split('T')[0];
@@ -192,12 +215,11 @@ export default function BookAppointment() {
     return (
       <div style={{ display: 'flex', minHeight: '100vh' }}>
         <Sidebar />
-        <div style={{ flex: 1, marginLeft: '200px' }}>
+        <div style={{ flex: 1, marginLeft: '240px' }}>
           <TopBar username={displayName} />
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 'calc(100vh - 64px)', background: 'linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%)' }}>
             <div style={{ textAlign: 'center' }}>
-              <Loader size={48} color="#818cf8" className="animate-spin" style={{ margin: '0 auto 16px' }} />
-              <p style={{ fontSize: '1.125rem', color: '#6b7280' }}>Loading...</p>
+              <LoadingSpinner size="large" message="Loading..." />
             </div>
           </div>
         </div>
@@ -209,7 +231,7 @@ export default function BookAppointment() {
     return (
       <div style={{ display: 'flex', minHeight: '100vh' }}>
         <Sidebar />
-        <div style={{ flex: 1, marginLeft: '200px' }}>
+        <div style={{ flex: 1, marginLeft: '240px' }}>
           <TopBar username={displayName} />
           <div style={{ padding: '40px', textAlign: 'center', background: 'linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%)', minHeight: 'calc(100vh - 64px)' }}>
             <AlertCircle size={64} color="#ef4444" style={{ margin: '0 auto 24px' }} />
@@ -230,36 +252,14 @@ export default function BookAppointment() {
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
       <Sidebar />
-      <div style={{ flex: 1, marginLeft: '200px' }}>
+      <div style={{ flex: 1, marginLeft: '240px' }}>
         <TopBar username={displayName} />
         
-        <div style={{ minHeight: 'calc(100vh - 64px)', background: 'linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%)', padding: '40px 20px' }}>
+        <div style={{ minHeight: 'calc(100vh - 64px)', background: 'linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%)', padding: '100px 20px 40px 20px' }}>
           <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-            {/* Back Button */}
-            <button
-              onClick={handleCancel}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px',
-                padding: '10px 20px',
-                background: 'white',
-                border: '2px solid #e5e7eb',
-                borderRadius: '10px',
-                cursor: 'pointer',
-                marginBottom: '24px',
-                fontSize: '0.875rem',
-                fontWeight: 600,
-                color: '#374151'
-              }}
-            >
-              <ArrowLeft size={18} />
-              Back to Clinic
-            </button>
-
-            {/* Clinic Info Banner */}
-            <div style={{ background: 'white', borderRadius: '16px', padding: '20px 24px', marginBottom: '24px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)', border: '2px solid #e0e7ff' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            {/* Clinic Info Banner with Close Button */}
+            <div style={{ background: 'white', borderRadius: '16px', padding: '20px 24px', marginBottom: '24px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)', border: '2px solid #e0e7ff', position: 'relative' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', paddingRight: '48px' }}>
                 <div style={{ width: '48px', height: '48px', background: 'linear-gradient(135deg, #818cf8 0%, #a78bfa 100%)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   <MapPin size={24} color="white" />
                 </div>
@@ -268,6 +268,37 @@ export default function BookAppointment() {
                   <h3 style={{ margin: '4px 0 0 0', fontSize: '1.25rem', fontWeight: 700, color: '#1f2937' }}>{clinic.clinicName || clinic.name}</h3>
                 </div>
               </div>
+              
+              {/* Close Button */}
+              <button
+                onClick={handleCancel}
+                style={{
+                  position: 'absolute',
+                  right: '20px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  width: '36px',
+                  height: '36px',
+                  background: 'white',
+                  border: '2px solid #e5e7eb',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'all 0.2s'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = '#f9fafb';
+                  e.currentTarget.style.borderColor = '#d1d5db';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'white';
+                  e.currentTarget.style.borderColor = '#e5e7eb';
+                }}
+              >
+                <X size={20} color="#6b7280" strokeWidth={2.5} />
+              </button>
             </div>
 
             {/* Header */}
@@ -460,7 +491,9 @@ export default function BookAppointment() {
                   >
                     {isSubmitting ? (
                       <>
-                        <Loader size={20} className="animate-spin" />
+                        <div style={{ width: '20px', height: '20px' }}>
+                          <LoadingSpinner size="small" />
+                        </div>
                         Booking...
                       </>
                     ) : (

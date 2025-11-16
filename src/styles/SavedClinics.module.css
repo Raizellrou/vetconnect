@@ -6,7 +6,7 @@
 
 .mainWrapper {
   /* leave space for the left sidebar (200px) and allow the topbar to sit above */
-  margin-left: 200px;
+  margin-left: 240px;
   flex: 1 1 auto;
   display: flex;
   flex-direction: column;

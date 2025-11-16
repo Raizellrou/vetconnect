@@ -1,12 +1,17 @@
 import React from "react";
-import { Navigate } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext";
+import { Navigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import LoadingSpinner from './LoadingSpinner';
 
-export default function RoleProtectedRoute({ children, allowedRoles = [] }) {
+export default function RoleProtectedRoute({ children, allowedRoles }) {
   const { currentUser, userData, loading } = useAuth();
 
   if (loading) {
-    return <div style={{ padding: 24 }}>Loading...</div>;
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
+        <LoadingSpinner size="large" message="Loading..." />
+      </div>
+    );
   }
 
   if (!currentUser) {

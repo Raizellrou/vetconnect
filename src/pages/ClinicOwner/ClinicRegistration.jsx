@@ -3,6 +3,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { MapPin, Phone, Clock, Building2, FileText, ArrowRight, ArrowLeft, CheckSquare, Search, X, Lock } from 'lucide-react';
 import { saveClinic, updateClinic } from '../../utils/clinicStorage';
 import { useAuth } from '../../contexts/AuthContext';
+import TopBar from '../../components/layout/TopBar';
+import ClinicSidebar from '../../components/layout/ClinicSidebar';
 
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
@@ -55,7 +57,9 @@ export default function ClinicRegistration() {
   const mode = editingClinic ? 'edit' : 'create';
   
   // Add useAuth to get currentUser
-  const { currentUser } = useAuth();
+  const { currentUser, userData } = useAuth();
+  
+  const displayName = userData?.fullName || userData?.displayName || userData?.clinicName || userData?.email;
 
   const [currentStep, setCurrentStep] = useState(1);
   const totalSteps = 4;
@@ -355,48 +359,52 @@ export default function ClinicRegistration() {
   })();
 
   return (
-    <div style={{ minHeight: '100vh', background: 'linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%)', padding: '40px 20px' }}>
-      <div style={{ maxWidth: '900px', margin: '0 auto' }}>
-        {/* Progress Header */}
-        <div style={{ background: 'white', borderRadius: '20px', padding: '32px', marginBottom: '24px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '24px' }}>
-            <div style={{ width: '72px', height: '72px', background: 'linear-gradient(135deg, #818cf8 0%, #a78bfa 100%)', borderRadius: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <StepIcon size={36} color="white" />
-            </div>
-            <div style={{ flex: 1 }}>
-              <h1 style={{ fontSize: '2rem', fontWeight: 700, color: '#1f2937', margin: 0 }}>{mode === 'edit' ? 'Edit Clinic' : 'Register New Clinic'}</h1>
-              <p style={{ fontSize: '1.125rem', color: '#6b7280', marginTop: 4 }}>Step {currentStep} of {totalSteps}: {StepTitle}</p>
-            </div>
-          </div>
+    <div style={{ display: 'flex', minHeight: '100vh' }}>
+      <ClinicSidebar />
+      <div style={{ flex: 1, marginLeft: '240px' }}>
+        <TopBar username={displayName} />
+        <div style={{ background: 'linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%)', minHeight: 'calc(100vh - 64px)', padding: 'calc(64px + 48px) 32px 48px 32px' }}>
+          <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+            {/* Progress Header */}
+            <div style={{ background: 'white', borderRadius: '16px', padding: '28px 32px', marginBottom: '28px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '24px' }}>
+                <div style={{ width: '40px', height: '40px', background: 'linear-gradient(135deg, #818cf8 0%, #a78bfa 100%)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <StepIcon size={20} color="white" />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <h1 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#1f2937', margin: 0 }}>{mode === 'edit' ? 'Edit Clinic' : 'Register New Clinic'}</h1>
+                  <p style={{ fontSize: '0.8125rem', color: '#6b7280', marginTop: 2 }}>Step {currentStep} of {totalSteps}: {StepTitle}</p>
+                </div>
+              </div>
 
-          {/* Progress Bar */}
-          <div style={{ display: 'flex', gap: '12px', width: '100%' }}>
-            {[1,2,3,4].map(step => (
-              <div key={step} style={{ flex: 1, height: 8, background: step <= currentStep ? 'linear-gradient(135deg,#818cf8 0%,#6366f1 100%)' : '#e5e7eb', borderRadius: 4 }} />
-            ))}
-          </div>
-        </div>
+              {/* Progress Bar */}
+              <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
+                {[1,2,3,4].map(step => (
+                  <div key={step} style={{ flex: 1, height: 6, background: step <= currentStep ? 'linear-gradient(135deg,#818cf8 0%,#6366f1 100%)' : '#e5e7eb', borderRadius: 3 }} />
+                ))}
+              </div>
+            </div>
 
         {/* Form Content */}
-        <div style={{ background: 'white', borderRadius: 20, padding: 48, boxShadow: '0 4px 20px rgba(0,0,0,0.08)', minHeight: 500 }}>
+        <div style={{ background: 'white', borderRadius: 16, padding: '40px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
           <form onSubmit={handleSubmit} id="clinic-form">
             {/* Step 1: Basic Information */}
             {currentStep === 1 && (
-              <div style={{ maxWidth: 600, margin: '0 auto' }}>
-                <div style={{ textAlign: 'center', marginBottom: 48 }}>
-                  <div style={{ width: 100, height: 100, background: 'linear-gradient(135deg,#eef2ff 0%,#e0e7ff 100%)', borderRadius: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
-                    <Building2 size={48} color="#818cf8" />
+              <div style={{ maxWidth: 550, margin: '0 auto' }}>
+                <div style={{ textAlign: 'center', marginBottom: 40 }}>
+                  <div style={{ width: 60, height: 60, background: 'linear-gradient(135deg,#eef2ff 0%,#e0e7ff 100%)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
+                    <Building2 size={28} color="#818cf8" />
                   </div>
-                  <h3 style={{ fontSize: '1.75rem', fontWeight: 700, color: '#1f2937', marginBottom: 12 }}>Let's start with the basics</h3>
-                  <p style={{ fontSize: '1.125rem', color: '#6b7280' }}>Tell us about your clinic</p>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#1f2937', marginBottom: 6 }}>Let's start with the basics</h3>
+                  <p style={{ fontSize: '0.875rem', color: '#6b7280' }}>Tell us about your clinic</p>
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '.9375rem', fontWeight: 700, color: '#374151', marginBottom: 12 }}>
+                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#374151', marginBottom: 8 }}>
                     Clinic Name <span style={{ color: '#ef4444' }}>*</span>
                   </label>
                   <input type="text" name="clinicName" value={formData.clinicName} onChange={handleChange} placeholder="Enter your clinic name" autoFocus
-                    style={{ width: '100%', padding: '18px 20px', border: `2px solid ${errors.clinicName ? '#ef4444' : '#e5e7eb'}`, borderRadius: 14, fontSize: '1.0625rem' }} />
+                    style={{ width: '100%', padding: '12px 16px', border: `2px solid ${errors.clinicName ? '#ef4444' : '#e5e7eb'}`, borderRadius: 10, fontSize: '0.9375rem' }} />
                   {errors.clinicName && <p style={{ color: '#ef4444', marginTop: 10 }}>{errors.clinicName}</p>}
                 </div>
               </div>
@@ -404,53 +412,53 @@ export default function ClinicRegistration() {
 
             {/* Step 2: Location & Contact */}
             {currentStep === 2 && (
-              <div style={{ maxWidth: 700, margin: '0 auto' }}>
-                <div style={{ textAlign: 'center', marginBottom: 48 }}>
-                  <div style={{ width: 100, height: 100, background: 'linear-gradient(135deg,#dbeafe 0%,#bfdbfe 100%)', borderRadius: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
-                    <MapPin size={48} color="#3b82f6" />
+              <div style={{ maxWidth: 600, margin: '0 auto' }}>
+                <div style={{ textAlign: 'center', marginBottom: 24 }}>
+                  <div style={{ width: 60, height: 60, background: 'linear-gradient(135deg,#dbeafe 0%,#bfdbfe 100%)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
+                    <MapPin size={28} color="#3b82f6" />
                   </div>
-                  <h3 style={{ fontSize: '1.75rem', fontWeight: 700, color: '#1f2937', marginBottom: 12 }}>Where are you located?</h3>
-                  <p style={{ fontSize: '1.125rem', color: '#6b7280' }}>Help pet owners find and contact you</p>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#1f2937', marginBottom: 6 }}>Where are you located?</h3>
+                  <p style={{ fontSize: '0.875rem', color: '#6b7280' }}>Help pet owners find and contact you</p>
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                   <div>
-                    <label style={{ display: 'block', fontSize: '.9375rem', fontWeight: 700, color: '#374151', marginBottom: 12 }}>
+                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#374151', marginBottom: 8 }}>
                       Clinic Location <span style={{ color: '#ef4444' }}>*</span>
                     </label>
-                    <div style={{ display: 'flex', gap: 12 }}>
+                    <div style={{ display: 'flex', gap: 10 }}>
                       <input
                         type="text"
                         name="address"
                         value={formData.address}
                         onChange={handleChange}
                         placeholder="Enter address or pick on map"
-                        style={{ flex: 1, padding: '18px 20px', border: `2px solid ${errors.address ? '#ef4444' : '#e5e7eb'}`, borderRadius: 14 }}
+                        style={{ flex: 1, padding: '12px 16px', border: `2px solid ${errors.address ? '#ef4444' : '#e5e7eb'}`, borderRadius: 10, fontSize: '0.9375rem' }}
                       />
                       <button
                         type="button"
                         onClick={handleOpenMap}
-                        style={{ padding: '18px 28px', background: 'linear-gradient(135deg,#3b82f6 0%,#2563eb 100%)', color: 'white', borderRadius: 14 }}
+                        style={{ padding: '12px 20px', background: 'linear-gradient(135deg,#3b82f6 0%,#2563eb 100%)', color: 'white', borderRadius: 10, display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.875rem', whiteSpace: 'nowrap' }}
                       >
-                        <MapPin size={20} /> Pick on Map
+                        <MapPin size={18} /> Pick on Map
                       </button>
                     </div>
                     {errors.address && <p style={{ color: '#ef4444', marginTop: 10 }}>{errors.address}</p>}
                   </div>
 
                   <div>
-                    <label style={{ display: 'block', fontSize: '.9375rem', fontWeight: 700, color: '#374151', marginBottom: 12 }}>
+                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#374151', marginBottom: 8 }}>
                       Contact Number <span style={{ color: '#ef4444' }}>*</span>
                     </label>
                     <div style={{ position: 'relative' }}>
-                      <Phone size={22} style={{ position: 'absolute', left: 20, top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }} />
+                      <Phone size={18} style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }} />
                       <input
                         type="tel"
                         name="contactNumber"
                         value={formData.contactNumber}
                         onChange={handleChange}
                         placeholder="Enter contact number"
-                        style={{ width: '100%', padding: '18px 20px 18px 56px', border: `2px solid ${errors.contactNumber ? '#ef4444' : '#e5e7eb'}`, borderRadius: 14 }}
+                        style={{ width: '100%', padding: '12px 16px 12px 44px', border: `2px solid ${errors.contactNumber ? '#ef4444' : '#e5e7eb'}`, borderRadius: 10, fontSize: '0.9375rem' }}
                       />
                     </div>
                     {errors.contactNumber && <p style={{ color: '#ef4444', marginTop: 10 }}>{errors.contactNumber}</p>}
@@ -461,32 +469,32 @@ export default function ClinicRegistration() {
 
             {/* Step 3: Services & Hours */}
             {currentStep === 3 && (
-              <div style={{ maxWidth: 700, margin: '0 auto' }}>
-                <div style={{ textAlign: 'center', marginBottom: 48 }}>
-                  <div style={{ width: 100, height: 100, background: 'linear-gradient(135deg,#fef3c7 0%,#fde68a 100%)', borderRadius: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
-                    <Clock size={48} color="#f59e0b" />
+              <div style={{ maxWidth: 600, margin: '0 auto' }}>
+                <div style={{ textAlign: 'center', marginBottom: 24 }}>
+                  <div style={{ width: 60, height: 60, background: 'linear-gradient(135deg,#fef3c7 0%,#fde68a 100%)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
+                    <Clock size={28} color="#f59e0b" />
                   </div>
-                  <h3 style={{ fontSize: '1.75rem', fontWeight: 700, marginBottom: 12 }}>Services and availability</h3>
-                  <p style={{ fontSize: '1.125rem', color: '#6b7280' }}>What services do you offer and when are you open?</p>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: 6 }}>Services and availability</h3>
+                  <p style={{ fontSize: '0.875rem', color: '#6b7280' }}>What services do you offer and when are you open?</p>
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
                   <div>
-                    <label style={{ display: 'block', fontWeight: 700, marginBottom: 12 }}>Services Offered <span style={{ color: '#ef4444' }}>*</span></label>
-                    <button type="button" onClick={() => setIsServiceModalOpen(true)} style={{ width: '100%', padding: 20, borderRadius: 14, border: `2px solid ${errors.services ? '#ef4444' : (selectedServices.length > 0 ? '#818cf8' : '#e5e7eb')}`, textAlign: 'left' }}>
+                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: 8 }}>Services Offered <span style={{ color: '#ef4444' }}>*</span></label>
+                    <button type="button" onClick={() => setIsServiceModalOpen(true)} style={{ width: '100%', padding: '14px 16px', borderRadius: 10, border: `2px solid ${errors.services ? '#ef4444' : (selectedServices.length > 0 ? '#818cf8' : '#e5e7eb')}`, textAlign: 'left', fontSize: '0.9375rem' }}>
                       {selectedServices.length > 0 ? `${selectedServices.length} selected` : 'Click to select services'}
                     </button>
-                    {errors.services && <p style={{ color: '#ef4444', marginTop: 10 }}>{errors.services}</p>}
+                    {errors.services && <p style={{ color: '#ef4444', marginTop: 8, fontSize: '0.875rem' }}>{errors.services}</p>}
                   </div>
 
                   <div>
-                    <label style={{ display: 'block', fontWeight: 700, marginBottom: 12 }}>Open Hours <span style={{ color: '#ef4444' }}>*</span></label>
+                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: 8 }}>Open Hours <span style={{ color: '#ef4444' }}>*</span></label>
                     <div style={{ position: 'relative' }}>
-                      <Clock size={22} style={{ position: 'absolute', left: 20, top: 20, color: '#9ca3af' }} />
+                      <Clock size={18} style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }} />
                       <input type="text" name="openHours" value={formData.openHours} onChange={handleChange} placeholder="e.g., Mon-Fri: 8AM-6PM"
-                        style={{ width: '100%', padding: '18px 20px 18px 56px', border: `2px solid ${errors.openHours ? '#ef4444' : '#e5e7eb'}`, borderRadius: 14 }} />
+                        style={{ width: '100%', padding: '12px 16px 12px 44px', border: `2px solid ${errors.openHours ? '#ef4444' : '#e5e7eb'}`, borderRadius: 10, fontSize: '0.9375rem' }} />
                     </div>
-                    {errors.openHours && <p style={{ color: '#ef4444', marginTop: 10 }}>{errors.openHours}</p>}
+                    {errors.openHours && <p style={{ color: '#ef4444', marginTop: 8, fontSize: '0.875rem' }}>{errors.openHours}</p>}
                   </div>
                 </div>
               </div>
@@ -494,62 +502,64 @@ export default function ClinicRegistration() {
 
             {/* Step 4: Additional Details */}
             {currentStep === 4 && (
-              <div style={{ maxWidth: 700, margin: '0 auto' }}>
-                <div style={{ textAlign: 'center', marginBottom: 48 }}>
-                  <div style={{ width: 100, height: 100, background: 'linear-gradient(135deg,#d1fae5 0%,#a7f3d0 100%)', borderRadius: 24, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 24px' }}>
-                    <FileText size={48} color="#10b981" />
+              <div style={{ maxWidth: 600, margin: '0 auto' }}>
+                <div style={{ textAlign: 'center', marginBottom: 24 }}>
+                  <div style={{ width: 60, height: 60, background: 'linear-gradient(135deg,#d1fae5 0%,#a7f3d0 100%)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
+                    <FileText size={28} color="#10b981" />
                   </div>
-                  <h3 style={{ fontSize: '1.75rem', fontWeight: 700, marginBottom: 12 }}>Tell us more (Optional)</h3>
-                  <p style={{ fontSize: '1.125rem', color: '#6b7280' }}>Add any additional information about your clinic</p>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: 6 }}>Tell us more (Optional)</h3>
+                  <p style={{ fontSize: '0.875rem', color: '#6b7280' }}>Add any additional information about your clinic</p>
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontWeight: 700, marginBottom: 12 }}>Brief Description</label>
-                  <textarea name="description" value={formData.description} onChange={handleChange} rows="10" placeholder="Describe your clinic..."
-                    style={{ width: '100%', padding: 20, border: '2px solid #e5e7eb', borderRadius: 14, fontSize: '1.0625rem' }} />
+                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: 8 }}>Brief Description</label>
+                  <textarea name="description" value={formData.description} onChange={handleChange} rows="8" placeholder="Describe your clinic..."
+                    style={{ width: '100%', padding: '12px 16px', border: '2px solid #e5e7eb', borderRadius: 10, fontSize: '0.9375rem', resize: 'vertical' }} />
                 </div>
               </div>
             )}
           </form>
+          
+          {/* Navigation Footer - Inside Box */}
+          <div style={{ marginTop: 40, paddingTop: 28, borderTop: '2px solid #f3f4f6', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <button type="button" onClick={currentStep === 1 ? handleCancel : handlePrevious} style={{ padding: '14px 28px', background: 'white', border: '2px solid #e5e7eb', borderRadius: 10, fontSize: '0.9375rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <ArrowLeft size={16} /> {currentStep === 1 ? 'Cancel' : 'Previous'}
+            </button>
+
+            {currentStep < totalSteps ? (
+              <button type="button" onClick={handleNext} style={{ padding: '14px 36px', background: 'linear-gradient(135deg,#818cf8 0%,#6366f1 100%)', color: 'white', border: 'none', borderRadius: 10, fontSize: '0.9375rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 2px 12px rgba(129, 140, 248, 0.4)', transition: 'all 0.2s' }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(129, 140, 248, 0.5)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(129, 140, 248, 0.4)';
+                }}>
+                Next Step <ArrowRight size={16} />
+              </button>
+            ) : (
+              <button 
+                type="button" 
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleSubmit(e);
+                }}
+                style={{ padding: '14px 36px', background: 'linear-gradient(135deg,#10b981 0%,#059669 100%)', color: 'white', border: 'none', borderRadius: 10, fontSize: '0.9375rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 2px 12px rgba(16, 185, 129, 0.4)', transition: 'all 0.2s' }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.5)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(16, 185, 129, 0.4)';
+                }}>
+                <CheckSquare size={16} /> {mode === 'edit' ? 'Update Clinic' : 'Save Clinic'}
+              </button>
+            )}
+          </div>
         </div>
-
-        {/* Navigation Footer */}
-        <div style={{ marginTop: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <button type="button" onClick={currentStep === 1 ? handleCancel : handlePrevious} style={{ padding: '16px 32px', background: 'white', border: '2px solid #e5e7eb', borderRadius: 14, fontSize: '1rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <ArrowLeft size={20} /> {currentStep === 1 ? 'Cancel' : 'Previous'}
-          </button>
-
-          {currentStep < totalSteps ? (
-            <button type="button" onClick={handleNext} style={{ padding: '16px 40px', background: 'linear-gradient(135deg,#818cf8 0%,#6366f1 100%)', color: 'white', border: 'none', borderRadius: 14, fontSize: '1rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 4px 16px rgba(129, 140, 248, 0.4)', transition: 'all 0.2s' }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 6px 20px rgba(129, 140, 248, 0.5)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 4px 16px rgba(129, 140, 248, 0.4)';
-              }}>
-              Next Step <ArrowRight size={20} />
-            </button>
-          ) : (
-            <button 
-              type="button" 
-              onClick={(e) => {
-                e.preventDefault();
-                handleSubmit(e);
-              }}
-              style={{ padding: '16px 40px', background: 'linear-gradient(135deg,#10b981 0%,#059669 100%)', color: 'white', border: 'none', borderRadius: 14, fontSize: '1rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 4px 16px rgba(16, 185, 129, 0.4)', transition: 'all 0.2s' }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 6px 20px rgba(16, 185, 129, 0.5)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 4px 16px rgba(16, 185, 129, 0.4)';
-              }}>
-              <CheckSquare size={20} /> {mode === 'edit' ? 'Update Clinic' : 'Save Clinic'}
-            </button>
-          )}
+          </div>
         </div>
       </div>
 

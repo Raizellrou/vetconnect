@@ -6,7 +6,7 @@
 
 .mainWrapper {
   flex: 1;
-  margin-left: 200px; /* account for sidebar width */
+  margin-left: 240px; /* account for sidebar width */
 }
 
 .content {

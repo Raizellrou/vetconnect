@@ -46,12 +46,14 @@
 .statusDot.rejected { background-color: var(--vc-status-rejected); }
 .statusDot.pending { background-color: var(--vc-status-pending); }
 .statusDot.finished { background-color: var(--vc-status-finished); }
+.statusDot.confirmed { background-color: var(--vc-status-ready); }
 
 /* Card border colors */
 .appointmentCard.ready { border-left: 4px solid var(--vc-status-ready); }
 .appointmentCard.rejected { border-left: 4px solid var(--vc-status-rejected); }
 .appointmentCard.pending { border-left: 4px solid var(--vc-status-pending); }
 .appointmentCard.finished { border-left: 4px solid var(--vc-status-finished); }
+.appointmentCard.confirmed { border-left: 4px solid var(--vc-status-ready); }
 
 /* Rating Form Styles */
 .ratingFormContent {
@@ -284,17 +286,17 @@
 
 /* Main Layout */
 .mainWrapper {
-  margin-left: 200px;
+  margin-left: 240px;
   min-height: 100vh;
   background: var(--vc-bg-main);
-  width: calc(100vw - 200px);
-  max-width: calc(100vw - 200px);
+  width: calc(100vw - 240px);
+  max-width: calc(100vw - 240px);
   box-sizing: border-box;
   overflow-x: hidden;
 }
 
 .mainContent {
-  padding: 80px 20px 24px 20px;
+  padding: 80px 32px 32px 32px;
   min-height: calc(100vh - var(--vc-header-height));
   box-sizing: border-box;
   width: 100%;

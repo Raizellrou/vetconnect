@@ -1,0 +1,121 @@
+/* Unified Loading Spinner - VetConnect Brand */
+
+.spinnerWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.fullScreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  z-index: 9999;
+}
+
+.spinner {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.circle {
+  position: absolute;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  border-top-color: #818cf8;
+  border-right-color: #10b981;
+  animation: spin 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+}
+
+.circle:nth-child(1) {
+  animation-delay: -0.45s;
+  opacity: 1;
+}
+
+.circle:nth-child(2) {
+  animation-delay: -0.3s;
+  opacity: 0.7;
+  border-top-color: #10b981;
+  border-right-color: #818cf8;
+}
+
+.circle:nth-child(3) {
+  animation-delay: -0.15s;
+  opacity: 0.4;
+}
+
+/* Size variants */
+.small {
+  width: 24px;
+  height: 24px;
+}
+
+.small .circle {
+  width: 24px;
+  height: 24px;
+  border-width: 2px;
+}
+
+.medium {
+  width: 48px;
+  height: 48px;
+}
+
+.medium .circle {
+  width: 48px;
+  height: 48px;
+  border-width: 3px;
+}
+
+.large {
+  width: 64px;
+  height: 64px;
+}
+
+.large .circle {
+  width: 64px;
+  height: 64px;
+  border-width: 4px;
+}
+
+.message {
+  color: #6b7280;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin: 0;
+  text-align: center;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Smooth fade-in */
+.spinnerWrapper {
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

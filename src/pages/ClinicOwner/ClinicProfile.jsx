@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Phone, MapPin, Calendar, Edit, Building2 } from 'lucide-react';
+import { Mail, Phone, MapPin, Calendar, Edit, Building2, ExternalLink } from 'lucide-react';
 import TopBar from '../../components/layout/TopBar';
 import ClinicSidebar from '../../components/layout/ClinicSidebar';
 import { useAuth } from '../../contexts/AuthContext';
@@ -15,6 +15,7 @@ export default function ClinicProfile() {
   const phone = userData?.phone || 'Not provided';
   const address = userData?.address || 'Not provided';
   const clinicName = userData?.clinicName || 'Not provided';
+  const portfolio = userData?.portfolio || '';
   const joinDate = userData?.createdAt?.toDate?.().toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
@@ -119,6 +120,27 @@ export default function ClinicProfile() {
                     <div className={styles.infoValue}>{clinicName}</div>
                   </div>
                 </div>
+
+                {portfolio && (
+                  <div className={styles.infoItem}>
+                    <div className={styles.infoIcon}>
+                      <ExternalLink size={20} />
+                    </div>
+                    <div className={styles.infoContent}>
+                      <div className={styles.infoLabel}>Portfolio</div>
+                      <div className={styles.infoValue}>
+                        <a 
+                          href={portfolio} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          style={{ color: '#818cf8', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}
+                        >
+                          View Portfolio <ExternalLink size={14} />
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 <div className={styles.infoItem}>
                   <div className={styles.infoIcon}>
