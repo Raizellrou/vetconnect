@@ -10,6 +10,8 @@ import { db } from '../../firebase/firebase';
 import { sendNotification } from '../../firebase/firestoreHelpers';
 import TopBar from '../../components/layout/TopBar';
 import Sidebar from '../../components/layout/Sidebar';
+import { sendNotification } from '../../firebase/firestoreHelpers';
+import { formatShortDate, formatTime } from '../../utils/dateUtils';
 
 export default function BookAppointment() {
   const navigate = useNavigate();
@@ -126,42 +128,32 @@ export default function BookAppointment() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!validateForm()) {
-      return;
-    }
-
-    if (!currentUser) {
-      setSubmitError('You must be logged in to book an appointment');
-      return;
-    }
-
-    if (!clinicId) {
-      setSubmitError('Invalid clinic selection');
-      return;
-    }
-
+    if (!validateForm()) return;
+    
     setIsSubmitting(true);
     setSubmitError('');
-    setSubmitSuccess(false);
 
     try {
-      const dateTime = toTimestamp(formData.date, formData.time);
+      const selectedPet = pets.find(p => p.id === formData.petId);
+      const timestamp = toTimestamp(formData.date, formData.time);
 
       const appointmentData = {
-        clinicId: clinicId,
         ownerId: currentUser.uid,
+        clinicId: clinicId,
         petId: formData.petId,
-        dateTime: dateTime,
+        dateTime: timestamp,
         status: 'pending',
         meta: {
-          service: formData.service || '',
-          notes: formData.notes || '',
-          reason: formData.reason
+          service: formData.service,
+          reason: formData.reason,
+          notes: formData.notes
         }
       };
 
-      console.log('Submitting appointment:', appointmentData);
+      const appointmentRef = await bookAppointment(appointmentData);
+      console.log('✅ Appointment booked:', appointmentRef.id);
 
+<<<<<<< HEAD
       const appointmentRef = await bookAppointment(appointmentData);
       const appointmentId = appointmentRef.id;
 
@@ -187,6 +179,40 @@ export default function BookAppointment() {
         });
       }
       
+=======
+      // Send notification to clinic owner
+      try {
+        const clinicName = clinic.clinicName || clinic.name;
+        const petName = selectedPet?.name || 'Unknown Pet';
+        const appointmentDate = formatShortDate(timestamp);
+        const appointmentTime = formatTime(timestamp);
+        
+        await sendNotification({
+          toUserId: clinic.ownerId,
+          title: '📅 New Appointment Request',
+          body: `New appointment request from ${userData.fullName || 'Pet Owner'} for ${petName} at ${clinicName} on ${appointmentDate} at ${appointmentTime}`,
+          appointmentId: appointmentRef.id,
+          data: {
+            type: 'new_appointment',
+            clinicId: clinicId,
+            clinicName: clinicName,
+            petId: formData.petId,
+            petName: petName,
+            ownerId: currentUser.uid,
+            ownerName: userData.fullName || userData.displayName || userData.email,
+            appointmentDate: appointmentDate,
+            appointmentTime: appointmentTime,
+            service: formData.service,
+            reason: formData.reason
+          }
+        });
+        console.log('✅ Notification sent to clinic owner');
+      } catch (notifError) {
+        console.error('❌ Failed to send notification to clinic:', notifError);
+        // Don't fail the booking if notification fails
+      }
+
+>>>>>>> b46e9c861f0b7efe19f65b1b5e940c994d99d697
       setSubmitSuccess(true);
 
       setTimeout(() => {

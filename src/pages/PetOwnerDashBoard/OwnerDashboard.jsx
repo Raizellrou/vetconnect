@@ -25,6 +25,7 @@ import { db } from '../../firebase/firebase';
 import { cancelAppointment, updateAppointment } from '../../lib/firebaseMutations';
 import { addReview, sendNotification } from '../../firebase/firestoreHelpers';
 import { useAppointmentFilters } from '../../hooks/useAppointmentFilters';
+import { checkAndSendReminders, clearOldReminderFlags } from '../../utils/appointmentReminders';
 
 const VIEW_STATES = {
   APPOINTMENT_LIST: 'list',
@@ -122,6 +123,17 @@ export default function OwnerDashboard() {
     };
 
     fetchData();
+  }, [currentUser]);
+
+  // Check for appointment reminders on load
+  useEffect(() => {
+    if (!currentUser?.uid) return;
+    
+    // Clear old reminder flags
+    clearOldReminderFlags();
+    
+    // Check and send reminders
+    checkAndSendReminders(currentUser.uid, 'petOwner');
   }, [currentUser]);
 
   const handleLogout = async () => {
@@ -271,6 +283,22 @@ export default function OwnerDashboard() {
   };
 
   const filteredAppointments = getFilteredAppointments();
+
+  // Handle navigation from notifications
+  useEffect(() => {
+    if (location.state?.viewAppointmentId && location.state?.openDetails) {
+      // Find the appointment by ID
+      const appointment = appointments.find(apt => apt.id === location.state.viewAppointmentId);
+      
+      if (appointment) {
+        setSelected(appointment);
+        setViewState(VIEW_STATES.VIEW_DETAILS);
+        
+        // Clear the state to prevent reopening on refresh
+        window.history.replaceState({}, document.title);
+      }
+    }
+  }, [location.state, appointments]);
 
   if (!userData) return <LoadingState message="Loading user data..." />;
 

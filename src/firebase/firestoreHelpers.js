@@ -469,22 +469,27 @@ export const markAllNotificationsAsRead = async (userId) => {
 };
 
 /**
- * Clear all notifications for a user
+ * Clear all notifications for a user (DELETE all documents)
  * @param {string} userId - User ID
  */
-export const clearAllNotifications = async (userId) => {
+export const clearNotifications = async (userId) => {
   if (!userId) {
     throw new Error("User ID is required");
   }
 
   try {
-    const notiQuery = query(collection(db, "users", userId, "notifications"));
-    const snapshot = await getDocs(notiQuery);
+    const notificationsRef = collection(db, "users", userId, "notifications");
+    const snapshot = await getDocs(notificationsRef);
+    
+    if (snapshot.empty) {
+      console.log('No notifications to clear');
+      return;
+    }
     
     const deletePromises = snapshot.docs.map(doc => deleteDoc(doc.ref));
     await Promise.all(deletePromises);
     
-    console.log(`Cleared ${deletePromises.length} notifications for user:`, userId);
+    console.log(`✅ Cleared ${deletePromises.length} notifications for user:`, userId);
   } catch (error) {
     console.error("Error clearing notifications:", error);
     throw new Error(`Failed to clear notifications: ${error.message}`);
