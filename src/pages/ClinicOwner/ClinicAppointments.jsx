@@ -413,13 +413,46 @@ export default function ClinicAppointments() {
   const filteredAppointments = getFilteredAppointments();
   const groupedAppointments = groupAppointmentsByDate(filteredAppointments);
 
+  // Store appointment counts for each clinic
+  const [clinicAppointmentCounts, setClinicAppointmentCounts] = useState({});
+
+  // Fetch appointment counts for all clinics
+  useEffect(() => {
+    const fetchAppointmentCounts = async () => {
+      if (clinics.length === 0) return;
+
+      const counts = {};
+      
+      for (const clinic of clinics) {
+        try {
+          const appointmentsQuery = firestoreQuery(
+            collection(db, 'appointments'),
+            where('clinicId', '==', clinic.id)
+          );
+          const appointmentsSnapshot = await getDocs(appointmentsQuery);
+          
+          const allAppointments = appointmentsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          const pendingCount = allAppointments.filter(apt => apt.status === 'pending').length;
+          
+          counts[clinic.id] = {
+            pending: pendingCount,
+            total: allAppointments.length
+          };
+        } catch (error) {
+          console.error(`Error fetching appointments for clinic ${clinic.id}:`, error);
+          counts[clinic.id] = { pending: 0, total: 0 };
+        }
+      }
+      
+      setClinicAppointmentCounts(counts);
+    };
+
+    fetchAppointmentCounts();
+  }, [clinics]);
+
   // Calculate stats for each clinic
   const getClinicStats = (clinicId) => {
-    // This would need to fetch appointment counts - for now we'll use placeholder
-    return {
-      pending: 0,
-      total: 0
-    };
+    return clinicAppointmentCounts[clinicId] || { pending: 0, total: 0 };
   };
 
   // Loading state - NOW AFTER ALL HOOKS

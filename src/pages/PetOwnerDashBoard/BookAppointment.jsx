@@ -10,7 +10,6 @@ import { db } from '../../firebase/firebase';
 import { sendNotification } from '../../firebase/firestoreHelpers';
 import TopBar from '../../components/layout/TopBar';
 import Sidebar from '../../components/layout/Sidebar';
-import { sendNotification } from '../../firebase/firestoreHelpers';
 import { formatShortDate, formatTime } from '../../utils/dateUtils';
 
 export default function BookAppointment() {
@@ -153,33 +152,6 @@ export default function BookAppointment() {
       const appointmentRef = await bookAppointment(appointmentData);
       console.log('✅ Appointment booked:', appointmentRef.id);
 
-<<<<<<< HEAD
-      const appointmentRef = await bookAppointment(appointmentData);
-      const appointmentId = appointmentRef.id;
-
-      console.log('Appointment booked successfully:', appointmentId);
-      
-      // Send notification to clinic owner
-      if (clinic?.ownerId) {
-        const selectedPet = pets.find(p => p.id === formData.petId);
-        const petName = selectedPet?.name || 'Unknown Pet';
-        
-        await sendNotification({
-          toUserId: clinic.ownerId,
-          title: 'New Appointment Request',
-          body: `New appointment request for ${petName} on ${formData.date} at ${formData.time}`,
-          appointmentId: appointmentId,
-          data: {
-            petName,
-            ownerName: userData?.fullName || userData?.displayName || 'A pet owner',
-            clinicId: clinicId,
-            date: formData.date,
-            time: formData.time
-          }
-        });
-      }
-      
-=======
       // Send notification to clinic owner
       try {
         const clinicName = clinic.clinicName || clinic.name;
@@ -212,7 +184,6 @@ export default function BookAppointment() {
         // Don't fail the booking if notification fails
       }
 
->>>>>>> b46e9c861f0b7efe19f65b1b5e940c994d99d697
       setSubmitSuccess(true);
 
       setTimeout(() => {

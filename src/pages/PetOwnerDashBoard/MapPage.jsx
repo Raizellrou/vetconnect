@@ -6,6 +6,7 @@ import 'leaflet/dist/leaflet.css';
 import { MapPin, Phone, Clock, Star, ChevronRight, Search, Bookmark, BookmarkCheck } from 'lucide-react';
 import TopBar from '../../components/layout/TopBar';
 import Sidebar from '../../components/layout/Sidebar';
+import Toast from '../../components/Toast';
 import { useAuth } from '../../contexts/AuthContext';
 import styles from '../../styles/MapPage.module.css';
 import { collection, getDocs } from 'firebase/firestore';
@@ -53,6 +54,7 @@ export default function MapPage() {
   const [userLocation, setUserLocation] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [bookmarkLoading, setBookmarkLoading] = useState({});
+  const [toast, setToast] = useState(null);
 
   // Real-time bookmarks listener
   const {
@@ -90,8 +92,6 @@ export default function MapPage() {
       } catch (err) {
         console.error('Failed to load clinics', err);
         setError(err);
-        // show friendly alert
-        try { alert('Failed to load clinics. Please try again later.'); } catch {}
       } finally {
         if (mounted) setLoading(false);
       }
@@ -595,6 +595,15 @@ export default function MapPage() {
           </section>
         </main>
       </div>
+
+      {/* Toast Notification */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
     </div>
   );
 }

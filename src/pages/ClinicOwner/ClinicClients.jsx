@@ -1,116 +1,219 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import TopBar from '../../components/layout/TopBar';
 import ClinicSidebar from '../../components/layout/ClinicSidebar';
 import { useAuth } from '../../contexts/AuthContext';
-import { Users, Search, Phone, Mail, Calendar, Dog, FileText, Eye } from 'lucide-react';
+import { Users, Search, Phone, Mail, Calendar, Dog, FileText, Eye, Loader } from 'lucide-react';
 import styles from '../../styles/ClinicDashboard.module.css';
+import { collection, getDocs, query as firestoreQuery, where, doc, getDoc } from 'firebase/firestore';
+import { db } from '../../firebase/firebase';
+import LoadingSpinner from '../../components/LoadingSpinner';
 
 export default function ClinicClients() {
-  const { userData } = useAuth();
+  const { userData, currentUser } = useAuth();
   const displayName = userData?.fullName || userData?.displayName || userData?.clinicName || userData?.email;
 
-  // Dummy clients data
-  const [clients] = useState([
-    {
-      id: 'client-1',
-      ownerName: 'John Smith',
-      email: 'john.smith@email.com',
-      phone: '+1 (555) 123-4567',
-      address: '123 Oak Street, Springfield, IL',
-      joinDate: '2024-01-15',
-      pets: [
-        {
-          name: 'Max',
-          species: 'Dog',
-          breed: 'Golden Retriever',
-          age: '3 years',
-          lastVisit: '2024-11-14'
-        }
-      ],
-      totalVisits: 12,
-      lastVisit: '2024-11-14'
-    },
-    {
-      id: 'client-2',
-      ownerName: 'Sarah Johnson',
-      email: 'sarah.j@email.com',
-      phone: '+1 (555) 234-5678',
-      address: '456 Maple Avenue, Springfield, IL',
-      joinDate: '2024-03-20',
-      pets: [
-        {
-          name: 'Bella',
-          species: 'Cat',
-          breed: 'Persian',
-          age: '2 years',
-          lastVisit: '2024-11-15'
-        },
-        {
-          name: 'Luna',
-          species: 'Cat',
-          breed: 'Siamese',
-          age: '4 years',
-          lastVisit: '2024-10-28'
-        }
-      ],
-      totalVisits: 8,
-      lastVisit: '2024-11-15'
-    },
-    {
-      id: 'client-3',
-      ownerName: 'Mike Davis',
-      email: 'mike.davis@email.com',
-      phone: '+1 (555) 345-6789',
-      address: '789 Pine Road, Springfield, IL',
-      joinDate: '2024-06-10',
-      pets: [
-        {
-          name: 'Charlie',
-          species: 'Dog',
-          breed: 'Beagle',
-          age: '5 years',
-          lastVisit: '2024-11-16'
-        }
-      ],
-      totalVisits: 5,
-      lastVisit: '2024-11-16'
-    },
-    {
-      id: 'client-4',
-      ownerName: 'Emily Brown',
-      email: 'emily.brown@email.com',
-      phone: '+1 (555) 456-7890',
-      address: '321 Elm Street, Springfield, IL',
-      joinDate: '2024-08-05',
-      pets: [
-        {
-          name: 'Rocky',
-          species: 'Dog',
-          breed: 'German Shepherd',
-          age: '1 year',
-          lastVisit: '2024-11-10'
-        },
-        {
-          name: 'Whiskers',
-          species: 'Cat',
-          breed: 'Maine Coon',
-          age: '3 years',
-          lastVisit: '2024-11-12'
-        }
-      ],
-      totalVisits: 4,
-      lastVisit: '2024-11-12'
-    }
-  ]);
-
+  const [clients, setClients] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedClient, setSelectedClient] = useState(null);
+
+  // Fetch clients and their pets
+  useEffect(() => {
+    const fetchClientsAndPets = async () => {
+      if (!currentUser?.uid) return;
+
+      try {
+        setLoading(true);
+
+        // Get all clinics owned by this user
+        const clinicsQuery = firestoreQuery(
+          collection(db, 'clinics'),
+          where('ownerId', '==', currentUser.uid)
+        );
+        const clinicsSnapshot = await getDocs(clinicsQuery);
+        const clinicIds = clinicsSnapshot.docs.map(doc => doc.id);
+
+        if (clinicIds.length === 0) {
+          setClients([]);
+          setLoading(false);
+          return;
+        }
+
+        // Get all appointments for these clinics
+        const appointmentsQuery = firestoreQuery(
+          collection(db, 'appointments'),
+          where('clinicId', 'in', clinicIds)
+        );
+        const appointmentsSnapshot = await getDocs(appointmentsQuery);
+        
+        // Group appointments by owner
+        const ownerAppointments = {};
+        appointmentsSnapshot.docs.forEach(doc => {
+          const apt = { id: doc.id, ...doc.data() };
+          const ownerId = apt.ownerId;
+          if (!ownerAppointments[ownerId]) {
+            ownerAppointments[ownerId] = [];
+          }
+          ownerAppointments[ownerId].push(apt);
+        });
+
+        // Fetch owner and pet details
+        const clientsData = await Promise.all(
+          Object.keys(ownerAppointments).map(async (ownerId) => {
+            try {
+              // Fetch owner details
+              const ownerRef = doc(db, 'users', ownerId);
+              const ownerSnap = await getDoc(ownerRef);
+              
+              if (!ownerSnap.exists()) {
+                return null;
+              }
+
+              const ownerData = ownerSnap.data();
+              const appointments = ownerAppointments[ownerId];
+
+              // Fetch pets for this owner
+              const petsQuery = firestoreQuery(
+                collection(db, 'users', ownerId, 'pets')
+              );
+              const petsSnapshot = await getDocs(petsQuery);
+              const pets = petsSnapshot.docs.map(petDoc => {
+                const petData = petDoc.data();
+                
+                // Find appointments for this pet
+                const petAppointments = appointments.filter(apt => apt.petId === petDoc.id);
+                
+                // Get last visit date
+                let lastVisit = null;
+                if (petAppointments.length > 0) {
+                  const sortedApts = petAppointments
+                    .filter(apt => apt.status === 'completed')
+                    .sort((a, b) => {
+                      const dateA = a.dateTime?.toDate ? a.dateTime.toDate() : new Date(a.dateTime);
+                      const dateB = b.dateTime?.toDate ? b.dateTime.toDate() : new Date(b.dateTime);
+                      return dateB - dateA;
+                    });
+                  
+                  if (sortedApts.length > 0) {
+                    lastVisit = sortedApts[0].dateTime?.toDate 
+                      ? sortedApts[0].dateTime.toDate() 
+                      : new Date(sortedApts[0].dateTime);
+                  }
+                }
+
+                // Calculate age
+                let age = 'Unknown';
+                if (petData.dateOfBirth) {
+                  const birthDate = petData.dateOfBirth.toDate 
+                    ? petData.dateOfBirth.toDate() 
+                    : new Date(petData.dateOfBirth);
+                  const years = Math.floor((new Date() - birthDate) / (365.25 * 24 * 60 * 60 * 1000));
+                  const months = Math.floor((new Date() - birthDate) / (30.44 * 24 * 60 * 60 * 1000)) % 12;
+                  
+                  if (years > 0) {
+                    age = `${years} year${years !== 1 ? 's' : ''}`;
+                    if (months > 0 && years < 3) {
+                      age += ` ${months} month${months !== 1 ? 's' : ''}`;
+                    }
+                  } else if (months > 0) {
+                    age = `${months} month${months !== 1 ? 's' : ''}`;
+                  } else {
+                    age = 'Less than a month';
+                  }
+                }
+
+                return {
+                  id: petDoc.id,
+                  name: petData.name || 'Unknown',
+                  species: petData.species || 'Unknown',
+                  breed: petData.breed || 'Unknown',
+                  age: age,
+                  lastVisit: lastVisit
+                };
+              });
+
+              // Calculate total visits (completed appointments)
+              const totalVisits = appointments.filter(apt => apt.status === 'completed').length;
+
+              // Get overall last visit
+              const completedAppointments = appointments
+                .filter(apt => apt.status === 'completed')
+                .sort((a, b) => {
+                  const dateA = a.dateTime?.toDate ? a.dateTime.toDate() : new Date(a.dateTime);
+                  const dateB = b.dateTime?.toDate ? b.dateTime.toDate() : new Date(b.dateTime);
+                  return dateB - dateA;
+                });
+
+              const lastVisit = completedAppointments.length > 0
+                ? (completedAppointments[0].dateTime?.toDate 
+                    ? completedAppointments[0].dateTime.toDate() 
+                    : new Date(completedAppointments[0].dateTime))
+                : null;
+
+              // Get join date (first appointment date)
+              const firstAppointment = [...appointments].sort((a, b) => {
+                const dateA = a.dateTime?.toDate ? a.dateTime.toDate() : new Date(a.dateTime);
+                const dateB = b.dateTime?.toDate ? b.dateTime.toDate() : new Date(b.dateTime);
+                return dateA - dateB;
+              })[0];
+
+              const joinDate = firstAppointment?.dateTime?.toDate 
+                ? firstAppointment.dateTime.toDate() 
+                : new Date(firstAppointment?.dateTime || Date.now());
+
+              return {
+                id: ownerId,
+                ownerName: ownerData.fullName || ownerData.displayName || ownerData.email || 'Unknown',
+                email: ownerData.email || 'No email',
+                phone: ownerData.phoneNumber || 'No phone',
+                address: ownerData.address || 'No address provided',
+                joinDate: joinDate,
+                pets: pets,
+                totalVisits: totalVisits,
+                lastVisit: lastVisit
+              };
+            } catch (error) {
+              console.error(`Error fetching data for owner ${ownerId}:`, error);
+              return null;
+            }
+          })
+        );
+
+        // Filter out null values and set clients
+        const validClients = clientsData.filter(client => client !== null);
+        setClients(validClients);
+        console.log('Fetched clients:', validClients);
+      } catch (error) {
+        console.error('Error fetching clients:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchClientsAndPets();
+  }, [currentUser]);
 
   const filteredClients = clients.filter(client =>
     client.ownerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     client.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
     client.pets.some(pet => pet.name.toLowerCase().includes(searchTerm.toLowerCase()))
   );
+
+  if (loading) {
+    return (
+      <div className={styles.dashboard}>
+        <ClinicSidebar />
+        <div className={styles.mainWrapper}>
+          <TopBar username={displayName} />
+          <main className={styles.mainContent}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '400px' }}>
+              <LoadingSpinner size="large" message="Loading clients..." />
+            </div>
+          </main>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.dashboard}>
@@ -216,7 +319,7 @@ export default function ClinicClients() {
                       {client.ownerName}
                     </h3>
                     <p style={{ margin: 0, fontSize: '0.875rem', color: '#64748b' }}>
-                      Member since {new Date(client.joinDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+                      Member since {client.joinDate ? new Date(client.joinDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'Recently'}
                     </p>
                   </div>
                 </div>
@@ -347,7 +450,7 @@ export default function ClinicClients() {
                       fontWeight: 600,
                       color: '#f59e0b'
                     }}>
-                      {new Date(client.lastVisit).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                      {client.lastVisit ? new Date(client.lastVisit).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'N/A'}
                     </p>
                     <p style={{ margin: 0, fontSize: '0.75rem', color: '#64748b' }}>
                       Last Visit
@@ -393,9 +496,13 @@ export default function ClinicClients() {
               boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
             }}>
               <Users size={48} color="#cbd5e1" style={{ marginBottom: '16px' }} />
-              <h3 style={{ margin: '0 0 8px 0', color: '#64748b' }}>No clients found</h3>
+              <h3 style={{ margin: '0 0 8px 0', color: '#64748b' }}>
+                {clients.length === 0 ? 'No clients yet' : 'No clients found'}
+              </h3>
               <p style={{ margin: 0, color: '#94a3b8' }}>
-                Try adjusting your search terms
+                {clients.length === 0 
+                  ? 'When pet owners book appointments at your clinic, they will appear here as clients.'
+                  : 'Try adjusting your search terms'}
               </p>
             </div>
           )}
@@ -467,7 +574,7 @@ export default function ClinicClients() {
                         <strong>Age:</strong> {pet.age}
                       </p>
                       <p style={{ margin: 0, fontSize: '0.875rem', color: '#64748b' }}>
-                        <strong>Last Visit:</strong> {new Date(pet.lastVisit).toLocaleDateString()}
+                        <strong>Last Visit:</strong> {pet.lastVisit ? new Date(pet.lastVisit).toLocaleDateString() : 'No visits yet'}
                       </p>
                     </div>
                   ))}

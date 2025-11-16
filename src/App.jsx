@@ -11,6 +11,8 @@ import ClinicAppointments from "./pages/ClinicOwner/ClinicAppointments";
 import ClinicSettings from "./pages/ClinicOwner/ClinicSettings";
 import ClinicManagement from "./pages/ClinicOwner/ClinicManagement";
 import ClinicRegistration from "./pages/ClinicOwner/ClinicRegistration";
+import CreateClinic from "./pages/ClinicOwner/CreateClinic";
+import EditClinic from "./pages/ClinicOwner/EditClinic";
 import ClinicFiles from "./pages/ClinicOwner/ClinicFiles";
 import ClinicClients from "./pages/ClinicOwner/ClinicClients";
 import ClinicProfile from "./pages/ClinicOwner/ClinicProfile";
@@ -214,6 +216,22 @@ export default function App() {
           element={
             <RoleProtectedRoute allowedRoles={["clinicOwner"]}>
               <ClinicRegistration />
+            </RoleProtectedRoute>
+          }
+        />
+        <Route
+          path="/clinic/create"
+          element={
+            <RoleProtectedRoute allowedRoles={["clinicOwner"]}>
+              <CreateClinic />
+            </RoleProtectedRoute>
+          }
+        />
+        <Route
+          path="/clinic/edit/:clinicId"
+          element={
+            <RoleProtectedRoute allowedRoles={["clinicOwner"]}>
+              <EditClinic />
             </RoleProtectedRoute>
           }
         />

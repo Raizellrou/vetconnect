@@ -1,50 +1,81 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Plus, Edit, Trash2, MapPin, Phone, Clock, Briefcase } from 'lucide-react';
 import TopBar from '../../components/layout/TopBar';
 import ClinicSidebar from '../../components/layout/ClinicSidebar';
 import { useAuth } from '../../contexts/AuthContext';
-import {
-  getAllClinics,
-  deleteClinic
-} from '../../utils/clinicStorage';
+import { collection, query, where, getDocs, doc, deleteDoc } from 'firebase/firestore';
+import { db } from '../../firebase/firebase';
+import LoadingSpinner from '../../components/LoadingSpinner';
+import Toast from '../../components/Toast';
 
 export default function ClinicManagement() {
-  const { userData } = useAuth();
+  const { userData, currentUser } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [clinics, setClinics] = useState([]);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [toast, setToast] = useState(null);
 
   useEffect(() => {
     loadClinics();
-  }, []);
+    // Check for success message from location state
+    if (location.state?.message) {
+      setSuccessMessage(location.state.message);
+      // Clear the message after 5 seconds
+      setTimeout(() => setSuccessMessage(''), 5000);
+      // Clear location state
+      window.history.replaceState({}, document.title);
+    }
+  }, [location]);
 
-  const loadClinics = () => {
-    const loadedClinics = getAllClinics();
-    setClinics(loadedClinics);
+  const loadClinics = async () => {
+    if (!currentUser) return;
+    
+    try {
+      setLoading(true);
+      const clinicsRef = collection(db, 'clinics');
+      const q = query(clinicsRef, where('ownerId', '==', currentUser.uid));
+      const querySnapshot = await getDocs(q);
+      
+      const loadedClinics = [];
+      querySnapshot.forEach((doc) => {
+        loadedClinics.push({ id: doc.id, ...doc.data() });
+      });
+      
+      setClinics(loadedClinics);
+    } catch (error) {
+      console.error('Error loading clinics:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleAddClinic = () => {
-    navigate('/clinic/register');
+    navigate('/clinic/create');
   };
 
   const handleEditClinic = (clinic) => {
-    navigate('/clinic/register', { state: { clinic } });
+    navigate(`/clinic/edit/${clinic.id}`);
   };
 
   const handleDeleteClick = (clinic) => {
     setDeleteConfirm(clinic);
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (deleteConfirm) {
       try {
-        deleteClinic(deleteConfirm.id);
+        await deleteDoc(doc(db, 'clinics', deleteConfirm.id));
         loadClinics();
         setDeleteConfirm(null);
+        setToast({ message: 'Clinic deleted successfully!', type: 'success' });
       } catch (error) {
         console.error('Error deleting clinic:', error);
-        alert('Failed to delete clinic. Please try again.');
+        setToast({ message: 'Failed to delete clinic. Please try again.', type: 'error' });
+        setDeleteConfirm(null);
       }
     }
   };
@@ -61,6 +92,39 @@ export default function ClinicManagement() {
         <TopBar />
         
         <main style={{ padding: '108px 32px 40px 32px', maxWidth: '1400px', margin: '0 auto', width: '100%' }}>
+          {/* Success Message */}
+          {successMessage && (
+            <div style={{
+              background: 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)',
+              border: '2px solid #10b981',
+              borderRadius: '12px',
+              padding: '16px 24px',
+              marginBottom: '24px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px',
+              animation: 'slideDown 0.3s ease'
+            }}>
+              <div style={{
+                width: '24px',
+                height: '24px',
+                background: '#10b981',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'white',
+                fontSize: '1.25rem',
+                fontWeight: 'bold'
+              }}>
+                ✓
+              </div>
+              <span style={{ color: '#065f46', fontWeight: 600, fontSize: '1rem' }}>
+                {successMessage}
+              </span>
+            </div>
+          )}
+
           {/* Header with gradient background */}
           <div style={{
             background: 'linear-gradient(135deg, #818cf8 0%, #a78bfa 100%)',
@@ -118,7 +182,17 @@ export default function ClinicManagement() {
 
           {/* Clinics List */}
           <div className="space-y-4">
-            {clinics.length === 0 ? (
+            {loading ? (
+              <div style={{
+                textAlign: 'center',
+                padding: '64px 32px',
+                background: 'white',
+                borderRadius: '16px',
+                boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+              }}>
+                <LoadingSpinner size="large" message="Loading your clinics..." />
+              </div>
+            ) : clinics.length === 0 ? (
               <div style={{
                 textAlign: 'center',
                 padding: '64px 32px',
@@ -490,6 +564,15 @@ export default function ClinicManagement() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Toast Notification */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
       )}
     </div>
   );

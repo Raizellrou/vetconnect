@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
-import { X, MapPin, Locate } from 'lucide-react';
+import { X, MapPin, Locate, AlertCircle } from 'lucide-react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -39,6 +39,7 @@ export default function MapPicker({ isOpen, onClose, onSelectLocation, initialPo
   const [position, setPosition] = useState(initialPosition || defaultCenter);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
+  const [error, setError] = useState('');
 
   // Debug log
   console.log('MapPicker loaded - Enhanced design v2.0');
@@ -53,6 +54,7 @@ export default function MapPicker({ isOpen, onClose, onSelectLocation, initialPo
     if (!searchQuery.trim()) return;
     
     setIsSearching(true);
+    setError('');
     try {
       // Using Nominatim (OpenStreetMap) geocoding service
       const response = await fetch(
@@ -67,11 +69,11 @@ export default function MapPicker({ isOpen, onClose, onSelectLocation, initialPo
           lng: parseFloat(location.lon)
         });
       } else {
-        alert('Location not found. Please try a different search term.');
+        setError('Location not found. Please try a different search term.');
       }
     } catch (error) {
       console.error('Error searching location:', error);
-      alert('Error searching for location. Please try again.');
+      setError('Error searching for location. Please try again.');
     } finally {
       setIsSearching(false);
     }
@@ -79,6 +81,7 @@ export default function MapPicker({ isOpen, onClose, onSelectLocation, initialPo
 
   const handleCurrentLocation = () => {
     if ('geolocation' in navigator) {
+      setError('');
       navigator.geolocation.getCurrentPosition(
         (pos) => {
           console.log('Got location:', pos.coords.latitude, pos.coords.longitude);
@@ -86,6 +89,7 @@ export default function MapPicker({ isOpen, onClose, onSelectLocation, initialPo
             lat: pos.coords.latitude,
             lng: pos.coords.longitude
           });
+          setError('');
         },
         (error) => {
           console.error('Error getting location:', error);
@@ -103,7 +107,7 @@ export default function MapPicker({ isOpen, onClose, onSelectLocation, initialPo
             default:
               errorMessage += 'An unknown error occurred.';
           }
-          alert(errorMessage);
+          setError(errorMessage);
         },
         {
           enableHighAccuracy: true,
@@ -112,7 +116,7 @@ export default function MapPicker({ isOpen, onClose, onSelectLocation, initialPo
         }
       );
     } else {
-      alert('Geolocation is not supported by your browser.');
+      setError('Geolocation is not supported by your browser.');
     }
   };
 
@@ -234,6 +238,42 @@ export default function MapPicker({ isOpen, onClose, onSelectLocation, initialPo
             <X size={20} color="white" />
           </button>
         </div>
+
+        {/* Error Message */}
+        {error && (
+          <div style={{
+            margin: '16px 24px 0',
+            padding: '16px 20px',
+            background: 'linear-gradient(135deg, #fee2e2 0%, #fecaca 100%)',
+            border: '2px solid #f87171',
+            borderRadius: '12px',
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: '12px'
+          }}>
+            <AlertCircle size={20} color="#ef4444" style={{ flexShrink: 0, marginTop: '2px' }} />
+            <div style={{ flex: 1 }}>
+              <p style={{ margin: 0, color: '#991b1b', fontSize: '0.9375rem', fontWeight: 600, lineHeight: 1.5 }}>
+                {error}
+              </p>
+            </div>
+            <button
+              onClick={() => setError('')}
+              style={{
+                padding: '4px',
+                background: 'rgba(239, 68, 68, 0.1)',
+                border: 'none',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              <X size={16} color="#ef4444" />
+            </button>
+          </div>
+        )}
 
         {/* Enhanced Top Action Bar with Blue Gradient */}
         <div style={{ 

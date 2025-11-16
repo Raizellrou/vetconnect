@@ -1,20 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-<<<<<<< HEAD
-import { Bell, User, LogOut, Clock, Check, X, UserCircle, Calendar, AlertCircle } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
-import { useCollection } from '../../hooks/useCollection';
-import { markNotificationAsRead, markAllNotificationsAsRead } from '../../firebase/firestoreHelpers';
-import { deleteDoc, doc, orderBy } from 'firebase/firestore';
-import { db } from '../../firebase/firebase';
-=======
 import { Bell, User, LogOut, Clock, Check, X, UserCircle, Building2, Dog, Calendar } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useCollection } from '../../hooks/useCollection';
 import { markNotificationAsRead, clearNotifications } from '../../firebase/firestoreHelpers';
 import { orderBy } from 'firebase/firestore';
 import { handleNotificationClick } from '../../utils/notificationHandlers';
->>>>>>> b46e9c861f0b7efe19f65b1b5e940c994d99d697
 import styles from '../../styles/TopBar.module.css';
 
 export default function TopBar({ username }) {
@@ -25,26 +16,18 @@ export default function TopBar({ username }) {
   const { logout, userData, currentUser } = useAuth();
   const navigate = useNavigate();
 
-<<<<<<< HEAD
-  // Real-time notifications from Firestore
-  const { docs: notifications = [], loading: notificationsLoading } = useCollection(
-=======
   // Real-time notifications listener
   const {
     docs: notifications = [],
     loading: notificationsLoading
   } = useCollection(
->>>>>>> b46e9c861f0b7efe19f65b1b5e940c994d99d697
     currentUser?.uid ? `users/${currentUser.uid}/notifications` : null,
     [],
     [orderBy('createdAt', 'desc')]
   );
-<<<<<<< HEAD
-=======
 
   // Count unread notifications
   const unreadCount = notifications.filter(n => n.status === 'unread').length;
->>>>>>> b46e9c861f0b7efe19f65b1b5e940c994d99d697
 
   const computeInitials = (name) => {
     if (!name) return 'U';
@@ -92,19 +75,12 @@ export default function TopBar({ username }) {
     navigate(isClinicOwner ? '/clinic/edit-profile' : '/edit-profile');
   };
 
-<<<<<<< HEAD
-  const markAsRead = async (id) => {
-    if (!currentUser?.uid) return;
-    try {
-      await markNotificationAsRead(currentUser.uid, id);
-=======
   const markAsRead = async (notificationId) => {
     if (!currentUser?.uid) return;
     
     try {
       await markNotificationAsRead(currentUser.uid, notificationId);
       console.log('Notification marked as read:', notificationId);
->>>>>>> b46e9c861f0b7efe19f65b1b5e940c994d99d697
     } catch (error) {
       console.error('Error marking notification as read:', error);
     }
@@ -112,10 +88,6 @@ export default function TopBar({ username }) {
 
   const markAllAsRead = async () => {
     if (!currentUser?.uid) return;
-<<<<<<< HEAD
-    try {
-      await markAllNotificationsAsRead(currentUser.uid);
-=======
     
     try {
       const unreadNotifications = notifications.filter(n => n.status === 'unread');
@@ -123,77 +95,11 @@ export default function TopBar({ username }) {
         unreadNotifications.map(n => markNotificationAsRead(currentUser.uid, n.id))
       );
       console.log('All notifications marked as read');
->>>>>>> b46e9c861f0b7efe19f65b1b5e940c994d99d697
     } catch (error) {
       console.error('Error marking all notifications as read:', error);
     }
   };
 
-<<<<<<< HEAD
-  const deleteNotification = async (id) => {
-    if (!currentUser?.uid) return;
-    try {
-      await deleteDoc(doc(db, 'users', currentUser.uid, 'notifications', id));
-    } catch (error) {
-      console.error('Error deleting notification:', error);
-    }
-  };
-
-  const unreadCount = notifications.filter(n => n.status === 'unread').length;
-
-  // Helper function to get relative time
-  const getRelativeTime = (timestamp) => {
-    if (!timestamp) return 'Just now';
-    
-    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
-    const now = new Date();
-    const diffInSeconds = Math.floor((now - date) / 1000);
-    
-    if (diffInSeconds < 60) return 'Just now';
-    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} min ago`;
-    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`;
-    if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)} days ago`;
-    return date.toLocaleDateString();
-  };
-
-  const getNotificationIcon = (notification) => {
-    const title = notification.title?.toLowerCase() || '';
-    const body = notification.body?.toLowerCase() || '';
-    
-    if (title.includes('confirmed') || title.includes('approved')) {
-      return (
-        <div className={styles.iconWrapperSuccess}>
-          <Check size={20} strokeWidth={2.5} />
-        </div>
-      );
-    }
-    if (title.includes('cancelled') || title.includes('rejected')) {
-      return (
-        <div className={styles.iconWrapperError}>
-          <X size={20} strokeWidth={2.5} />
-        </div>
-      );
-    }
-    if (title.includes('pending') || title.includes('waiting')) {
-      return (
-        <div className={styles.iconWrapperPending}>
-          <Clock size={20} strokeWidth={2.5} />
-        </div>
-      );
-    }
-    if (title.includes('appointment') || body.includes('appointment')) {
-      return (
-        <div className={styles.iconWrapperInfo}>
-          <Calendar size={20} strokeWidth={2.5} />
-        </div>
-      );
-    }
-    return (
-      <div className={styles.iconWrapperInfo}>
-        <AlertCircle size={20} strokeWidth={2.5} />
-      </div>
-    );
-=======
   const handleClearAll = async () => {
     if (!currentUser?.uid) return;
     
@@ -258,7 +164,6 @@ export default function TopBar({ username }) {
 
     // Handle navigation based on notification type
     handleNotificationClick(notif, navigate, userData);
->>>>>>> b46e9c861f0b7efe19f65b1b5e940c994d99d697
   };
 
   return (
@@ -316,16 +221,6 @@ export default function TopBar({ username }) {
                     notifications.map(notif => (
                       <div
                         key={notif.id}
-<<<<<<< HEAD
-                        className={`${styles.notificationItem} ${notif.status === 'read' ? styles.read : styles.unread}`}        
-                        onClick={() => markAsRead(notif.id)}
-                      >
-                        {getNotificationIcon(notif)}
-                        <div className={styles.notifContent}>
-                          <div className={styles.notifTitle}>{notif.title}</div>
-                          <div className={styles.notifMessage}>{notif.body}</div>
-                          <div className={styles.notifTime}>{getRelativeTime(notif.createdAt)}</div>
-=======
                         className={`${styles.notificationItem} ${notif.status === 'unread' ? styles.unread : styles.read}`}
                         onClick={() => handleNotificationItemClick(notif)}
                         style={{ cursor: 'pointer' }}
@@ -367,7 +262,6 @@ export default function TopBar({ username }) {
                           <div className={styles.notifTime}>
                             {formatNotificationTime(notif.createdAt)}
                           </div>
->>>>>>> b46e9c861f0b7efe19f65b1b5e940c994d99d697
                         </div>
                         {notif.status === 'unread' && (
                           <div style={{
