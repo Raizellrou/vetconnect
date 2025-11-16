@@ -5,10 +5,11 @@ import { X, Calendar, Users, DollarSign, UserCog, BarChart3, Settings, MapPin, F
 import TopBar from '../../components/layout/TopBar';
 import ClinicSidebar from '../../components/layout/ClinicSidebar';
 import { getAllClinics, getActiveClinic, setActiveClinic } from '../../utils/clinicStorage';
+import { checkAndSendReminders, clearOldReminderFlags } from '../../utils/appointmentReminders';
 import styles from '../../styles/ClinicDashboard.module.css';
 
 export default function ClinicOwnerDashboard() {
-  const { userData, logout } = useAuth();
+  const { userData, logout, currentUser } = useAuth();
   const navigate = useNavigate();
   const [showTutorial, setShowTutorial] = useState(false);
   const [clinics, setClinics] = useState([]);
@@ -20,6 +21,16 @@ export default function ClinicOwnerDashboard() {
   useEffect(() => {
     loadClinics();
   }, []);
+
+  useEffect(() => {
+    if (!currentUser?.uid) return;
+    
+    // Clear old reminder flags
+    clearOldReminderFlags();
+    
+    // Check and send reminders
+    checkAndSendReminders(currentUser.uid, 'clinicOwner');
+  }, [currentUser]);
 
   const loadClinics = () => {
     const allClinics = getAllClinics();

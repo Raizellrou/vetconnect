@@ -7,19 +7,24 @@ export default function FilterResultsSummary({
   onClearFilters 
 }) {
   return (
-    <div style={{ 
-      marginBottom: '16px', 
-      padding: '12px 16px', 
-      background: '#eef2ff', 
-      borderRadius: '10px', 
-      display: 'flex', 
-      alignItems: 'center', 
-      justifyContent: 'space-between' 
+    <div style={{
+      marginBottom: '16px',
+      padding: '12px 16px',
+      background: '#eef2ff',
+      borderRadius: '10px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between'
     }}>
-      <span style={{ fontSize: '0.875rem', color: '#4338ca', fontWeight: 600 }}>
-        Showing {filteredCount} of {totalCount} appointments
+      <span style={{
+        fontSize: '0.875rem',
+        color: '#4338ca',
+        fontWeight: 600
+      }}>
+        Showing {filteredCount} of {totalCount} result{totalCount !== 1 ? 's' : ''}
       </span>
-      {showClearButton && (
+      
+      {showClearButton && onClearFilters && (
         <button
           onClick={onClearFilters}
           style={{
@@ -30,7 +35,14 @@ export default function FilterResultsSummary({
             fontSize: '0.75rem',
             fontWeight: 600,
             color: '#4338ca',
-            cursor: 'pointer'
+            cursor: 'pointer',
+            transition: 'all 0.2s'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = '#f0f4ff';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'white';
           }}
         >
           Clear Filters

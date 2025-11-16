@@ -84,7 +84,7 @@ export default function App() {
           }
         />
         <Route
-          path="/saved/:id"
+          path="/saved/:clinicId"
           element={
             <RoleProtectedRoute allowedRoles={["petOwner"]}>
               <ClinicDetails />

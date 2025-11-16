@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import TopBar from '../../components/layout/TopBar';
 import ClinicSidebar from '../../components/layout/ClinicSidebar';
 import { useAuth } from '../../contexts/AuthContext';
@@ -14,6 +15,7 @@ import { sendNotification } from '../../firebase/firestoreHelpers';
 
 export default function ClinicAppointments() {
   const { userData, currentUser } = useAuth();
+  const location = useLocation();
   const displayName = userData?.fullName || userData?.displayName || userData?.clinicName || userData?.email;
 
   // Two-step navigation state
@@ -169,8 +171,54 @@ export default function ClinicAppointments() {
     enrichAppointments();
   }, [appointments]);
 
+  // Handle navigation from notifications - MOVED BEFORE LOADING CHECK
+  useEffect(() => {
+    if (location.state?.selectedClinicId && clinics.length > 0) {
+      const clinic = clinics.find(c => c.id === location.state.selectedClinicId);
+      
+      if (clinic) {
+        handleSelectClinic(clinic);
+        
+        // Apply filter if needed
+        if (location.state.filterToday) {
+          setDateFilter('today');
+        }
+        
+        // Clear the state
+        window.history.replaceState({}, document.title);
+      }
+    }
+  }, [location.state, clinics]);
+
+  // Highlight specific appointment from notification - MOVED BEFORE LOADING CHECK
+  useEffect(() => {
+    if (location.state?.highlightAppointmentId && enrichedAppointments.length > 0) {
+      const appointmentId = location.state.highlightAppointmentId;
+      
+      // Find and scroll to the appointment
+      setTimeout(() => {
+        const element = document.getElementById(`appointment-${appointmentId}`);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          
+          // Add temporary highlight effect
+          element.style.boxShadow = '0 0 0 4px rgba(59, 130, 246, 0.5)';
+          element.style.transition = 'box-shadow 0.3s ease';
+          
+          setTimeout(() => {
+            element.style.boxShadow = '';
+          }, 2000);
+        }
+        
+        // Clear the state
+        window.history.replaceState({}, document.title);
+      }, 500);
+    }
+  }, [location.state, enrichedAppointments]);
+
   const handleUpdateStatus = async (aptId, newStatus, appointment) => {
     try {
+      // Update appointment status
       await updateAppointment(aptId, { status: newStatus });
       console.log(`Appointment ${aptId} updated to ${newStatus}`);
       
@@ -179,28 +227,40 @@ export default function ClinicAppointments() {
         ? '✅ Appointment Confirmed' 
         : '❌ Appointment Rejected';
       
+      const clinicName = selectedClinic.clinicName || selectedClinic.name;
+      const appointmentDate = formatShortDate(appointment.dateTime);
+      const appointmentTime = formatTime(appointment.dateTime);
+      
       const notificationBody = newStatus === 'confirmed'
-        ? `Your appointment at ${selectedClinic.clinicName || selectedClinic.name} has been confirmed!`
-        : `Your appointment at ${selectedClinic.clinicName || selectedClinic.name} has been rejected. Please contact the clinic for more information.`;
+        ? `Your appointment for ${appointment.petName} at ${clinicName} on ${appointmentDate} at ${appointmentTime} has been confirmed! ✅`
+        : `Your appointment for ${appointment.petName} at ${clinicName} on ${appointmentDate} at ${appointmentTime} has been rejected. Please contact the clinic for more information. ❌`;
 
-      await sendNotification({
-        toUserId: appointment.ownerId,
-        title: notificationTitle,
-        body: notificationBody,
-        appointmentId: aptId,
-        data: {
-          clinicId: selectedClinic.id,
-          clinicName: selectedClinic.clinicName || selectedClinic.name,
-          status: newStatus,
-          petName: appointment.petName
-        }
-      });
-
-      // Show success message (optional)
-      console.log('Notification sent to pet owner');
+      try {
+        await sendNotification({
+          toUserId: appointment.ownerId,
+          title: notificationTitle,
+          body: notificationBody,
+          appointmentId: aptId,
+          data: {
+            type: 'appointment_status',
+            action: newStatus,
+            clinicId: selectedClinic.id,
+            clinicName: clinicName,
+            petId: appointment.petId,
+            petName: appointment.petName,
+            status: newStatus,
+            appointmentDate: appointmentDate,
+            appointmentTime: appointmentTime
+          }
+        });
+        console.log('✅ Notification sent to pet owner successfully');
+      } catch (notifError) {
+        console.error('❌ Failed to send notification:', notifError);
+        // Don't fail the whole operation if notification fails
+      }
     } catch (err) {
       console.error('Failed to update appointment status:', err);
-      alert('Failed to update appointment status. Please try again.');
+      alert(`Failed to ${newStatus === 'confirmed' ? 'approve' : 'reject'} appointment. Please try again.`);
     }
   };
 
@@ -361,7 +421,7 @@ export default function ClinicAppointments() {
     };
   };
 
-  // Loading state
+  // Loading state - NOW AFTER ALL HOOKS
   if (loading) {
     return (
       <div className={styles.dashboard}>
@@ -780,17 +840,22 @@ export default function ClinicAppointments() {
                     {/* Appointments for this date */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                       {dayAppointments.map((apt) => (
-                        <div key={apt.id} style={{
-                          background: 'white',
-                          padding: '24px',
-                          borderRadius: '12px',
-                          border: '2px solid #e2e8f0',
-                          boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'flex-start',
-                          gap: '20px'
-                        }}>
+                        <div 
+                          key={apt.id} 
+                          id={`appointment-${apt.id}`}
+                          style={{
+                            background: 'white',
+                            padding: '24px',
+                            borderRadius: '12px',
+                            border: '2px solid #e2e8f0',
+                            boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'flex-start',
+                            gap: '20px',
+                            transition: 'box-shadow 0.3s ease'
+                          }}
+                        >
                           <div style={{ display: 'flex', gap: '16px', flex: 1 }}>
                             <div style={{
                               width: '56px',
