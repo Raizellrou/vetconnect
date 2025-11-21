@@ -1,9 +1,10 @@
 import React from 'react';
-import { XCircle, Star, Eye } from 'lucide-react';
+import { XCircle, Star, Eye, Trash2 } from 'lucide-react';
 import styles from '../styles/Dashboard.module.css';
 
-export default function AppointmentCard({ id, clinicName, petName, date, time, status, onClick, onCancelClick, onRateClick, onViewClick, hasReview }) {
+export default function AppointmentCard({ id, clinicName, petName, date, time, status, onClick, onCancelClick, onRateClick, onViewClick, onDeleteClick, hasReview }) {
   const canCancel = ['pending', 'confirmed'].includes(status);
+  const canDelete = status === 'rejected' && onDeleteClick;
   const canRate = status === 'completed' && !hasReview && onRateClick; // Only if not reviewed AND onRateClick exists
   
   return (
@@ -48,6 +49,16 @@ export default function AppointmentCard({ id, clinicName, petName, date, time, s
             onClick={onCancelClick}
           >
             <XCircle size={18} />
+          </button>
+        )}
+        
+        {canDelete && (
+          <button 
+            className={`${styles.iconBtn} ${styles.iconBtnDelete}`} 
+            title="Delete Appointment" 
+            onClick={onDeleteClick}
+          >
+            <Trash2 size={18} />
           </button>
         )}
       </div>

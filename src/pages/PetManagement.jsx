@@ -48,7 +48,12 @@ export default function PetManagement({ userData, onViewRecords }) {
 
       <hr className="my-4" />
 
-      <PetList pets={pets} onEdit={setEditingPet} onViewRecords={onViewRecords} />
+      <PetList 
+        pets={pets} 
+        onEdit={setEditingPet} 
+        onViewRecords={onViewRecords}
+        userId={userData?.uid}
+      />
     </div>
   );
 }

@@ -45,14 +45,16 @@
 .statusDot.ready { background-color: var(--vc-status-ready); }
 .statusDot.rejected { background-color: var(--vc-status-rejected); }
 .statusDot.pending { background-color: var(--vc-status-pending); }
-.statusDot.finished { background-color: var(--vc-status-finished); }
+.statusDot.finished { background-color: #8b5cf6; }
+.statusDot.completed { background-color: #8b5cf6; }
 .statusDot.confirmed { background-color: var(--vc-status-ready); }
 
 /* Card border colors */
 .appointmentCard.ready { border-left: 4px solid var(--vc-status-ready); }
 .appointmentCard.rejected { border-left: 4px solid var(--vc-status-rejected); }
 .appointmentCard.pending { border-left: 4px solid var(--vc-status-pending); }
-.appointmentCard.finished { border-left: 4px solid var(--vc-status-finished); }
+.appointmentCard.finished { border-left: 4px solid #8b5cf6; }
+.appointmentCard.completed { border-left: 4px solid #8b5cf6; }
 .appointmentCard.confirmed { border-left: 4px solid var(--vc-status-ready); }
 
 /* Rating Form Styles */
@@ -257,7 +259,8 @@
 .appointmentCard.ready { border-left: 6px solid #22c55e; }
 .appointmentCard.rejected { border-left: 6px solid #ef4444; }
 .appointmentCard.pending { border-left: 6px solid #f97316; }
-.appointmentCard.finished { border-left: 6px solid var(--vc-primary); }
+.appointmentCard.finished { border-left: 6px solid #8b5cf6; }
+.appointmentCard.completed { border-left: 6px solid #8b5cf6; }
 
 /* Welcome Banner */
 .welcomeBanner {

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import TopBar from '../../components/layout/TopBar';
 import ClinicSidebar from '../../components/layout/ClinicSidebar';
 import { useAuth } from '../../contexts/AuthContext';
-import { Users, Search, Phone, Mail, Calendar, Dog, FileText, Eye, Loader } from 'lucide-react';
+import { Users, Search, Phone, Mail, Calendar, Dog, FileText, Eye, Loader, MapPin, User } from 'lucide-react';
 import styles from '../../styles/ClinicDashboard.module.css';
 import { collection, getDocs, query as firestoreQuery, where, doc, getDoc } from 'firebase/firestore';
 import { db } from '../../firebase/firebase';
@@ -222,117 +222,78 @@ export default function ClinicClients() {
         <TopBar username={displayName} />
         
         <main className={styles.mainContent}>
-          <header style={{ marginBottom: '32px' }}>
-            <h1 style={{ fontSize: '2rem', fontWeight: 700, color: '#1e293b', margin: '0 0 8px 0' }}>
+          <header style={{ marginBottom: '20px' }}>
+            <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1e293b', margin: '0 0 6px 0' }}>
               Clients & Pet Records
             </h1>
-            <p style={{ color: '#64748b', margin: 0 }}>
+            <p style={{ fontSize: '0.875rem', color: '#64748b', margin: 0 }}>
               Manage client information and pet medical records
             </p>
           </header>
 
           {/* Search Bar */}
-          <div style={{ 
-            background: 'white', 
-            borderRadius: '12px', 
-            padding: '16px 20px',
-            marginBottom: '24px',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px'
-          }}>
-            <Search size={20} color="#64748b" />
+          <div className={styles.searchBar}>
+            <Search size={18} color="#64748b" strokeWidth={2.5} />
             <input
               type="text"
               placeholder="Search by client name, email, or pet name..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              style={{
-                flex: 1,
-                border: 'none',
-                outline: 'none',
-                fontSize: '1rem',
-                color: '#1e293b'
-              }}
+              className={styles.searchInlineInput}
             />
           </div>
 
           {/* Clients Grid */}
           <div style={{ 
             display: 'grid', 
-            gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))',
-            gap: '24px'
+            gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
+            gap: '16px'
           }}>
             {filteredClients.map((client) => (
-              <div 
-                key={client.id}
-                style={{
-                  background: 'white',
-                  borderRadius: '16px',
-                  padding: '24px',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-                  border: '1px solid #f1f5f9',
-                  transition: 'all 0.2s',
-                  cursor: 'pointer'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.08)';
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.04)';
-                  e.currentTarget.style.transform = 'translateY(0)';
-                }}
-                onClick={() => setSelectedClient(client)}
-              >
-                {/* Client Header */}
-                <div style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '12px',
-                  marginBottom: '20px',
-                  paddingBottom: '16px',
-                  borderBottom: '2px solid #f1f5f9'
-                }}>
+                <div
+                  key={client.id}
+                  className={`${styles.vcCard} ${styles.clientCard}`}
+                  onClick={() => setSelectedClient(client)}
+                >
+                  {/* Client Header */}
+                  <div className={styles.clientHeader}>
                   <div style={{
-                    width: '56px',
-                    height: '56px',
+                    width: '44px',
+                    height: '44px',
                     borderRadius: '50%',
                     background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     color: 'white',
-                    fontSize: '1.5rem',
+                    fontSize: '1.125rem',
                     fontWeight: 700
                   }}>
                     {client.ownerName.split(' ').map(n => n[0]).join('')}
                   </div>
                   <div style={{ flex: 1 }}>
                     <h3 style={{ 
-                      margin: '0 0 4px 0', 
-                      fontSize: '1.125rem', 
+                      margin: '0 0 3px 0', 
+                      fontSize: '1rem', 
                       fontWeight: 600,
                       color: '#1e293b'
                     }}>
                       {client.ownerName}
                     </h3>
-                    <p style={{ margin: 0, fontSize: '0.875rem', color: '#64748b' }}>
+                    <p style={{ margin: 0, fontSize: '0.75rem', color: '#64748b' }}>
                       Member since {client.joinDate ? new Date(client.joinDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'Recently'}
                     </p>
                   </div>
-                </div>
+                  </div>
 
                 {/* Contact Info */}
-                <div style={{ marginBottom: '16px' }}>
+                <div className={styles.clientContact}>
                   <div style={{ 
                     display: 'flex', 
                     alignItems: 'center', 
                     gap: '8px',
                     marginBottom: '8px',
-                    fontSize: '0.875rem',
-                    color: '#64748b'
+                    fontSize: '0.875rem'
                   }}>
                     <Mail size={16} />
                     <span>{client.email}</span>
@@ -341,8 +302,7 @@ export default function ClinicClients() {
                     display: 'flex', 
                     alignItems: 'center', 
                     gap: '8px',
-                    fontSize: '0.875rem',
-                    color: '#64748b'
+                    fontSize: '0.875rem'
                   }}>
                     <Phone size={16} />
                     <span>{client.phone}</span>
@@ -350,12 +310,7 @@ export default function ClinicClients() {
                 </div>
 
                 {/* Pets Section */}
-                <div style={{
-                  background: '#f8fafc',
-                  borderRadius: '12px',
-                  padding: '16px',
-                  marginBottom: '16px'
-                }}>
+                <div className={styles.petsSection}>
                   <div style={{ 
                     display: 'flex', 
                     alignItems: 'center', 
@@ -373,7 +328,7 @@ export default function ClinicClients() {
                       style={{
                         padding: '10px 12px',
                         background: 'white',
-                        borderRadius: '8px',
+                        borderRadius: 'var(--vc-card-radius)',
                         marginBottom: index < client.pets.length - 1 ? '8px' : 0
                       }}
                     >
@@ -401,8 +356,8 @@ export default function ClinicClients() {
                         </div>
                         <div style={{
                           padding: '4px 10px',
-                          background: '#eff6ff',
-                          borderRadius: '6px',
+                            background: '#eff6ff',
+                            borderRadius: 'var(--vc-btn-radius)',
                           fontSize: '0.75rem',
                           fontWeight: 600,
                           color: '#3b82f6'
@@ -423,7 +378,7 @@ export default function ClinicClients() {
                   <div style={{
                     background: '#f0fdf4',
                     padding: '12px',
-                    borderRadius: '10px',
+                    borderRadius: 'var(--vc-card-radius)',
                     textAlign: 'center'
                   }}>
                     <p style={{ 
@@ -441,7 +396,7 @@ export default function ClinicClients() {
                   <div style={{
                     background: '#fef3c7',
                     padding: '12px',
-                    borderRadius: '10px',
+                    borderRadius: 'var(--vc-card-radius)',
                     textAlign: 'center'
                   }}>
                     <p style={{ 
@@ -459,42 +414,19 @@ export default function ClinicClients() {
                 </div>
 
                 {/* View Details Button */}
-                <button style={{
-                  width: '100%',
-                  marginTop: '16px',
-                  padding: '12px',
-                  background: '#3b82f6',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '10px',
-                  fontWeight: 600,
-                  fontSize: '0.875rem',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '8px',
-                  transition: 'all 0.2s'
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.background = '#2563eb'}
-                onMouseLeave={(e) => e.currentTarget.style.background = '#3b82f6'}
-                >
-                  <Eye size={16} />
-                  View Full Details
-                </button>
+                <div className={styles.viewDetailsWrap}>
+                  <button className={`${styles.vcPrimarySmall} ${styles.vcSmallBtn}`} onClick={() => setSelectedClient(client)}>
+                    <Eye size={16} />
+                    View Full Details
+                  </button>
+                </div>
               </div>
             ))}
           </div>
 
           {/* Empty State */}
           {filteredClients.length === 0 && (
-            <div style={{
-              background: 'white',
-              borderRadius: '16px',
-              padding: '60px',
-              textAlign: 'center',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
-            }}>
+            <div className={styles.vcCardLarge} style={{ textAlign: 'center', padding: '60px' }}>
               <Users size={48} color="#cbd5e1" style={{ marginBottom: '16px' }} />
               <h3 style={{ margin: '0 0 8px 0', color: '#64748b' }}>
                 {clients.length === 0 ? 'No clients yet' : 'No clients found'}
@@ -507,94 +439,185 @@ export default function ClinicClients() {
             </div>
           )}
 
-          {/* Client Details Modal (Simple) */}
+          {/* Client Details Modal */}
           {selectedClient && (
-            <div 
-              style={{
-                position: 'fixed',
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                background: 'rgba(0,0,0,0.5)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                zIndex: 10000,
-                padding: '20px'
-              }}
-              onClick={() => setSelectedClient(null)}
-            >
-              <div 
-                style={{
-                  background: 'white',
-                  borderRadius: '16px',
-                  padding: '32px',
-                  maxWidth: '600px',
-                  width: '100%',
-                  maxHeight: '90vh',
-                  overflow: 'auto'
-                }}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <h2 style={{ margin: '0 0 24px 0', fontSize: '1.5rem', fontWeight: 700 }}>
-                  {selectedClient.ownerName}
-                </h2>
-                
-                <div style={{ marginBottom: '24px' }}>
-                  <h3 style={{ fontSize: '0.875rem', fontWeight: 600, color: '#64748b', marginBottom: '12px' }}>
-                    CONTACT INFORMATION
-                  </h3>
-                  <p style={{ margin: '0 0 8px 0' }}><strong>Email:</strong> {selectedClient.email}</p>
-                  <p style={{ margin: '0 0 8px 0' }}><strong>Phone:</strong> {selectedClient.phone}</p>
-                  <p style={{ margin: 0 }}><strong>Address:</strong> {selectedClient.address}</p>
-                </div>
-
-                <div style={{ marginBottom: '24px' }}>
-                  <h3 style={{ fontSize: '0.875rem', fontWeight: 600, color: '#64748b', marginBottom: '12px' }}>
-                    PETS
-                  </h3>
-                  {selectedClient.pets.map((pet, index) => (
-                    <div key={index} style={{
-                      padding: '16px',
-                      background: '#f8fafc',
-                      borderRadius: '12px',
-                      marginBottom: '12px'
-                    }}>
-                      <h4 style={{ margin: '0 0 8px 0', fontSize: '1rem', fontWeight: 600 }}>
-                        {pet.name}
-                      </h4>
-                      <p style={{ margin: '0 0 4px 0', fontSize: '0.875rem', color: '#64748b' }}>
-                        <strong>Species:</strong> {pet.species}
-                      </p>
-                      <p style={{ margin: '0 0 4px 0', fontSize: '0.875rem', color: '#64748b' }}>
-                        <strong>Breed:</strong> {pet.breed}
-                      </p>
-                      <p style={{ margin: '0 0 4px 0', fontSize: '0.875rem', color: '#64748b' }}>
-                        <strong>Age:</strong> {pet.age}
-                      </p>
-                      <p style={{ margin: 0, fontSize: '0.875rem', color: '#64748b' }}>
-                        <strong>Last Visit:</strong> {pet.lastVisit ? new Date(pet.lastVisit).toLocaleDateString() : 'No visits yet'}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-
-                <button 
-                  onClick={() => setSelectedClient(null)}
-                  style={{
-                    width: '100%',
-                    padding: '12px',
-                    background: '#64748b',
+            <div className={styles.modalOverlay} onClick={() => setSelectedClient(null)}>
+              <div className={`${styles.modalContent} ${styles.clientModal}`} onClick={(e) => e.stopPropagation()}>
+                {/* Client Header */}
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  marginBottom: '16px',
+                  paddingBottom: '12px',
+                  borderBottom: '1px solid var(--vc-border)'
+                }}>
+                  <div style={{
+                    width: '48px',
+                    height: '48px',
+                    borderRadius: '50%',
+                    background: 'linear-gradient(135deg, var(--vc-primary) 0%, var(--vc-primary-hover) 100%)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                     color: 'white',
-                    border: 'none',
-                    borderRadius: '10px',
+                    fontSize: '1.25rem',
+                    fontWeight: 700
+                  }}>
+                    <User size={24} />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <h2 style={{ margin: '0 0 2px 0', fontSize: '1.25rem', fontWeight: 700, color: 'var(--vc-text-dark)' }}>
+                      {selectedClient.ownerName}
+                    </h2>
+                    <p style={{ margin: 0, fontSize: '0.8125rem', color: 'var(--vc-text-muted)' }}>
+                      Client since {selectedClient.joinDate ? new Date(selectedClient.joinDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'Recently'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Contact & Stats Row */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+                  {/* Contact Information */}
+                  <div>
+                    <h3 style={{
+                      fontSize: '0.875rem',
+                      fontWeight: 600,
+                      color: 'var(--vc-text-dark)',
+                      marginBottom: '8px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}>
+                      <Mail size={16} color="var(--vc-primary)" />
+                      Contact
+                    </h3>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <div style={{ fontSize: '0.8125rem', color: 'var(--vc-text-muted)' }}>
+                        <strong style={{ color: 'var(--vc-text-dark)' }}>Email:</strong> {selectedClient.email}
+                      </div>
+                      <div style={{ fontSize: '0.8125rem', color: 'var(--vc-text-muted)' }}>
+                        <strong style={{ color: 'var(--vc-text-dark)' }}>Phone:</strong> {selectedClient.phone}
+                      </div>
+                      <div style={{ fontSize: '0.8125rem', color: 'var(--vc-text-muted)' }}>
+                        <strong style={{ color: 'var(--vc-text-dark)' }}>Address:</strong> {selectedClient.address}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Client Stats */}
+                  <div>
+                    <h3 style={{
+                      fontSize: '0.875rem',
+                      fontWeight: 600,
+                      color: 'var(--vc-text-dark)',
+                      marginBottom: '8px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}>
+                      <Calendar size={16} color="var(--vc-primary)" />
+                      Summary
+                    </h3>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <div style={{
+                        background: 'var(--vc-bg-card)',
+                        padding: '8px 12px',
+                        borderRadius: 'var(--vc-card-radius)',
+                        border: '1px solid var(--vc-border)',
+                        textAlign: 'center'
+                      }}>
+                        <p style={{ margin: '0 0 2px 0', fontSize: '1.25rem', fontWeight: 700, color: 'var(--vc-primary)' }}>
+                          {selectedClient.totalVisits}
+                        </p>
+                        <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--vc-text-muted)' }}>
+                          Total Visits
+                        </p>
+                      </div>
+                      <div style={{
+                        background: 'var(--vc-bg-card)',
+                        padding: '8px 12px',
+                        borderRadius: 'var(--vc-card-radius)',
+                        border: '1px solid var(--vc-border)',
+                        textAlign: 'center'
+                      }}>
+                        <p style={{ margin: '0 0 2px 0', fontSize: '0.875rem', fontWeight: 600, color: 'var(--vc-text-dark)' }}>
+                          {selectedClient.lastVisit ? new Date(selectedClient.lastVisit).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'None'}
+                        </p>
+                        <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--vc-text-muted)' }}>
+                          Last Visit
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Pets Section */}
+                <div>
+                  <h3 style={{
+                    fontSize: '0.875rem',
                     fontWeight: 600,
-                    cursor: 'pointer'
-                  }}
-                >
-                  Close
-                </button>
+                    color: 'var(--vc-text-dark)',
+                    marginBottom: '8px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px'
+                  }}>
+                    <Dog size={16} color="var(--vc-primary)" />
+                    Pets ({selectedClient.pets.length})
+                  </h3>
+                  <div style={{ display: 'grid', gap: '8px' }}>
+                    {selectedClient.pets.map((pet, index) => (
+                      <div key={index} style={{
+                        background: 'var(--vc-bg-card)',
+                        padding: '12px',
+                        borderRadius: 'var(--vc-card-radius)',
+                        border: '1px solid var(--vc-border)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between'
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <div style={{
+                            width: '32px',
+                            height: '32px',
+                            borderRadius: '50%',
+                            background: 'linear-gradient(135deg, var(--vc-primary) 0%, var(--vc-primary-hover) 100%)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: 'white'
+                          }}>
+                            <Dog size={16} />
+                          </div>
+                          <div>
+                            <p style={{ margin: '0 0 2px 0', fontSize: '0.875rem', fontWeight: 600, color: 'var(--vc-text-dark)' }}>
+                              {pet.name}
+                            </p>
+                            <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--vc-text-muted)' }}>
+                              {pet.species} • {pet.breed} • {pet.age}
+                            </p>
+                          </div>
+                        </div>
+                        <div style={{
+                          fontSize: '0.75rem',
+                          color: 'var(--vc-text-muted)',
+                          textAlign: 'right'
+                        }}>
+                          <p style={{ margin: 0, fontWeight: 500 }}>
+                            Last: {pet.lastVisit ? new Date(pet.lastVisit).toLocaleDateString() : 'None'}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'center', marginTop: '16px' }}>
+                  <button onClick={() => setSelectedClient(null)} className={`${styles.vcPrimarySmall} ${styles.vcSmallBtn}`}>
+                    Close
+                  </button>
+                </div>
               </div>
             </div>
           )}

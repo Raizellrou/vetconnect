@@ -15,7 +15,8 @@
   --vc-status-ready: #22c55e;
   --vc-status-rejected: #ef4444;
   --vc-status-pending: #f97316;
-  --vc-status-finished: #818cf8;
+  --vc-status-finished: #8b5cf6;
+  --vc-status-completed: #8b5cf6;
 
   /* Typography */
   --vc-font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
@@ -26,6 +27,15 @@
   --vc-spacing-md: 16px;
   --vc-spacing-lg: 24px;
   --vc-spacing-xl: 32px;
+
+  /* Layout / Main spacing standards (Pet Owner home reference) */
+  --vc-main-margin: 240px;
+  --vc-horizontal-padding: 32px;
+  --vc-main-padding-top: 88px;
+  --vc-main-max-width: 1400px;
+  --vc-card-radius: 16px;
+  --vc-btn-radius: 8px;
+  --vc-card-shadow: 0 2px 8px rgba(0,0,0,0.06);
 
   /* Layout */
   --vc-sidebar-width: 200px;

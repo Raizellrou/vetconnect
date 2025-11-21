@@ -251,15 +251,9 @@ export default function CreateClinic() {
         <TopBar username={displayName} />
         
         <main className={styles.mainContent}>
-          <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+          <div className={styles.formContainer}>
             {/* Header */}
-            <div style={{ 
-              background: 'white', 
-              borderRadius: '20px', 
-              padding: '32px', 
-              marginBottom: '24px',
-              boxShadow: '0 4px 20px rgba(0,0,0,0.08)'
-            }}>
+            <div className={styles.vcCardLarge}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '8px' }}>
                 <div style={{
                   width: '56px',
@@ -273,10 +267,10 @@ export default function CreateClinic() {
                   <Building2 size={28} color="white" />
                 </div>
                 <div>
-                  <h1 style={{ fontSize: '2rem', fontWeight: 700, color: '#1e293b', margin: 0 }}>
+                  <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1e293b', margin: '0 0 6px 0' }}>
                     Create New Clinic
                   </h1>
-                  <p style={{ color: '#64748b', margin: 0 }}>
+                  <p style={{ fontSize: '0.875rem', color: '#64748b', margin: 0 }}>
                     Step {currentStep} of 4: {steps[currentStep - 1].title}
                   </p>
                 </div>
@@ -321,13 +315,7 @@ export default function CreateClinic() {
             )}
 
             {/* Form Steps */}
-            <div style={{ 
-              background: 'white', 
-              borderRadius: '20px', 
-              padding: '40px',
-              boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-              marginBottom: '24px'
-            }}>
+            <div className={styles.vcCardLarge}>
               {/* Step 1: Basic Information */}
               {currentStep === 1 && (
                 <div>

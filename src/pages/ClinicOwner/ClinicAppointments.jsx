@@ -483,10 +483,10 @@ export default function ClinicAppointments() {
             <>
               {/* Clinic Selection View */}
               <header style={{ marginBottom: '32px' }}>
-                <h1 style={{ fontSize: '2rem', fontWeight: 700, color: '#1e293b', margin: '0 0 8px 0' }}>
+                <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1e293b', margin: '0 0 6px 0' }}>
                   Select a Clinic
                 </h1>
-                <p style={{ color: '#64748b', margin: 0 }}>
+                <p style={{ fontSize: '0.875rem', color: '#64748b', margin: 0 }}>
                   Choose a clinic to view and manage its appointments
                 </p>
               </header>
@@ -648,10 +648,10 @@ export default function ClinicAppointments() {
                     <Building2 size={24} color="white" />
                   </div>
                   <div>
-                    <h1 style={{ fontSize: '1.75rem', fontWeight: 700, color: '#1e293b', margin: 0 }}>
+                    <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1e293b', margin: '0 0 6px 0' }}>
                       {selectedClinic.clinicName || selectedClinic.name}
                     </h1>
-                    <p style={{ color: '#64748b', margin: 0, fontSize: '0.875rem' }}>
+                    <p style={{ fontSize: '0.875rem', color: '#64748b', margin: 0 }}>
                       Appointment Management
                     </p>
                   </div>

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Upload, X } from 'lucide-react';
 import TopBar from '../../components/layout/TopBar';
 import ClinicSidebar from '../../components/layout/ClinicSidebar';
+import layoutStyles from '../../styles/ClinicDashboard.module.css';
 import { useAuth } from '../../contexts/AuthContext';
 import styles from '../../styles/EditProfile.module.css';
 
@@ -104,12 +105,12 @@ export default function ClinicEditProfile() {
   };
 
   return (
-    <div className={styles.pageRoot}>
+    <div className={layoutStyles.dashboard}>
       <ClinicSidebar />
-      <div className={styles.mainWrapper}>
+      <div className={layoutStyles.mainWrapper}>
         <TopBar username={displayName} />
 
-        <main className={styles.content}>
+        <main className={layoutStyles.mainContent}>
           <header className={styles.headerRow}>
             <div className={styles.breadcrumb}>
               <span onClick={() => navigate('/clinic/profile')} className={styles.breadcrumbLink}>Profile</span>
@@ -119,7 +120,7 @@ export default function ClinicEditProfile() {
             <h2 className={styles.title}>Edit Profile</h2>
           </header>
 
-          <form onSubmit={handleSubmit} className={styles.profileCard}>
+          <form onSubmit={handleSubmit} className={`${styles.profileCard} ${layoutStyles.vcCard}`}>
             <div className={styles.photoSection}>
               <div className={styles.photoWrapper}>
                 <div className={styles.avatarLarge}>

@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { addPet } from "../lib/firebaseMutations";
+import { addPet, updatePet } from "../lib/firebaseMutations";
 import { useAuth } from "../contexts/AuthContext";
 import { X, PawPrint, User, Calendar, Weight, ImageIcon, FileText } from 'lucide-react';
 
-export default function AddPetModal({ open, onClose, initialData = null }) {
+export default function AddPetModal({ open, onClose, initialData = null, petId = null }) {
+  const isEditMode = Boolean(petId && initialData);
   const { currentUser } = useAuth();
   const [form, setForm] = useState({
     name: "",
@@ -72,7 +73,11 @@ export default function AddPetModal({ open, onClose, initialData = null }) {
     };
 
     try {
-      await addPet(currentUser.uid, payload);
+      if (isEditMode) {
+        await updatePet(currentUser.uid, petId, payload);
+      } else {
+        await addPet(currentUser.uid, payload);
+      }
       
       // Reset form
       setForm({
@@ -91,8 +96,8 @@ export default function AddPetModal({ open, onClose, initialData = null }) {
         onClose && onClose();
       }, 300);
     } catch (err) {
-      console.error("Failed to add pet:", err);
-      setError(err.message || "Failed to add pet. Please try again.");
+      console.error(`Failed to ${isEditMode ? 'update' : 'add'} pet:`, err);
+      setError(err.message || `Failed to ${isEditMode ? 'update' : 'add'} pet. Please try again.`);
     } finally {
       setIsSubmitting(false);
     }
@@ -122,11 +127,11 @@ export default function AddPetModal({ open, onClose, initialData = null }) {
     >
       <div style={{
         backgroundColor: "white",
-        borderRadius: "24px",
-        boxShadow: "0 25px 70px rgba(0, 0, 0, 0.35)",
+        borderRadius: "16px",
+        boxShadow: "0 20px 50px rgba(0, 0, 0, 0.3)",
         width: "100%",
-        maxWidth: "720px",
-        maxHeight: "90vh",
+        maxWidth: "580px",
+        maxHeight: "85vh",
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
@@ -135,43 +140,43 @@ export default function AddPetModal({ open, onClose, initialData = null }) {
         {/* Header */}
         <div style={{
           background: "linear-gradient(135deg, #818cf8 0%, #a78bfa 100%)",
-          padding: "32px 40px",
+          padding: "20px 24px",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          boxShadow: "0 8px 20px rgba(129, 140, 248, 0.3)"
+          boxShadow: "0 4px 12px rgba(129, 140, 248, 0.25)"
         }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
             <div style={{
-              width: "56px",
-              height: "56px",
+              width: "44px",
+              height: "44px",
               background: "rgba(255, 255, 255, 0.25)",
               backdropFilter: "blur(10px)",
-              borderRadius: "16px",
+              borderRadius: "12px",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               border: "2px solid rgba(255, 255, 255, 0.3)"
             }}>
-              <PawPrint size={28} color="white" strokeWidth={2.5} />
+              <PawPrint size={22} color="white" strokeWidth={2.5} />
             </div>
             <div>
               <h3 style={{
-                fontSize: "1.75rem",
+                fontSize: "1.375rem",
                 fontWeight: "700",
                 color: "white",
                 margin: 0,
                 textShadow: "0 2px 4px rgba(0, 0, 0, 0.1)"
               }}>
-                Add Pet
+                {isEditMode ? 'Edit Pet' : 'Add Pet'}
               </h3>
               <p style={{
-                fontSize: "0.875rem",
-                color: "rgba(255, 255, 255, 0.95)",
-                margin: "4px 0 0 0",
+                fontSize: "0.8125rem",
+                color: "rgba(255, 255, 255, 0.9)",
+                margin: "2px 0 0 0",
                 fontWeight: 500
               }}>
-                Add your furry friend's information
+                {isEditMode ? 'Update information' : 'Add your pet\'s information'}
               </p>
             </div>
           </div>
@@ -179,12 +184,12 @@ export default function AddPetModal({ open, onClose, initialData = null }) {
             onClick={() => !isSubmitting && onClose && onClose()}
             disabled={isSubmitting}
             style={{
-              width: "40px",
-              height: "40px",
+              width: "36px",
+              height: "36px",
               background: "rgba(255, 255, 255, 0.2)",
               backdropFilter: "blur(10px)",
               border: "2px solid rgba(255, 255, 255, 0.3)",
-              borderRadius: "10px",
+              borderRadius: "8px",
               cursor: isSubmitting ? "not-allowed" : "pointer",
               transition: "all 0.2s ease",
               display: "flex",
@@ -201,28 +206,28 @@ export default function AddPetModal({ open, onClose, initialData = null }) {
               e.currentTarget.style.background = "rgba(255, 255, 255, 0.2)";
             }}
           >
-            <X size={20} color="white" strokeWidth={2.5} />
+            <X size={18} color="white" strokeWidth={2.5} />
           </button>
         </div>
 
         {/* Error Message */}
         {error && (
           <div style={{
-            margin: '24px 40px 0',
-            padding: '16px 20px',
+            margin: '16px 24px 0',
+            padding: '12px 16px',
             background: 'linear-gradient(135deg, #fee2e2 0%, #fecaca 100%)',
             border: '2px solid #f87171',
-            borderRadius: '12px',
+            borderRadius: '10px',
             color: '#991b1b',
-            fontSize: '0.875rem',
+            fontSize: '0.8125rem',
             fontWeight: 600,
             display: 'flex',
             alignItems: 'center',
-            gap: '12px'
+            gap: '10px'
           }}>
             <div style={{
-              width: '24px',
-              height: '24px',
+              width: '20px',
+              height: '20px',
               borderRadius: '50%',
               background: '#dc2626',
               display: 'flex',
@@ -230,7 +235,7 @@ export default function AddPetModal({ open, onClose, initialData = null }) {
               justifyContent: 'center',
               flexShrink: 0
             }}>
-              <X size={14} color="white" strokeWidth={3} />
+              <X size={12} color="white" strokeWidth={3} />
             </div>
             {error}
           </div>
@@ -238,35 +243,35 @@ export default function AddPetModal({ open, onClose, initialData = null }) {
 
         {/* Form Content */}
         <form onSubmit={handleSubmit} style={{
-          padding: "32px 40px",
+          padding: "20px 24px",
           overflowY: "auto",
           flex: 1
         }}>
           {/* Basic Information Section */}
-          <div style={{ marginBottom: "28px" }}>
+          <div style={{ marginBottom: "20px" }}>
             <div style={{ 
               display: 'flex', 
               alignItems: 'center', 
-              gap: '10px', 
-              marginBottom: '16px',
-              paddingBottom: '12px',
+              gap: '8px', 
+              marginBottom: '12px',
+              paddingBottom: '8px',
               borderBottom: '2px solid #f3f4f6'
             }}>
-              <PawPrint size={20} color="#818cf8" strokeWidth={2.5} />
-              <h4 style={{ margin: 0, fontSize: '1.125rem', fontWeight: 700, color: '#374151' }}>
+              <PawPrint size={18} color="#818cf8" strokeWidth={2.5} />
+              <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: '#374151' }}>
                 Basic Information
               </h4>
             </div>
 
             {/* Name and Species Row */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "16px" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "12px" }}>
               <div>
                 <label style={{
                   display: "block",
-                  fontSize: "0.875rem",
+                  fontSize: "0.8125rem",
                   fontWeight: "600",
                   color: "#4b5563",
-                  marginBottom: "8px"
+                  marginBottom: "6px"
                 }}>
                   Pet Name <span style={{ color: "#ef4444" }}>*</span>
                 </label>
@@ -278,10 +283,10 @@ export default function AddPetModal({ open, onClose, initialData = null }) {
                   onChange={handleChange}
                   style={{
                     width: "100%",
-                    padding: "14px 16px",
+                    padding: "10px 12px",
                     border: "2px solid #e5e7eb",
-                    borderRadius: "12px",
-                    fontSize: "1rem",
+                    borderRadius: "10px",
+                    fontSize: "0.9375rem",
                     outline: "none",
                     transition: "all 0.2s"
                   }}
@@ -299,10 +304,10 @@ export default function AddPetModal({ open, onClose, initialData = null }) {
               <div>
                 <label style={{
                   display: "block",
-                  fontSize: "0.875rem",
+                  fontSize: "0.8125rem",
                   fontWeight: "600",
                   color: "#4b5563",
-                  marginBottom: "8px"
+                  marginBottom: "6px"
                 }}>
                   Species <span style={{ color: "#ef4444" }}>*</span>
                 </label>
@@ -314,10 +319,10 @@ export default function AddPetModal({ open, onClose, initialData = null }) {
                   onChange={handleChange}
                   style={{
                     width: "100%",
-                    padding: "14px 16px",
+                    padding: "10px 12px",
                     border: "2px solid #e5e7eb",
-                    borderRadius: "12px",
-                    fontSize: "1rem",
+                    borderRadius: "10px",
+                    fontSize: "0.9375rem",
                     outline: "none",
                     transition: "all 0.2s"
                   }}
@@ -334,28 +339,28 @@ export default function AddPetModal({ open, onClose, initialData = null }) {
             </div>
 
             {/* Breed and Date of Birth Row */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "16px" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "12px" }}>
               <div>
                 <label style={{
                   display: "block",
-                  fontSize: "0.875rem",
+                  fontSize: "0.8125rem",
                   fontWeight: "600",
                   color: "#4b5563",
-                  marginBottom: "8px"
+                  marginBottom: "6px"
                 }}>
                   Breed
                 </label>
                 <input
                   name="breed"
-                  placeholder="e.g., Labrador, Persian"
+                  placeholder="e.g., Labrador"
                   value={form.breed}
                   onChange={handleChange}
                   style={{
                     width: "100%",
-                    padding: "14px 16px",
+                    padding: "10px 12px",
                     border: "2px solid #e5e7eb",
-                    borderRadius: "12px",
-                    fontSize: "1rem",
+                    borderRadius: "10px",
+                    fontSize: "0.9375rem",
                     outline: "none",
                     transition: "all 0.2s"
                   }}
@@ -374,13 +379,13 @@ export default function AddPetModal({ open, onClose, initialData = null }) {
                 <label style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: "6px",
-                  fontSize: "0.875rem",
+                  gap: "5px",
+                  fontSize: "0.8125rem",
                   fontWeight: "600",
                   color: "#4b5563",
-                  marginBottom: "8px"
+                  marginBottom: "6px"
                 }}>
-                  <Calendar size={16} color="#818cf8" />
+                  <Calendar size={14} color="#818cf8" />
                   Date of Birth
                 </label>
                 <input
@@ -390,10 +395,10 @@ export default function AddPetModal({ open, onClose, initialData = null }) {
                   onChange={handleChange}
                   style={{
                     width: "100%",
-                    padding: "14px 16px",
+                    padding: "10px 12px",
                     border: "2px solid #e5e7eb",
-                    borderRadius: "12px",
-                    fontSize: "1rem",
+                    borderRadius: "10px",
+                    fontSize: "0.9375rem",
                     outline: "none",
                     transition: "all 0.2s"
                   }}
@@ -410,18 +415,18 @@ export default function AddPetModal({ open, onClose, initialData = null }) {
             </div>
 
             {/* Gender and Weight Row */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
               <div>
                 <label style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: "6px",
-                  fontSize: "0.875rem",
+                  gap: "5px",
+                  fontSize: "0.8125rem",
                   fontWeight: "600",
                   color: "#4b5563",
-                  marginBottom: "8px"
+                  marginBottom: "6px"
                 }}>
-                  <User size={16} color="#818cf8" />
+                  <User size={14} color="#818cf8" />
                   Gender
                 </label>
                 <select
@@ -430,10 +435,10 @@ export default function AddPetModal({ open, onClose, initialData = null }) {
                   onChange={handleChange}
                   style={{
                     width: "100%",
-                    padding: "14px 16px",
+                    padding: "10px 12px",
                     border: "2px solid #e5e7eb",
-                    borderRadius: "12px",
-                    fontSize: "1rem",
+                    borderRadius: "10px",
+                    fontSize: "0.9375rem",
                     outline: "none",
                     transition: "all 0.2s",
                     cursor: "pointer",
@@ -459,13 +464,13 @@ export default function AddPetModal({ open, onClose, initialData = null }) {
                 <label style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: "6px",
-                  fontSize: "0.875rem",
+                  gap: "5px",
+                  fontSize: "0.8125rem",
                   fontWeight: "600",
                   color: "#4b5563",
-                  marginBottom: "8px"
+                  marginBottom: "6px"
                 }}>
-                  <Weight size={16} color="#818cf8" />
+                  <Weight size={14} color="#818cf8" />
                   Weight (kg)
                 </label>
                 <input
@@ -477,10 +482,10 @@ export default function AddPetModal({ open, onClose, initialData = null }) {
                   onChange={handleChange}
                   style={{
                     width: "100%",
-                    padding: "14px 16px",
+                    padding: "10px 12px",
                     border: "2px solid #e5e7eb",
-                    borderRadius: "12px",
-                    fontSize: "1rem",
+                    borderRadius: "10px",
+                    fontSize: "0.9375rem",
                     outline: "none",
                     transition: "all 0.2s"
                   }}
@@ -502,25 +507,25 @@ export default function AddPetModal({ open, onClose, initialData = null }) {
             <div style={{ 
               display: 'flex', 
               alignItems: 'center', 
-              gap: '10px', 
-              marginBottom: '16px',
-              paddingBottom: '12px',
+              gap: '8px', 
+              marginBottom: '12px',
+              paddingBottom: '8px',
               borderBottom: '2px solid #f3f4f6'
             }}>
-              <ImageIcon size={20} color="#818cf8" strokeWidth={2.5} />
-              <h4 style={{ margin: 0, fontSize: '1.125rem', fontWeight: 700, color: '#374151' }}>
+              <ImageIcon size={18} color="#818cf8" strokeWidth={2.5} />
+              <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: '#374151' }}>
                 Additional Information
               </h4>
             </div>
 
             {/* Avatar URL */}
-            <div style={{ marginBottom: "16px" }}>
+            <div style={{ marginBottom: "12px" }}>
               <label style={{
                 display: "block",
-                fontSize: "0.875rem",
+                fontSize: "0.8125rem",
                 fontWeight: "600",
                 color: "#4b5563",
-                marginBottom: "8px"
+                marginBottom: "6px"
               }}>
                 Avatar URL (optional)
               </label>
@@ -531,10 +536,10 @@ export default function AddPetModal({ open, onClose, initialData = null }) {
                 onChange={handleChange}
                 style={{
                   width: "100%",
-                  padding: "14px 16px",
+                  padding: "10px 12px",
                   border: "2px solid #e5e7eb",
-                  borderRadius: "12px",
-                  fontSize: "1rem",
+                  borderRadius: "10px",
+                  fontSize: "0.9375rem",
                   outline: "none",
                   transition: "all 0.2s"
                 }}
@@ -554,27 +559,27 @@ export default function AddPetModal({ open, onClose, initialData = null }) {
               <label style={{
                 display: "flex",
                 alignItems: "center",
-                gap: "6px",
-                fontSize: "0.875rem",
+                gap: "5px",
+                fontSize: "0.8125rem",
                 fontWeight: "600",
                 color: "#4b5563",
-                marginBottom: "8px"
+                marginBottom: "6px"
               }}>
-                <FileText size={16} color="#818cf8" />
+                <FileText size={14} color="#818cf8" />
                 Notes
               </label>
               <textarea
                 name="notes"
-                placeholder="Any special notes about your pet..."
+                placeholder="Any special notes..."
                 value={form.notes}
                 onChange={handleChange}
-                rows={4}
+                rows={3}
                 style={{
                   width: "100%",
-                  padding: "14px 16px",
+                  padding: "10px 12px",
                   border: "2px solid #e5e7eb",
-                  borderRadius: "12px",
-                  fontSize: "1rem",
+                  borderRadius: "10px",
+                  fontSize: "0.9375rem",
                   outline: "none",
                   transition: "all 0.2s",
                   resize: "vertical",
@@ -595,11 +600,11 @@ export default function AddPetModal({ open, onClose, initialData = null }) {
 
         {/* Footer */}
         <div style={{
-          padding: "24px 40px",
+          padding: "16px 24px",
           borderTop: "2px solid #f3f4f6",
           display: "flex",
           justifyContent: "flex-end",
-          gap: "12px",
+          gap: "10px",
           background: "#fafafa"
         }}>
           <button
@@ -607,12 +612,12 @@ export default function AddPetModal({ open, onClose, initialData = null }) {
             onClick={() => !isSubmitting && onClose && onClose()}
             disabled={isSubmitting}
             style={{
-              padding: "14px 32px",
+              padding: "11px 24px",
               background: "white",
               color: "#374151",
               border: "2px solid #e5e7eb",
-              borderRadius: "12px",
-              fontSize: "1rem",
+              borderRadius: "10px",
+              fontSize: "0.9375rem",
               fontWeight: "600",
               cursor: isSubmitting ? "not-allowed" : "pointer",
               transition: "all 0.2s",
@@ -636,29 +641,29 @@ export default function AddPetModal({ open, onClose, initialData = null }) {
             onClick={handleSubmit}
             disabled={isSubmitting}
             style={{
-              padding: "14px 36px",
+              padding: "11px 28px",
               background: isSubmitting ? "#9ca3af" : "linear-gradient(135deg, #818cf8 0%, #a78bfa 100%)",
               color: "white",
               border: "none",
-              borderRadius: "12px",
-              fontSize: "1rem",
+              borderRadius: "10px",
+              fontSize: "0.9375rem",
               fontWeight: "700",
               cursor: isSubmitting ? "not-allowed" : "pointer",
               transition: "all 0.2s",
-              boxShadow: isSubmitting ? "none" : "0 8px 20px rgba(129, 140, 248, 0.4)"
+              boxShadow: isSubmitting ? "none" : "0 6px 16px rgba(129, 140, 248, 0.35)"
             }}
             onMouseEnter={(e) => {
               if (!isSubmitting) {
                 e.currentTarget.style.transform = "translateY(-2px)";
-                e.currentTarget.style.boxShadow = "0 12px 28px rgba(129, 140, 248, 0.5)";
+                e.currentTarget.style.boxShadow = "0 8px 20px rgba(129, 140, 248, 0.45)";
               }
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.transform = "translateY(0)";
-              e.currentTarget.style.boxShadow = "0 8px 20px rgba(129, 140, 248, 0.4)";
+              e.currentTarget.style.boxShadow = "0 6px 16px rgba(129, 140, 248, 0.35)";
             }}
           >
-            {isSubmitting ? "Adding..." : "Add Pet"}
+            {isSubmitting ? (isEditMode ? "Updating..." : "Adding...") : (isEditMode ? "Update Pet" : "Add Pet")}
           </button>
         </div>
       </div>

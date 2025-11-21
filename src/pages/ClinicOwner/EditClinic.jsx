@@ -309,7 +309,7 @@ export default function EditClinic() {
         <div className={styles.mainWrapper}>
           <TopBar username={displayName} />
           <main className={styles.mainContent}>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '400px' }}>
+            <div className={styles.centeredLarge}>
               <LoadingSpinner size="large" message="Loading clinic data..." />
             </div>
           </main>
@@ -325,27 +325,14 @@ export default function EditClinic() {
         <div className={styles.mainWrapper}>
           <TopBar username={displayName} />
           <main className={styles.mainContent}>
-            <div style={{
-              background: '#fee2e2',
-              border: '2px solid #f87171',
-              borderRadius: '16px',
-              padding: '32px',
-              textAlign: 'center'
-            }}>
+            <div className={styles.vcErrorCard}>
               <h3 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#991b1b', marginBottom: '12px' }}>
                 {error}
               </h3>
               <button
                 onClick={() => navigate('/clinic/management')}
-                style={{
-                  padding: '12px 24px',
-                  background: '#ef4444',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '10px',
-                  fontWeight: 600,
-                  cursor: 'pointer'
-                }}
+                className={styles.vcDangerBtn}
+                style={{ padding: '12px 24px', borderRadius: '10px', fontWeight: 600, marginLeft: '12px' }}
               >
                 Back to Management
               </button>
@@ -363,43 +350,25 @@ export default function EditClinic() {
         <TopBar username={displayName} />
         
         <main className={styles.mainContent}>
-          <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+          <div className={styles.formContainer}>
             {/* Header */}
-            <div style={{ 
-              background: 'white', 
-              borderRadius: '20px', 
-              padding: '32px', 
-              marginBottom: '24px',
-              boxShadow: '0 4px 20px rgba(0,0,0,0.08)'
-            }}>
+            <div className={styles.vcCardLarge}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '8px' }}>
-                <div style={{
-                  width: '56px',
-                  height: '56px',
-                  borderRadius: '16px',
-                  background: 'linear-gradient(135deg, #818cf8 0%, #a78bfa 100%)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}>
+                <div className={styles.iconBadge} style={{ background: 'linear-gradient(135deg, #818cf8 0%, #a78bfa 100%)' }}>
                   <Building2 size={28} color="white" />
                 </div>
                 <div>
-                  <h1 style={{ fontSize: '2rem', fontWeight: 700, color: '#1e293b', margin: 0 }}>
+                  <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1e293b', margin: '0 0 6px 0' }}>
                     Edit Clinic
                   </h1>
-                  <p style={{ color: '#64748b', margin: 0 }}>
+                  <p style={{ fontSize: '0.875rem', color: '#64748b', margin: 0 }}>
                     Step {currentStep} of 4: {steps[currentStep - 1].title}
                   </p>
                 </div>
               </div>
 
               {/* Progress Bar */}
-              <div style={{ 
-                display: 'flex', 
-                gap: '8px', 
-                marginTop: '24px'
-              }}>
+              <div style={{ display: 'flex', gap: '8px', marginTop: '24px' }}>
                 {steps.map((step) => (
                   <div
                     key={step.number}
@@ -419,43 +388,18 @@ export default function EditClinic() {
 
             {/* Error Message */}
             {error && (
-              <div style={{
-                background: '#fee2e2',
-                border: '2px solid #f87171',
-                borderRadius: '12px',
-                padding: '16px',
-                marginBottom: '24px',
-                color: '#991b1b',
-                fontWeight: 600
-              }}>
-                {error}
-              </div>
+              <div className={styles.vcErrorCard}>{error}</div>
             )}
 
             {/* Form Steps */}
-            <div style={{ 
-              background: 'white', 
-              borderRadius: '20px', 
-              padding: '40px',
-              boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-              marginBottom: '24px'
-            }}>
+            <div className={styles.vcCard}>
               {/* Step 1: Basic Information */}
               {currentStep === 1 && (
                 <div>
                   <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-                    <div style={{
-                      width: '80px',
-                      height: '80px',
-                      borderRadius: '16px',
-                      background: 'linear-gradient(135deg, #e0e7ff 0%, #ddd6fe 100%)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      margin: '0 auto 16px'
-                    }}>
-                      <Building2 size={40} color="#818cf8" />
-                    </div>
+                        <div className={styles.iconBadge} style={{ width: '80px', height: '80px', borderRadius: '16px', background: 'linear-gradient(135deg, #e0e7ff 0%, #ddd6fe 100%)', margin: '0 auto 16px' }}>
+                          <Building2 size={40} color="#818cf8" />
+                        </div>
                     <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '8px' }}>
                       Update basic information
                     </h2>
@@ -467,20 +411,14 @@ export default function EditClinic() {
                       <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#374151', marginBottom: '8px' }}>
                         Clinic Name <span style={{ color: '#ef4444' }}>*</span>
                       </label>
-                      <input
-                        type="text"
-                        name="clinicName"
-                        value={formData.clinicName}
-                        onChange={handleInputChange}
-                        placeholder="e.g., Happy Paws Veterinary Clinic"
-                        style={{
-                          width: '100%',
-                          padding: '14px 16px',
-                          border: '2px solid #e5e7eb',
-                          borderRadius: '10px',
-                          fontSize: '1rem'
-                        }}
-                      />
+                        <input
+                          type="text"
+                          name="clinicName"
+                          value={formData.clinicName}
+                          onChange={handleInputChange}
+                          placeholder="e.g., Happy Paws Veterinary Clinic"
+                          className={styles.formInput}
+                        />
                     </div>
 
                     <div>
@@ -494,42 +432,13 @@ export default function EditClinic() {
                           onChange={handleInputChange}
                           placeholder="Street, City, Province/State, Postal Code, Country"
                           rows={3}
-                          style={{
-                            flex: 1,
-                            padding: '14px 16px',
-                            border: '2px solid #e5e7eb',
-                            borderRadius: '10px',
-                            fontSize: '1rem',
-                            resize: 'vertical'
-                          }}
+                          className={styles.formTextarea}
                         />
                       </div>
                       <button
                         type="button"
                         onClick={() => setShowMapPicker(true)}
-                        style={{
-                          padding: '12px 20px',
-                          background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '10px',
-                          fontSize: '0.875rem',
-                          fontWeight: 600,
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '8px',
-                          boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)',
-                          transition: 'all 0.2s'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.transform = 'translateY(-2px)';
-                          e.currentTarget.style.boxShadow = '0 6px 16px rgba(59, 130, 246, 0.4)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.transform = 'translateY(0)';
-                          e.currentTarget.style.boxShadow = '0 4px 12px rgba(59, 130, 246, 0.3)';
-                        }}
+                        className={styles.secondaryBtn}
                       >
                         <Map size={18} />
                         Pick Location on Map
@@ -541,20 +450,14 @@ export default function EditClinic() {
                         <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#374151', marginBottom: '8px' }}>
                           Contact Number <span style={{ color: '#ef4444' }}>*</span>
                         </label>
-                        <input
-                          type="tel"
-                          name="contactNumber"
-                          value={formData.contactNumber}
-                          onChange={handleInputChange}
-                          placeholder="+1 (555) 123-4567"
-                          style={{
-                            width: '100%',
-                            padding: '14px 16px',
-                            border: '2px solid #e5e7eb',
-                            borderRadius: '10px',
-                            fontSize: '1rem'
-                          }}
-                        />
+                          <input
+                            type="tel"
+                            name="contactNumber"
+                            value={formData.contactNumber}
+                            onChange={handleInputChange}
+                            placeholder="+1 (555) 123-4567"
+                            className={styles.formInput}
+                          />
                       </div>
 
                       <div>
@@ -567,13 +470,7 @@ export default function EditClinic() {
                           value={formData.email}
                           onChange={handleInputChange}
                           placeholder="clinic@example.com"
-                          style={{
-                            width: '100%',
-                            padding: '14px 16px',
-                            border: '2px solid #e5e7eb',
-                            borderRadius: '10px',
-                            fontSize: '1rem'
-                          }}
+                          className={styles.formInput}
                         />
                       </div>
                     </div>
@@ -583,22 +480,21 @@ export default function EditClinic() {
                         <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#374151', marginBottom: '8px' }}>
                           Latitude (Optional)
                         </label>
-                        <input
-                          type="text"
-                          name="latitude"
-                          value={formData.latitude}
-                          onChange={handleInputChange}
-                          placeholder="e.g., 14.5995"
-                          style={{
-                            width: '100%',
-                            padding: '14px 16px',
-                            border: '2px solid #e5e7eb',
-                            borderRadius: '10px',
-                            fontSize: '1rem'
-                          }}
-                        />
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                          <input
+                            type="text"
+                            name="latitude"
+                            value={formData.latitude}
+                            onChange={handleInputChange}
+                            placeholder="e.g., 14.5995"
+                            className={styles.formInput}
+                          />
+                          <button type="button" onClick={() => setShowMapPicker(true)} className={styles.secondaryBtn}>
+                            <Map size={16} />
+                            Use map picker
+                          </button>
+                        </div>
                       </div>
-
                       <div>
                         <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#374151', marginBottom: '8px' }}>
                           Longitude (Optional)
@@ -608,14 +504,8 @@ export default function EditClinic() {
                           name="longitude"
                           value={formData.longitude}
                           onChange={handleInputChange}
-                          placeholder="e.g., 120.9842"
-                          style={{
-                            width: '100%',
-                            padding: '14px 16px',
-                            border: '2px solid #e5e7eb',
-                            borderRadius: '10px',
-                            fontSize: '1rem'
-                          }}
+                          placeholder="e.g., 121.0369"
+                          className={styles.formInput}
                         />
                       </div>
                     </div>
@@ -656,14 +546,7 @@ export default function EditClinic() {
                         onChange={handleInputChange}
                         placeholder="e.g., Vaccination, Surgery, Dental Care, Emergency Care, Pet Grooming"
                         rows={4}
-                        style={{
-                          width: '100%',
-                          padding: '14px 16px',
-                          border: '2px solid #e5e7eb',
-                          borderRadius: '10px',
-                          fontSize: '1rem',
-                          resize: 'vertical'
-                        }}
+                        className={styles.formTextarea}
                       />
                       <p style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '4px' }}>
                         Separate services with commas
@@ -680,13 +563,7 @@ export default function EditClinic() {
                         value={formData.openHours}
                         onChange={handleInputChange}
                         placeholder="e.g., Mon-Fri: 8:00 AM - 6:00 PM, Sat: 9:00 AM - 3:00 PM"
-                        style={{
-                          width: '100%',
-                          padding: '14px 16px',
-                          border: '2px solid #e5e7eb',
-                          borderRadius: '10px',
-                          fontSize: '1rem'
-                        }}
+                        className={styles.formInput}
                       />
                     </div>
 
@@ -700,14 +577,7 @@ export default function EditClinic() {
                         onChange={handleInputChange}
                         placeholder="Tell pet owners about your clinic, facilities, and what makes you special..."
                         rows={5}
-                        style={{
-                          width: '100%',
-                          padding: '14px 16px',
-                          border: '2px solid #e5e7eb',
-                          borderRadius: '10px',
-                          fontSize: '1rem',
-                          resize: 'vertical'
-                        }}
+                        className={styles.formTextarea}
                       />
                     </div>
                   </div>
@@ -744,18 +614,7 @@ export default function EditClinic() {
                       </h3>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                         {veterinarians.map((vet) => (
-                          <div
-                            key={vet.id}
-                            style={{
-                              padding: '16px',
-                              background: '#f8fafc',
-                              borderRadius: '10px',
-                              border: '1px solid #e5e7eb',
-                              display: 'flex',
-                              justifyContent: 'space-between',
-                              alignItems: 'center'
-                            }}
-                          >
+                          <div key={vet.id} className={styles.vetItem}>
                             <div>
                               <p style={{ margin: '0 0 4px 0', fontWeight: 600, color: '#1e293b' }}>
                                 Dr. {vet.name}
@@ -772,14 +631,7 @@ export default function EditClinic() {
                             </div>
                             <button
                               onClick={() => removeVeterinarian(vet.id)}
-                              style={{
-                                padding: '8px',
-                                background: '#fee2e2',
-                                border: 'none',
-                                borderRadius: '8px',
-                                cursor: 'pointer',
-                                color: '#ef4444'
-                              }}
+                              className={`${styles.vcSmallBtn} ${styles.vcDangerBtn}`}
                             >
                               <Trash2 size={18} />
                             </button>
@@ -790,12 +642,7 @@ export default function EditClinic() {
                   )}
 
                   {/* Add New Veterinarian Form - Same as Create */}
-                  <div style={{ 
-                    padding: '24px', 
-                    background: '#f8fafc', 
-                    borderRadius: '12px',
-                    border: '2px dashed #cbd5e1'
-                  }}>
+                  <div className={styles.dashedBox}>
                     <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '16px' }}>
                       Add New Veterinarian
                     </h3>
@@ -811,13 +658,7 @@ export default function EditClinic() {
                             value={newVet.name}
                             onChange={(e) => setNewVet(prev => ({ ...prev, name: e.target.value }))}
                             placeholder="e.g., John Smith"
-                            style={{
-                              width: '100%',
-                              padding: '12px 14px',
-                              border: '2px solid #e5e7eb',
-                              borderRadius: '8px',
-                              fontSize: '0.875rem'
-                            }}
+                            className={styles.formInput}
                           />
                         </div>
 
@@ -830,13 +671,7 @@ export default function EditClinic() {
                             value={newVet.specialization}
                             onChange={(e) => setNewVet(prev => ({ ...prev, specialization: e.target.value }))}
                             placeholder="e.g., Small Animal Surgery"
-                            style={{
-                              width: '100%',
-                              padding: '12px 14px',
-                              border: '2px solid #e5e7eb',
-                              borderRadius: '8px',
-                              fontSize: '0.875rem'
-                            }}
+                            className={styles.formInput}
                           />
                         </div>
                       </div>
@@ -851,13 +686,7 @@ export default function EditClinic() {
                             value={newVet.licenseNumber}
                             onChange={(e) => setNewVet(prev => ({ ...prev, licenseNumber: e.target.value }))}
                             placeholder="e.g., VET-12345"
-                            style={{
-                              width: '100%',
-                              padding: '12px 14px',
-                              border: '2px solid #e5e7eb',
-                              borderRadius: '8px',
-                              fontSize: '0.875rem'
-                            }}
+                            className={styles.formInput}
                           />
                         </div>
 
@@ -870,13 +699,7 @@ export default function EditClinic() {
                             value={newVet.yearsOfExperience}
                             onChange={(e) => setNewVet(prev => ({ ...prev, yearsOfExperience: e.target.value }))}
                             placeholder="e.g., 5"
-                            style={{
-                              width: '100%',
-                              padding: '12px 14px',
-                              border: '2px solid #e5e7eb',
-                              borderRadius: '8px',
-                              fontSize: '0.875rem'
-                            }}
+                            className={styles.formInput}
                           />
                         </div>
                       </div>
@@ -891,13 +714,7 @@ export default function EditClinic() {
                             value={newVet.email}
                             onChange={(e) => setNewVet(prev => ({ ...prev, email: e.target.value }))}
                             placeholder="vet@example.com"
-                            style={{
-                              width: '100%',
-                              padding: '12px 14px',
-                              border: '2px solid #e5e7eb',
-                              borderRadius: '8px',
-                              fontSize: '0.875rem'
-                            }}
+                            className={styles.formInput}
                           />
                         </div>
 
@@ -910,32 +727,14 @@ export default function EditClinic() {
                             value={newVet.phone}
                             onChange={(e) => setNewVet(prev => ({ ...prev, phone: e.target.value }))}
                             placeholder="+1 (555) 123-4567"
-                            style={{
-                              width: '100%',
-                              padding: '12px 14px',
-                              border: '2px solid #e5e7eb',
-                              borderRadius: '8px',
-                              fontSize: '0.875rem'
-                            }}
+                            className={styles.formInput}
                           />
                         </div>
                       </div>
 
                       <button
                         onClick={handleAddVeterinarian}
-                        style={{
-                          padding: '12px 24px',
-                          background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '8px',
-                          fontWeight: 600,
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: '8px'
-                        }}
+                        className={`${styles.vcPrimarySmall} ${styles.vcSmallBtn}`}
                       >
                         <Plus size={18} />
                         Add Veterinarian

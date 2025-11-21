@@ -1,104 +1,146 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import TopBar from '../../components/layout/TopBar';
 import ClinicSidebar from '../../components/layout/ClinicSidebar';
-import SuccessModal from '../../components/modals/SuccessModal';
-import DeleteConfirmModal from '../../components/modals/DeleteConfirmModal';
-import DownloadModal from '../../components/modals/DownloadModal';
 import { useAuth } from '../../contexts/AuthContext';
-import { Upload, FileText, Download, Trash2, Calendar, User, Dog } from 'lucide-react';
+import { FileText, Download, Dog, User, Loader, AlertCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import { collection, getDocs, query as firestoreQuery, where, doc, getDoc } from 'firebase/firestore';
+import { db } from '../../firebase/firebase';
 import styles from '../../styles/ClinicDashboard.module.css';
 
 export default function ClinicFiles() {
-  const { userData } = useAuth();
+  const { userData, currentUser } = useAuth();
   const displayName = userData?.fullName || userData?.displayName || userData?.clinicName || userData?.email;
 
-  // Dummy uploaded files
-  const [uploadedFiles, setUploadedFiles] = useState([
-    {
-      id: 'file-1',
-      fileName: 'Max_Vaccination_Record.pdf',
-      petName: 'Max',
-      ownerName: 'John Smith',
-      uploadDate: '2024-11-15',
-      fileSize: '245 KB',
-      appointmentDate: '2024-11-14'
-    },
-    {
-      id: 'file-2',
-      fileName: 'Bella_Lab_Results.pdf',
-      petName: 'Bella',
-      ownerName: 'Sarah Johnson',
-      uploadDate: '2024-11-16',
-      fileSize: '1.2 MB',
-      appointmentDate: '2024-11-15'
-    },
-    {
-      id: 'file-3',
-      fileName: 'Charlie_Xray_Report.pdf',
-      petName: 'Charlie',
-      ownerName: 'Mike Davis',
-      uploadDate: '2024-11-17',
-      fileSize: '892 KB',
-      appointmentDate: '2024-11-16'
-    }
-  ]);
+  const [clientsWithPets, setClientsWithPets] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [expandedPets, setExpandedPets] = useState({});
 
-  const [uploading, setUploading] = useState(false);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [showDownloadModal, setShowDownloadModal] = useState(false);
-  const [fileToDelete, setFileToDelete] = useState(null);
-  const [uploadedFileName, setUploadedFileName] = useState('');
-  const [downloadFileName, setDownloadFileName] = useState('');
+  // Fetch clients and their pets with files
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!currentUser?.uid) return;
 
-  const handleFileUpload = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+      try {
+        setLoading(true);
+        setError(null);
 
-    setUploading(true);
-    
-    // Simulate upload
-    setTimeout(() => {
-      const newFile = {
-        id: `file-${Date.now()}`,
-        fileName: file.name,
-        petName: 'New Pet',
-        ownerName: 'Pet Owner',
-        uploadDate: new Date().toISOString().split('T')[0],
-        fileSize: `${(file.size / 1024).toFixed(0)} KB`,
-        appointmentDate: new Date().toISOString().split('T')[0]
-      };
-      
-      setUploadedFiles(prev => [newFile, ...prev]);
-      setUploading(false);
-      setUploadedFileName(file.name);
-      setShowSuccessModal(true);
-      e.target.value = '';
-    }, 1000);
+        // Get clinics owned by current user
+        const clinicsQuery = firestoreQuery(
+          collection(db, 'clinics'),
+          where('ownerId', '==', currentUser.uid)
+        );
+        const clinicsSnapshot = await getDocs(clinicsQuery);
+        
+        if (clinicsSnapshot.empty) {
+          setClientsWithPets([]);
+          setLoading(false);
+          return;
+        }
+
+        const clinicIds = clinicsSnapshot.docs.map(doc => doc.id);
+
+        // Get appointments for these clinics
+        const appointmentsQuery = firestoreQuery(
+          collection(db, 'appointments'),
+          where('clinicId', 'in', clinicIds)
+        );
+        const appointmentsSnapshot = await getDocs(appointmentsQuery);
+
+        // Get unique owner IDs
+        const ownerIds = [...new Set(
+          appointmentsSnapshot.docs.map(doc => doc.data().ownerId).filter(Boolean)
+        )];
+
+        if (ownerIds.length === 0) {
+          setClientsWithPets([]);
+          setLoading(false);
+          return;
+        }
+
+        // Fetch each client's data and their pets with files
+        const clientsData = await Promise.all(
+          ownerIds.map(async (ownerId) => {
+            try {
+              // Get owner data
+              const ownerDoc = await getDoc(doc(db, 'users', ownerId));
+              const ownerData = ownerDoc.exists() ? ownerDoc.data() : null;
+
+              // Get pets for this owner
+              const petsSnapshot = await getDocs(
+                collection(db, 'users', ownerId, 'pets')
+              );
+
+              // Get files for each pet
+              const petsWithFiles = await Promise.all(
+                petsSnapshot.docs.map(async (petDoc) => {
+                  const petData = { id: petDoc.id, ...petDoc.data() };
+                  
+                  // Get files for this pet
+                  const filesSnapshot = await getDocs(
+                    collection(db, 'users', ownerId, 'pets', petDoc.id, 'files')
+                  );
+                  
+                  const files = filesSnapshot.docs.map(fileDoc => ({
+                    id: fileDoc.id,
+                    ...fileDoc.data()
+                  }));
+
+                  return {
+                    ...petData,
+                    files
+                  };
+                })
+              );
+
+              return {
+                ownerId,
+                ownerName: ownerData?.fullName || ownerData?.displayName || ownerData?.email || 'Unknown',
+                ownerEmail: ownerData?.email || '',
+                pets: petsWithFiles
+              };
+            } catch (err) {
+              console.error(`Error fetching data for owner ${ownerId}:`, err);
+              return null;
+            }
+          })
+        );
+
+        setClientsWithPets(clientsData.filter(Boolean));
+      } catch (err) {
+        console.error('Error fetching files:', err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [currentUser]);
+
+  const togglePetExpanded = (petId) => {
+    setExpandedPets(prev => ({
+      ...prev,
+      [petId]: !prev[petId]
+    }));
   };
 
-  const handleDownload = (file) => {
-    setDownloadFileName(file.fileName);
-    setShowDownloadModal(true);
-    console.log('Download initiated for:', file.fileName);
+  const formatFileSize = (bytes) => {
+    if (!bytes) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
   };
 
-  const handleDeleteClick = (file) => {
-    setFileToDelete(file);
-    setShowDeleteModal(true);
-  };
-
-  const handleConfirmDelete = () => {
-    if (fileToDelete) {
-      setUploadedFiles(prev => prev.filter(file => file.id !== fileToDelete.id));
-      setShowDeleteModal(false);
-      setFileToDelete(null);
-    }
-  };
-
-  const handleCancelDelete = () => {
-    setShowDeleteModal(false);
-    setFileToDelete(null);
+  const formatDate = (timestamp) => {
+    if (!timestamp) return 'Unknown';
+    const date = timestamp.toDate ? timestamp.toDate() : new Date(timestamp);
+    return date.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric' 
+    });
   };
 
   return (
@@ -107,254 +149,174 @@ export default function ClinicFiles() {
       <div className={styles.mainWrapper}>
         <TopBar username={displayName} />
         
-        <main className={styles.mainContent}>
-          <header style={{ marginBottom: '32px' }}>
-            <h1 style={{ fontSize: '2rem', fontWeight: 700, color: '#1e293b', margin: '0 0 8px 0' }}>
-              Pet Medical Records
+        <main className={`${styles.mainContent} ${styles.pageTopLanding}`}>
+          <header className={styles.noSectionTop}>
+            <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1e293b', margin: '0 0 6px 0' }}>
+              Client Pet Files
             </h1>
-            <p style={{ color: '#64748b', margin: 0 }}>
-              Upload and manage pet medical records and documents
+            <p style={{ fontSize: '0.875rem', color: '#64748b', margin: 0 }}>
+              View medical records and files uploaded by pet owners for their pets
             </p>
           </header>
 
-          {/* Upload Section */}
-          <div style={{ 
-            background: 'white', 
-            borderRadius: '16px', 
-            padding: '32px', 
-            boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-            marginBottom: '24px'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
-              <div style={{ 
-                width: '40px', 
-                height: '40px', 
-                background: '#dbeafe', 
-                borderRadius: '10px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}>
-                <Upload size={20} color="#3b82f6" />
+          {/* Loading State */}
+          {loading && (
+            <div className={`${styles.vcCardLarge} ${styles.centeredLarge}`}>
+              <Loader size={40} color="#3b82f6" style={{ animation: 'spin 1s linear infinite', margin: '0 auto' }} strokeWidth={2.5} />
+              <p className={styles.stepDescription} style={{ marginTop: '12px' }}>Loading client files...</p>
+            </div>
+          )}
+
+          {/* Error State */}
+          {error && (
+            <div className={`${styles.vcCard} ${styles.vcErrorCard}`}>
+              <AlertCircle size={20} color="#ef4444" strokeWidth={2.5} />
+              <div>
+                <h3 className={styles.stepTitle}>Error Loading Files</h3>
+                <p className={styles.stepDescription}>{error}</p>
               </div>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 600, margin: 0 }}>
-                Upload New Record
-              </h3>
             </div>
+          )}
 
-            <div style={{
-              border: '2px dashed #cbd5e1',
-              borderRadius: '12px',
-              padding: '40px',
-              textAlign: 'center',
-              background: '#f8fafc',
-              transition: 'all 0.2s'
-            }}>
-              <input
-                type="file"
-                id="file-upload"
-                onChange={handleFileUpload}
-                disabled={uploading}
-                accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"
-                style={{ display: 'none' }}
-              />
-              <label 
-                htmlFor="file-upload"
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  padding: '12px 24px',
-                  background: '#3b82f6',
-                  color: 'white',
-                  borderRadius: '10px',
-                  cursor: uploading ? 'not-allowed' : 'pointer',
-                  fontWeight: 600,
-                  fontSize: '1rem',
-                  transition: 'all 0.2s',
-                  opacity: uploading ? 0.6 : 1
-                }}
-                onMouseEnter={(e) => {
-                  if (!uploading) e.currentTarget.style.background = '#2563eb';
-                }}
-                onMouseLeave={(e) => {
-                  if (!uploading) e.currentTarget.style.background = '#3b82f6';
-                }}
-              >
-                <Upload size={20} />
-                {uploading ? 'Uploading...' : 'Choose File to Upload'}
-              </label>
-              <p style={{ marginTop: '16px', color: '#64748b', fontSize: '0.875rem' }}>
-                Supported formats: PDF, JPG, PNG, DOC, DOCX (Max 10MB)
-              </p>
-            </div>
-          </div>
-
-          {/* Files List */}
-          <div style={{ 
-            background: 'white', 
-            borderRadius: '16px', 
-            padding: '32px', 
-            boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
-              <div style={{ 
-                width: '40px', 
-                height: '40px', 
-                background: '#f0fdf4', 
-                borderRadius: '10px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}>
-                <FileText size={20} color="#22c55e" />
-              </div>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 600, margin: 0 }}>
-                Uploaded Records ({uploadedFiles.length})
-              </h3>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {uploadedFiles.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>
-                  No files uploaded yet
+          {/* Clients List */}
+          {!loading && !error && (
+            <>
+                {clientsWithPets.length === 0 ? (
+                <div className={`${styles.vcCardLarge} ${styles.centerText}`}>
+                  <FileText size={48} color="#d1d5db" style={{ margin: '0 auto 12px' }} strokeWidth={2.5} />
+                  <h3 className={styles.stepTitle}>No Files Yet</h3>
+                  <p className={styles.stepDescription}>
+                    Files uploaded by your clients will appear here
+                  </p>
                 </div>
               ) : (
-                uploadedFiles.map((file) => (
-                  <div 
-                    key={file.id} 
-                    style={{
-                      padding: '20px',
-                      background: '#f8fafc',
-                      borderRadius: '12px',
-                      border: '1px solid #e2e8f0',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      gap: '16px',
-                      transition: 'all 0.2s'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = '#f1f5f9';
-                      e.currentTarget.style.borderColor = '#cbd5e1';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = '#f8fafc';
-                      e.currentTarget.style.borderColor = '#e2e8f0';
-                    }}
-                  >
-                    <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flex: 1 }}>
-                      <div style={{
-                        width: '48px',
-                        height: '48px',
-                        borderRadius: '10px',
-                        background: '#eff6ff',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        flexShrink: 0
-                      }}>
-                        <FileText size={24} color="#3b82f6" />
-                      </div>
-                      
-                      <div style={{ flex: 1 }}>
-                        <h4 style={{ margin: '0 0 8px 0', fontSize: '1rem', fontWeight: 600, color: '#1e293b' }}>
-                          {file.fileName}
-                        </h4>
-                        <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
-                          <p style={{ margin: 0, fontSize: '0.875rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            <Dog size={14} />
-                            {file.petName}
-                          </p>
-                          <p style={{ margin: 0, fontSize: '0.875rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            <User size={14} />
-                            {file.ownerName}
-                          </p>
-                          <p style={{ margin: 0, fontSize: '0.875rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            <Calendar size={14} />
-                            {new Date(file.uploadDate).toLocaleDateString()}
-                          </p>
-                          <p style={{ margin: 0, fontSize: '0.875rem', color: '#64748b' }}>
-                            {file.fileSize}
-                          </p>
+                <div className={styles.stack}>
+                  {clientsWithPets.map((client) => (
+                    <div key={client.ownerId} className={styles.vcCard}>
+                      {/* Client Header */}
+                      <div style={{ marginBottom: '14px', paddingBottom: '12px', borderBottom: '1px solid #e5e7eb' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <User size={18} color="#667eea" strokeWidth={2.5} />
+                          <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600, color: '#1e293b' }}>
+                            {client.ownerName}
+                          </h3>
                         </div>
+                        {client.ownerEmail && (
+                          <p style={{ margin: '4px 0 0 28px', fontSize: '0.875rem', color: '#64748b' }}>
+                            {client.ownerEmail}
+                          </p>
+                        )}
                       </div>
-                    </div>
 
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <button
-                        onClick={() => handleDownload(file)}
-                        style={{
-                          padding: '10px',
-                          background: '#3b82f6',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '8px',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          transition: 'all 0.2s'
-                        }}
-                        onMouseEnter={(e) => e.currentTarget.style.background = '#2563eb'}
-                        onMouseLeave={(e) => e.currentTarget.style.background = '#3b82f6'}
-                        title="Download"
-                      >
-                        <Download size={18} />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteClick(file)}
-                        style={{
-                          padding: '10px',
-                          background: '#ef4444',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '8px',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          transition: 'all 0.2s'
-                        }}
-                        onMouseEnter={(e) => e.currentTarget.style.background = '#dc2626'}
-                        onMouseLeave={(e) => e.currentTarget.style.background = '#ef4444'}
-                        title="Delete"
-                      >
-                        <Trash2 size={18} />
-                      </button>
+                      {/* Pets List */}
+                      {client.pets.length === 0 ? (
+                        <p style={{ margin: 0, color: '#64748b', fontSize: '0.875rem' }}>
+                          No pets registered yet
+                        </p>
+                      ) : (
+                        <div className={styles.stack}>
+                          {client.pets.map((pet) => (
+                            <div key={pet.id} className={styles.petCard}>
+                              {/* Pet Header - Clickable */}
+                              <div
+                                onClick={() => togglePetExpanded(pet.id)}
+                                className={styles.petHeader}
+                                style={{ background: expandedPets[pet.id] ? '#f1f5f9' : undefined }}
+                              >
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                  <Dog size={20} color="#3b82f6" />
+                                  <div>
+                                    <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 600, color: '#1e293b' }}>
+                                      {pet.name || pet.pet_name}
+                                    </h4>
+                                    <p style={{ margin: '2px 0 0 0', fontSize: '0.75rem', color: '#64748b' }}>
+                                      {pet.species} • {pet.breed || 'Mixed'} • {pet.gender}
+                                    </p>
+                                  </div>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                  <span style={{
+                                    padding: '4px 12px',
+                                    background: pet.files && pet.files.length > 0 ? '#dbeafe' : '#f3f4f6',
+                                    color: pet.files && pet.files.length > 0 ? '#1e40af' : '#6b7280',
+                                    borderRadius: '12px',
+                                    fontSize: '0.75rem',
+                                    fontWeight: 600
+                                  }}>
+                                    {pet.files?.length || 0} {pet.files?.length === 1 ? 'file' : 'files'}
+                                  </span>
+                                  {expandedPets[pet.id] ? (
+                                    <ChevronUp size={20} color="#6b7280" />
+                                  ) : (
+                                    <ChevronDown size={20} color="#6b7280" />
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Pet Files - Expandable */}
+                              {expandedPets[pet.id] && (
+                                <div className={styles.petFilesContainer}>
+                                  {!pet.files || pet.files.length === 0 ? (
+                                    <p className={styles.centerText} style={{ color: '#64748b', fontSize: '0.875rem', padding: '20px' }}>
+                                      No files uploaded for this pet yet
+                                    </p>
+                                  ) : (
+                                    <div className={styles.stack}>
+                                      {pet.files.map((file) => (
+                                        <div key={file.id} className={styles.uploadItem}>
+                                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1, minWidth: 0 }}>
+                                            <FileText size={20} color="#3b82f6" />
+                                            <div style={{ flex: 1, minWidth: 0 }}>
+                                              <p style={{
+                                                margin: '0 0 4px 0',
+                                                fontSize: '0.875rem',
+                                                fontWeight: 500,
+                                                color: '#1e293b',
+                                                overflow: 'hidden',
+                                                textOverflow: 'ellipsis',
+                                                whiteSpace: 'nowrap'
+                                              }}>
+                                                {file.name}
+                                              </p>
+                                              <p style={{ margin: 0, fontSize: '0.75rem', color: '#64748b' }}>
+                                                {formatFileSize(file.size)} • {formatDate(file.uploadedAt)}
+                                              </p>
+                                            </div>
+                                          </div>
+                                          <a
+                                            href={file.downloadURL}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className={styles.downloadBtn}
+                                            title="View file"
+                                          >
+                                            <Download size={16} />
+                                          </a>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                  </div>
-                ))
+                  ))}
+                </div>
               )}
-            </div>
-          </div>
+            </>
+          )}
         </main>
       </div>
 
-      {/* Success Modal */}
-      <SuccessModal
-        isOpen={showSuccessModal}
-        onClose={() => setShowSuccessModal(false)}
-        title="File Uploaded Successfully!"
-        message={`${uploadedFileName} has been uploaded and is now available in your medical records.`}
-      />
-
-      {/* Download Modal */}
-      <DownloadModal
-        isOpen={showDownloadModal}
-        onClose={() => setShowDownloadModal(false)}
-        fileName={downloadFileName}
-      />
-
-      {/* Delete Confirmation Modal */}
-      <DeleteConfirmModal
-        isOpen={showDeleteModal}
-        onClose={handleCancelDelete}
-        onConfirm={handleConfirmDelete}
-        title="Delete Medical Record"
-        message={`Are you sure you want to delete "${fileToDelete?.fileName}"? This action cannot be undone.`}
-        confirmText="Delete File"
-      />
+      <style>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   );
 }

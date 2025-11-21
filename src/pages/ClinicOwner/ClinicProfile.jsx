@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Mail, Phone, MapPin, Calendar, Edit, Building2, ExternalLink } from 'lucide-react';
 import TopBar from '../../components/layout/TopBar';
 import ClinicSidebar from '../../components/layout/ClinicSidebar';
+import layoutStyles from '../../styles/ClinicDashboard.module.css';
 import { useAuth } from '../../contexts/AuthContext';
 import styles from '../../styles/Profile.module.css';
 
@@ -30,12 +31,12 @@ export default function ClinicProfile() {
   };
 
   return (
-    <div className={styles.pageRoot}>
+    <div className={layoutStyles.dashboard}>
       <ClinicSidebar />
-      <div className={styles.mainWrapper}>
+      <div className={layoutStyles.mainWrapper}>
         <TopBar username={displayName} />
 
-        <main className={styles.content}>
+        <main className={layoutStyles.mainContent}>
           <header className={styles.headerRow}>
             <div className={styles.breadcrumb}>
               <span>Profile</span>
@@ -51,7 +52,7 @@ export default function ClinicProfile() {
             <h2 className={styles.title}>My Profile</h2>
           </header>
 
-          <div className={styles.profileCard}>
+          <div className={`${styles.profileCard} ${layoutStyles.vcCard}`}>
             <div className={styles.profileHeader}>
               <div className={styles.avatarSection}>
                 <div className={styles.avatarLarge}>

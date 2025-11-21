@@ -18,7 +18,7 @@ import InstructionsModal from '../../components/modals/InstructionsModal';
 import SuccessMessage from '../../components/messages/SuccessMessage';
 import styles from '../../styles/Dashboard.module.css';
 import { useCollection } from '../../hooks/useCollection';
-import { where } from 'firebase/firestore';
+import { where, deleteDoc, doc } from 'firebase/firestore';
 import { formatShortDate, formatTime } from '../../utils/dateUtils';
 import { collection, getDocs, query as firestoreQuery } from 'firebase/firestore';
 import { db } from '../../firebase/firebase';
@@ -49,6 +49,10 @@ export default function OwnerDashboard() {
   const [appointmentToCancel, setAppointmentToCancel] = useState(null);
   const [isCancelling, setIsCancelling] = useState(false);
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+  
+  // Delete appointment state
+  const [appointmentToDelete, setAppointmentToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Use custom hook for filtering
   const {
@@ -219,6 +223,24 @@ export default function OwnerDashboard() {
       alert('Failed to submit review. Please try again.');
     } finally {
       setIsSubmittingReview(false);
+    }
+  };
+
+  const handleDeleteClick = (appointment) => setAppointmentToDelete(appointment);
+
+  const handleConfirmDelete = async () => {
+    if (!appointmentToDelete) return;
+    
+    setIsDeleting(true);
+    try {
+      await deleteDoc(doc(db, 'appointments', appointmentToDelete.id));
+      setAppointmentToDelete(null);
+      setSuccessMessage('Appointment deleted successfully');
+    } catch (error) {
+      console.error('Error deleting appointment:', error);
+      alert('Failed to delete appointment. Please try again.');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -421,6 +443,7 @@ export default function OwnerDashboard() {
                     hasReview={appointment.hasReview}
                     onClick={() => handleCardClick(appointment)}
                     onCancelClick={() => handleCancelClick(appointment)}
+                    onDeleteClick={appointment.status === 'rejected' ? () => handleDeleteClick(appointment) : undefined}
                     onRateClick={appointment.status === 'completed' && !appointment.hasReview ? () => {
                       setSelected(appointment);
                       setViewState(VIEW_STATES.RATING_FORM);
@@ -476,6 +499,81 @@ export default function OwnerDashboard() {
           onCancel={() => setAppointmentToCancel(null)}
           isLoading={isCancelling}
         />
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      {appointmentToDelete && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999,
+          padding: '16px'
+        }}
+        onClick={() => !isDeleting && setAppointmentToDelete(null)}>
+          <div style={{
+            background: 'white',
+            borderRadius: '12px',
+            padding: '24px',
+            maxWidth: '460px',
+            width: '100%',
+            boxShadow: '0 10px 30px rgba(0, 0, 0, 0.2)'
+          }}
+          onClick={(e) => e.stopPropagation()}>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '12px', color: '#1e293b' }}>
+              Delete Rejected Appointment
+            </h3>
+            
+            <p style={{ fontSize: '0.875rem', color: '#64748b', marginBottom: '20px', lineHeight: '1.5' }}>
+              Are you sure you want to permanently delete this rejected appointment for <strong>{getPetName(appointmentToDelete.petId)}</strong> at <strong>{getClinicName(appointmentToDelete.clinicId)}</strong>? This action cannot be undone.
+            </p>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+              <button
+                onClick={() => !isDeleting && setAppointmentToDelete(null)}
+                disabled={isDeleting}
+                style={{
+                  padding: '10px 20px',
+                  background: '#f3f4f6',
+                  color: '#374151',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  cursor: isDeleting ? 'not-allowed' : 'pointer',
+                  opacity: isDeleting ? 0.5 : 1
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleConfirmDelete}
+                disabled={isDeleting}
+                style={{
+                  padding: '10px 24px',
+                  background: isDeleting ? '#9ca3af' : '#dc2626',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontSize: '0.875rem',
+                  fontWeight: 700,
+                  cursor: isDeleting ? 'not-allowed' : 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}
+              >
+                {isDeleting ? 'Deleting...' : 'Delete Appointment'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

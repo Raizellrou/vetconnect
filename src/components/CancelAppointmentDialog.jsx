@@ -22,16 +22,16 @@ export default function CancelAppointmentDialog({
     <div className={styles.overlay} onClick={!isLoading ? onCancel : undefined}>
       <div className={styles.dialog} onClick={(e) => e.stopPropagation()}>
         <div style={{
-          width: '64px',
-          height: '64px',
+          width: '56px',
+          height: '56px',
           background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
-          borderRadius: '16px',
+          borderRadius: '12px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          margin: '0 auto 20px'
+          margin: '0 auto 16px'
         }}>
-          <XCircle size={32} color="#f59e0b" />
+          <XCircle size={28} color="#f59e0b" strokeWidth={2.5} />
         </div>
 
         <h2 className={styles.title}>{title}</h2>

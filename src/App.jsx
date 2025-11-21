@@ -20,7 +20,6 @@ import ClinicEditProfile from "./pages/ClinicOwner/ClinicEditProfile";
 import MapPage from "./pages/PetOwnerDashBoard/MapPage";
 import SavedClinicsList from "./pages/PetOwnerDashBoard/SavedClinicsList";
 import ClinicDetails from "./pages/PetOwnerDashBoard/ClinicDetails";
-import Files from "./pages/PetOwnerDashBoard/Files"; // ADD THIS LINE
 import Profile from "./pages/PetOwnerDashBoard/Profile";
 import EditProfile from "./pages/PetOwnerDashBoard/EditProfile";
 import Settings from "./pages/PetOwnerDashBoard/Settings";
@@ -95,15 +94,6 @@ export default function App() {
           element={
             <RoleProtectedRoute allowedRoles={["petOwner"]}>
               <ClinicDetails />
-            </RoleProtectedRoute>
-          }
-        />
-        {/* ADD THIS ROUTE FOR FILES */}
-        <Route
-          path="/files"
-          element={
-            <RoleProtectedRoute allowedRoles={["petOwner"]}>
-              <Files />
             </RoleProtectedRoute>
           }
         />

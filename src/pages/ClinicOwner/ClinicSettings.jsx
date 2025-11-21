@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import TopBar from '../../components/layout/TopBar';
 import ClinicSidebar from '../../components/layout/ClinicSidebar';
+import layoutStyles from '../../styles/ClinicDashboard.module.css';
 import { useAuth } from '../../contexts/AuthContext';
 import { Settings as SettingsIcon, Clock, Phone, MapPin, Bell, Shield, Globe, HelpCircle, Mail } from 'lucide-react';
 import styles from '../../styles/Settings.module.css';
@@ -42,12 +43,12 @@ export default function ClinicSettings() {
   };
 
   return (
-    <div className={styles.pageRoot}>
+    <div className={layoutStyles.dashboard}>
       <ClinicSidebar />
-      <div className={styles.mainWrapper}>
+      <div className={layoutStyles.mainWrapper}>
         <TopBar username={displayName} />
         
-        <main className={styles.content}>
+        <main className={layoutStyles.mainContent}>
           <header className={styles.headerRow}>
             <div className={styles.breadcrumb}>
               <span>Settings</span>

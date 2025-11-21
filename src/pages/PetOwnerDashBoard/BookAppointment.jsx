@@ -230,10 +230,10 @@ export default function BookAppointment() {
         <Sidebar />
         <div style={{ flex: 1, marginLeft: '240px' }}>
           <TopBar username={displayName} />
-          <div style={{ padding: '40px', textAlign: 'center', background: 'linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%)', minHeight: 'calc(100vh - 64px)' }}>
-            <AlertCircle size={64} color="#ef4444" style={{ margin: '0 auto 24px' }} />
-            <h2 style={{ fontSize: '2rem', fontWeight: 700, marginBottom: '12px' }}>Clinic Not Found</h2>
-            <p style={{ color: '#6b7280', marginBottom: '24px' }}>Please select a clinic from the map or your saved clinics.</p>
+          <div style={{ padding: '88px 24px 24px 24px', textAlign: 'center', background: 'linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%)', minHeight: 'calc(100vh - 64px)' }}>
+            <AlertCircle size={48} color="#ef4444" style={{ margin: '0 auto 20px' }} strokeWidth={2.5} />
+            <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '12px' }}>Clinic Not Found</h2>
+            <p style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '20px' }}>Please select a clinic from the map or your saved clinics.</p>
             <button 
               onClick={() => navigate('/map')} 
               style={{ padding: '14px 32px', background: 'linear-gradient(135deg, #818cf8 0%, #6366f1 100%)', color: 'white', border: 'none', borderRadius: '12px', fontSize: '1rem', fontWeight: 700, cursor: 'pointer' }}
@@ -252,17 +252,17 @@ export default function BookAppointment() {
       <div style={{ flex: 1, marginLeft: '240px' }}>
         <TopBar username={displayName} />
         
-        <div style={{ minHeight: 'calc(100vh - 64px)', background: 'linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%)', padding: '100px 20px 40px 20px' }}>
-          <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+        <div style={{ minHeight: 'calc(100vh - 64px)', background: 'linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%)', padding: '88px 24px 24px 24px' }}>
+          <div style={{ maxWidth: '700px', margin: '0 auto' }}>
             {/* Clinic Info Banner with Close Button */}
-            <div style={{ background: 'white', borderRadius: '16px', padding: '20px 24px', marginBottom: '24px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)', border: '2px solid #e0e7ff', position: 'relative' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', paddingRight: '48px' }}>
-                <div style={{ width: '48px', height: '48px', background: 'linear-gradient(135deg, #818cf8 0%, #a78bfa 100%)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <MapPin size={24} color="white" />
+            <div style={{ background: 'white', borderRadius: '12px', padding: '16px 20px', marginBottom: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', border: '1px solid #e0e7ff', position: 'relative' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', paddingRight: '44px' }}>
+                <div style={{ width: '40px', height: '40px', background: 'linear-gradient(135deg, #818cf8 0%, #a78bfa 100%)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <MapPin size={20} color="white" />
                 </div>
                 <div style={{ flex: 1 }}>
-                  <p style={{ margin: 0, fontSize: '0.875rem', color: '#6b7280', fontWeight: 600 }}>Booking appointment at</p>
-                  <h3 style={{ margin: '4px 0 0 0', fontSize: '1.25rem', fontWeight: 700, color: '#1f2937' }}>{clinic.clinicName || clinic.name}</h3>
+                  <p style={{ margin: 0, fontSize: '0.8125rem', color: '#6b7280', fontWeight: 600 }}>Booking appointment at</p>
+                  <h3 style={{ margin: '2px 0 0 0', fontSize: '1.125rem', fontWeight: 700, color: '#1f2937' }}>{clinic.clinicName || clinic.name}</h3>
                 </div>
               </div>
               
@@ -271,11 +271,11 @@ export default function BookAppointment() {
                 onClick={handleCancel}
                 style={{
                   position: 'absolute',
-                  right: '20px',
+                  right: '16px',
                   top: '50%',
                   transform: 'translateY(-50%)',
-                  width: '36px',
-                  height: '36px',
+                  width: '32px',
+                  height: '32px',
                   background: 'white',
                   border: '2px solid #e5e7eb',
                   borderRadius: '8px',
@@ -294,61 +294,61 @@ export default function BookAppointment() {
                   e.currentTarget.style.borderColor = '#e5e7eb';
                 }}
               >
-                <X size={20} color="#6b7280" strokeWidth={2.5} />
+                <X size={18} color="#6b7280" strokeWidth={2.5} />
               </button>
             </div>
 
             {/* Header */}
-            <div style={{ background: 'white', borderRadius: '20px', padding: '32px', marginBottom: '24px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                <div style={{ width: '72px', height: '72px', background: 'linear-gradient(135deg, #818cf8 0%, #a78bfa 100%)', borderRadius: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Calendar size={36} color="white" />
+            <div style={{ background: 'white', borderRadius: '12px', padding: '20px', marginBottom: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{ width: '52px', height: '52px', background: 'linear-gradient(135deg, #818cf8 0%, #a78bfa 100%)', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Calendar size={28} color="white" />
                 </div>
                 <div>
-                  <h1 style={{ fontSize: '2rem', fontWeight: 700, color: '#1f2937', margin: 0 }}>Book Appointment</h1>
-                  <p style={{ fontSize: '1.125rem', color: '#6b7280', marginTop: 4 }}>Schedule a visit for your pet</p>
+                  <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1f2937', margin: '0 0 6px 0' }}>Book Appointment</h1>
+                  <p style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: 2 }}>Schedule a visit for your pet</p>
                 </div>
               </div>
             </div>
 
             {/* Success Message */}
             {submitSuccess && (
-              <div style={{ background: 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)', padding: '20px 24px', borderRadius: '14px', border: '2px solid #6ee7b7', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <CheckCircle size={24} color="#059669" />
+              <div style={{ background: 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)', padding: '14px 16px', borderRadius: '10px', border: '1px solid #6ee7b7', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <CheckCircle size={20} color="#059669" />
                 <div>
-                  <p style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: '#065f46' }}>Appointment Booked Successfully!</p>
-                  <p style={{ margin: '4px 0 0 0', fontSize: '0.875rem', color: '#047857' }}>Redirecting to dashboard...</p>
+                  <p style={{ margin: 0, fontSize: '0.875rem', fontWeight: 700, color: '#065f46' }}>Appointment Booked Successfully!</p>
+                  <p style={{ margin: '2px 0 0 0', fontSize: '0.8125rem', color: '#047857' }}>Redirecting to dashboard...</p>
                 </div>
               </div>
             )}
 
             {/* Error Message */}
             {submitError && (
-              <div style={{ background: 'linear-gradient(135deg, #fee2e2 0%, #fecaca 100%)', padding: '20px 24px', borderRadius: '14px', border: '2px solid #f87171', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <AlertCircle size={24} color="#dc2626" />
+              <div style={{ background: 'linear-gradient(135deg, #fee2e2 0%, #fecaca 100%)', padding: '14px 16px', borderRadius: '10px', border: '1px solid #f87171', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <AlertCircle size={20} color="#dc2626" />
                 <div>
-                  <p style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: '#991b1b' }}>Booking Failed</p>
-                  <p style={{ margin: '4px 0 0 0', fontSize: '0.875rem', color: '#b91c1c' }}>{submitError}</p>
+                  <p style={{ margin: 0, fontSize: '0.875rem', fontWeight: 700, color: '#991b1b' }}>Booking Failed</p>
+                  <p style={{ margin: '2px 0 0 0', fontSize: '0.8125rem', color: '#b91c1c' }}>{submitError}</p>
                 </div>
               </div>
             )}
 
             {/* Form */}
-            <div style={{ background: 'white', borderRadius: '20px', padding: '48px', boxShadow: '0 4px 20px rgba(0,0,0,0.08)' }}>
+            <div style={{ background: 'white', borderRadius: '12px', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
               <form onSubmit={handleSubmit}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                   {/* Pet Selection */}
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.9375rem', fontWeight: 700, color: '#374151', marginBottom: '12px' }}>
+                    <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 700, color: '#374151', marginBottom: '8px' }}>
                       Select Pet <span style={{ color: '#ef4444' }}>*</span>
                     </label>
                     {pets.length === 0 ? (
-                      <div style={{ padding: '20px', background: '#fef3c7', borderRadius: '12px', border: '2px solid #fbbf24', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <PawPrint size={24} color="#f59e0b" />
+                      <div style={{ padding: '14px 16px', background: '#fef3c7', borderRadius: '10px', border: '1px solid #fbbf24', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <PawPrint size={20} color="#f59e0b" />
                         <div>
-                          <p style={{ margin: 0, fontWeight: 600, color: '#92400e' }}>No pets found</p>
-                          <p style={{ margin: '4px 0 0 0', fontSize: '0.875rem', color: '#78350f' }}>
-                            Please add a pet first in the{' '}
+                          <p style={{ margin: 0, fontWeight: 600, fontSize: '0.875rem', color: '#92400e' }}>No pets found</p>
+                          <p style={{ margin: '2px 0 0 0', fontSize: '0.8125rem', color: '#78350f' }}>
+                            Add a pet from the{' '}
                             <button
                               type="button"
                               onClick={() => navigate('/pets')}
@@ -366,26 +366,26 @@ export default function BookAppointment() {
                           value={formData.petId}
                           onChange={handleChange}
                           disabled={isSubmitting}
-                          style={{ width: '100%', padding: '18px 20px', border: `2px solid ${errors.petId ? '#ef4444' : '#e5e7eb'}`, borderRadius: '14px', fontSize: '1.0625rem', cursor: 'pointer' }}
+                          style={{ width: '100%', padding: '12px 14px', border: `1px solid ${errors.petId ? '#ef4444' : '#e5e7eb'}`, borderRadius: '10px', fontSize: '0.9375rem', cursor: 'pointer' }}
                         >
                           <option value="">Choose a pet...</option>
                           {pets.map(pet => (
                             <option key={pet.id} value={pet.id}>{pet.name} ({pet.species})</option>
                           ))}
                         </select>
-                        {errors.petId && <p style={{ color: '#ef4444', marginTop: '10px', fontSize: '0.875rem' }}>{errors.petId}</p>}
+                        {errors.petId && <p style={{ color: '#ef4444', marginTop: '6px', fontSize: '0.8125rem' }}>{errors.petId}</p>}
                       </>
                     )}
                   </div>
 
                   {/* Date and Time */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                     <div>
-                      <label style={{ display: 'block', fontSize: '0.9375rem', fontWeight: 700, color: '#374151', marginBottom: '12px' }}>
+                      <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 700, color: '#374151', marginBottom: '8px' }}>
                         Date <span style={{ color: '#ef4444' }}>*</span>
                       </label>
                       <div style={{ position: 'relative' }}>
-                        <Calendar size={20} style={{ position: 'absolute', left: '20px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af', pointerEvents: 'none' }} />
+                        <Calendar size={18} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af', pointerEvents: 'none' }} />
                         <input
                           type="date"
                           name="date"
@@ -393,34 +393,34 @@ export default function BookAppointment() {
                           onChange={handleChange}
                           min={minDate}
                           disabled={isSubmitting}
-                          style={{ width: '100%', padding: '18px 20px 18px 52px', border: `2px solid ${errors.date ? '#ef4444' : '#e5e7eb'}`, borderRadius: '14px', fontSize: '1.0625rem' }}
+                          style={{ width: '100%', padding: '12px 14px 12px 42px', border: `1px solid ${errors.date ? '#ef4444' : '#e5e7eb'}`, borderRadius: '8px', fontSize: '0.9375rem' }}
                         />
                       </div>
-                      {errors.date && <p style={{ color: '#ef4444', marginTop: '10px', fontSize: '0.875rem' }}>{errors.date}</p>}
+                      {errors.date && <p style={{ color: '#ef4444', marginTop: '6px', fontSize: '0.8125rem' }}>{errors.date}</p>}
                     </div>
 
                     <div>
-                      <label style={{ display: 'block', fontSize: '0.9375rem', fontWeight: 700, color: '#374151', marginBottom: '12px' }}>
+                      <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 700, color: '#374151', marginBottom: '8px' }}>
                         Time <span style={{ color: '#ef4444' }}>*</span>
                       </label>
                       <div style={{ position: 'relative' }}>
-                        <Clock size={20} style={{ position: 'absolute', left: '20px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af', pointerEvents: 'none' }} />
+                        <Clock size={18} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af', pointerEvents: 'none' }} />
                         <input
                           type="time"
                           name="time"
                           value={formData.time}
                           onChange={handleChange}
                           disabled={isSubmitting}
-                          style={{ width: '100%', padding: '18px 20px 18px 52px', border: `2px solid ${errors.time ? '#ef4444' : '#e5e7eb'}`, borderRadius: '14px', fontSize: '1.0625rem' }}
+                          style={{ width: '100%', padding: '12px 14px 12px 42px', border: `1px solid ${errors.time ? '#ef4444' : '#e5e7eb'}`, borderRadius: '8px', fontSize: '0.9375rem' }}
                         />
                       </div>
-                      {errors.time && <p style={{ color: '#ef4444', marginTop: '10px', fontSize: '0.875rem' }}>{errors.time}</p>}
+                      {errors.time && <p style={{ color: '#ef4444', marginTop: '6px', fontSize: '0.8125rem' }}>{errors.time}</p>}
                     </div>
                   </div>
 
                   {/* Service (Optional) */}
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.9375rem', fontWeight: 700, color: '#374151', marginBottom: '12px' }}>
+                    <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 700, color: '#374151', marginBottom: '8px' }}>
                       Service Type (Optional)
                     </label>
                     <input
@@ -428,74 +428,74 @@ export default function BookAppointment() {
                       name="service"
                       value={formData.service}
                       onChange={handleChange}
-                      placeholder="e.g., Vaccination, Checkup, Surgery"
+                      placeholder="e.g., Vaccination, Checkup"
                       disabled={isSubmitting}
-                      style={{ width: '100%', padding: '18px 20px', border: '2px solid #e5e7eb', borderRadius: '14px', fontSize: '1.0625rem' }}
+                      style={{ width: '100%', padding: '12px 14px', border: '1px solid #e5e7eb', borderRadius: '8px', fontSize: '0.9375rem' }}
                     />
                   </div>
 
                   {/* Reason */}
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.9375rem', fontWeight: 700, color: '#374151', marginBottom: '12px' }}>
+                    <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 700, color: '#374151', marginBottom: '8px' }}>
                       Reason for Visit <span style={{ color: '#ef4444' }}>*</span>
                     </label>
                     <div style={{ position: 'relative' }}>
-                      <FileText size={20} style={{ position: 'absolute', left: '20px', top: '20px', color: '#9ca3af', pointerEvents: 'none' }} />
+                      <FileText size={18} style={{ position: 'absolute', left: '14px', top: '14px', color: '#9ca3af', pointerEvents: 'none' }} />
                       <textarea
                         name="reason"
                         value={formData.reason}
                         onChange={handleChange}
                         rows="3"
-                        placeholder="Describe the reason for this appointment"
+                        placeholder="Describe the reason"
                         disabled={isSubmitting}
-                        style={{ width: '100%', padding: '18px 20px 18px 52px', border: `2px solid ${errors.reason ? '#ef4444' : '#e5e7eb'}`, borderRadius: '14px', fontSize: '1.0625rem', resize: 'vertical' }}
+                        style={{ width: '100%', padding: '12px 14px 12px 42px', border: `1px solid ${errors.reason ? '#ef4444' : '#e5e7eb'}`, borderRadius: '8px', fontSize: '0.9375rem', resize: 'vertical' }}
                       />
                     </div>
-                    {errors.reason && <p style={{ color: '#ef4444', marginTop: '10px', fontSize: '0.875rem' }}>{errors.reason}</p>}
+                    {errors.reason && <p style={{ color: '#ef4444', marginTop: '6px', fontSize: '0.8125rem' }}>{errors.reason}</p>}
                   </div>
 
                   {/* Additional Notes */}
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.9375rem', fontWeight: 700, color: '#374151', marginBottom: '12px' }}>
+                    <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 700, color: '#374151', marginBottom: '8px' }}>
                       Additional Notes (Optional)
                     </label>
                     <textarea
                       name="notes"
                       value={formData.notes}
                       onChange={handleChange}
-                      rows="4"
-                      placeholder="Any additional information the vet should know..."
+                      rows="3"
+                      placeholder="Any additional information..."
                       disabled={isSubmitting}
-                      style={{ width: '100%', padding: '18px 20px', border: '2px solid #e5e7eb', borderRadius: '14px', fontSize: '1.0625rem', resize: 'vertical' }}
+                      style={{ width: '100%', padding: '12px 14px', border: '1px solid #e5e7eb', borderRadius: '8px', fontSize: '0.9375rem', resize: 'vertical' }}
                     />
                   </div>
                 </div>
 
                 {/* Action Buttons */}
-                <div style={{ marginTop: '32px', display: 'flex', gap: '16px', justifyContent: 'flex-end' }}>
+                <div style={{ marginTop: '20px', display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
                   <button
                     type="button"
                     onClick={handleCancel}
                     disabled={isSubmitting}
-                    style={{ padding: '16px 32px', background: 'white', border: '2px solid #e5e7eb', borderRadius: '14px', fontSize: '1rem', fontWeight: 600, color: '#6b7280', cursor: isSubmitting ? 'not-allowed' : 'pointer', opacity: isSubmitting ? 0.5 : 1 }}
+                    style={{ padding: '11px 24px', background: 'white', border: '1px solid #e5e7eb', borderRadius: '8px', fontSize: '0.9375rem', fontWeight: 600, color: '#6b7280', cursor: isSubmitting ? 'not-allowed' : 'pointer', opacity: isSubmitting ? 0.5 : 1 }}
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={isSubmitting || pets.length === 0}
-                    style={{ padding: '16px 40px', background: isSubmitting ? '#9ca3af' : 'linear-gradient(135deg, #10b981 0%, #059669 100%)', color: 'white', border: 'none', borderRadius: '14px', fontSize: '1rem', fontWeight: 700, cursor: (isSubmitting || pets.length === 0) ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '10px', boxShadow: isSubmitting ? 'none' : '0 4px 16px rgba(16, 185, 129, 0.4)' }}
+                    style={{ padding: '11px 28px', background: isSubmitting ? '#9ca3af' : 'linear-gradient(135deg, #10b981 0%, #059669 100%)', color: 'white', border: 'none', borderRadius: '8px', fontSize: '0.9375rem', fontWeight: 700, cursor: (isSubmitting || pets.length === 0) ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: isSubmitting ? 'none' : '0 4px 12px rgba(16, 185, 129, 0.35)' }}
                   >
                     {isSubmitting ? (
                       <>
-                        <div style={{ width: '20px', height: '20px' }}>
+                        <div style={{ width: '18px', height: '18px' }}>
                           <LoadingSpinner size="small" />
                         </div>
                         Booking...
                       </>
                     ) : (
                       <>
-                        <CheckCircle size={20} />
+                        <CheckCircle size={18} />
                         Book Appointment
                       </>
                     )}

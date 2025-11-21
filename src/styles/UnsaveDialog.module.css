@@ -16,20 +16,20 @@
   border-radius: 12px;
   padding: 20px;
   width: 100%;
-  max-width: 360px;
-  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+  max-width: 380px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15), 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .title {
   font-size: 1.125rem;
-  font-weight: 600;
+  font-weight: 700;
   margin: 0 0 8px 0;
   color: #111827;
 }
 
 .message {
-  color: #374151;
-  margin: 0 0 16px 0;
+  color: #64748b;
+  margin: 0 0 14px 0;
   line-height: 1.5;
   font-size: 0.875rem;
 }
@@ -41,12 +41,12 @@
 }
 
 .button {
-  padding: 8px 20px;
-  border-radius: 6px;
-  font-size: 0.8125rem;
-  font-weight: 500;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.2s ease;
 }
 
 .cancel {

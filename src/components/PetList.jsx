@@ -1,41 +1,23 @@
 import React from "react";
+import PetCard from "./PetCard";
 
-export default function PetList({ pets, onEdit, onViewRecords }) {
+export default function PetList({ pets, onEdit, onViewRecords, userId }) {
   return (
     <div>
-      <h2 className="text-xl font-semibold mb-2">My Pets</h2>
+      <h2 className="text-xl font-semibold mb-4">My Pets</h2>
       {pets.length === 0 ? (
-        <p>No pets added yet.</p>
+        <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>No pets added yet.</p>
       ) : (
-        <ul>
+        <div>
           {pets.map((pet) => (
-            <li
+            <PetCard
               key={pet.id}
-              className="border p-3 rounded mb-2 flex justify-between items-center"
-            >
-              <div>
-                <p className="font-semibold">{pet.pet_name}</p>
-                <p className="text-sm text-gray-600">
-                  {pet.species} • {pet.breed || "N/A"} • {pet.gender}
-                </p>
-              </div>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => onViewRecords(pet.id)}
-                  className="bg-green-500 text-white px-3 py-1 rounded"
-                >
-                  View Records
-                </button>
-                <button
-                  onClick={() => onEdit(pet)}
-                  className="bg-blue-500 text-white px-3 py-1 rounded"
-                >
-                  Edit
-                </button>
-              </div>
-            </li>
+              pet={pet}
+              userId={userId}
+              onEdit={onEdit}
+            />
           ))}
-        </ul>
+        </div>
       )}
     </div>
   );

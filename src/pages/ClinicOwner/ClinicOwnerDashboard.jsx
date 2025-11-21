@@ -118,34 +118,12 @@ export default function ClinicOwnerDashboard() {
 
           {/* Register Clinic Button - Only shows when no clinics registered */}
           {clinics.length === 0 && (
-            <div style={{ marginTop: '32px', marginBottom: '32px' }}>
+            <div className={styles.sectionSpacing}>
               <button
                 onClick={() => navigate('/clinic/management')}
-                style={{
-                  padding: '12px 24px',
-                  background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '10px',
-                  fontSize: '0.9375rem',
-                  fontWeight: '700',
-                  cursor: 'pointer',
-                  boxShadow: '0 2px 8px rgba(59, 130, 246, 0.3)',
-                  transition: 'all 0.2s ease',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '8px'
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(59, 130, 246, 0.4)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(59, 130, 246, 0.3)';
-                }}
+                className={styles.vcPrimaryAction}
               >
-                <Building2 size={20} strokeWidth={2.5} />
+                <Building2 size={18} strokeWidth={2.5} />
                 <span>Register Your First Clinic</span>
               </button>
             </div>
@@ -155,7 +133,7 @@ export default function ClinicOwnerDashboard() {
           <div className={styles.quickStats}>
             <div className={styles.statCard}>
               <div className={styles.statIcon} style={{ background: '#eef2ff' }}>
-                <Calendar size={24} color="#818cf8" />
+                <Calendar size={20} color="#818cf8" strokeWidth={2.5} />
               </div>
               <div className={styles.statInfo}>
                 <p className={styles.statLabel}>Today's Appointments</p>
@@ -164,7 +142,7 @@ export default function ClinicOwnerDashboard() {
             </div>
             <div className={styles.statCard}>
               <div className={styles.statIcon} style={{ background: '#dcfce7' }}>
-                <Users size={24} color="#22c55e" />
+                <Users size={20} color="#22c55e" strokeWidth={2.5} />
               </div>
               <div className={styles.statInfo}>
                 <p className={styles.statLabel}>Active Clients</p>
@@ -173,7 +151,7 @@ export default function ClinicOwnerDashboard() {
             </div>
             <div className={styles.statCard}>
               <div className={styles.statIcon} style={{ background: '#fff7ed' }}>
-                <ClipboardList size={24} color="#f97316" />
+                <ClipboardList size={20} color="#f97316" strokeWidth={2.5} />
               </div>
               <div className={styles.statInfo}>
                 <p className={styles.statLabel}>Pending Requests</p>
@@ -196,7 +174,7 @@ export default function ClinicOwnerDashboard() {
                     className={styles.sectionIcon}
                     style={{ background: `${section.color}15` }}
                   >
-                    <IconComponent size={28} color={section.color} />
+                    <IconComponent size={22} color={section.color} strokeWidth={2.5} />
                   </div>
                   <div className={styles.sectionContent}>
                     <h3 className={styles.sectionTitle}>{section.title}</h3>
@@ -223,7 +201,7 @@ export default function ClinicOwnerDashboard() {
                 onClick={() => setShowTutorial(false)}
                 aria-label="Close"
               >
-                <X size={24} />
+                <X size={20} strokeWidth={2.5} />
               </button>
             </div>
 

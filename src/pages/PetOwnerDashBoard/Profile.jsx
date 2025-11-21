@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, Mail, Phone, MapPin, Edit, PawPrint, Plus, Loader, AlertCircle } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Edit, PawPrint, Loader, AlertCircle } from 'lucide-react';
 import TopBar from '../../components/layout/TopBar';
 import Sidebar from '../../components/layout/Sidebar';
-import AddPetModal from '../../components/AddPetModal';
 import { useAuth } from '../../contexts/AuthContext';
 import { useCollection } from '../../hooks/useCollection';
 import styles from '../../styles/Profile.module.css';
@@ -11,7 +10,6 @@ import styles from '../../styles/Profile.module.css';
 export default function Profile() {
   const { userData, currentUser } = useAuth();
   const navigate = useNavigate();
-  const [showAddPetModal, setShowAddPetModal] = useState(false);
 
   const displayName = userData?.fullName || userData?.displayName || userData?.email;
 
@@ -120,20 +118,13 @@ export default function Profile() {
             </div>
           </div>
 
-          {/* Pets Section */}
+          {/* Pets Section - Read Only */}
           <div className={styles.petsSection}>
             <div className={styles.sectionHeader}>
               <h3 className={styles.sectionTitle}>
                 <PawPrint size={24} />
                 My Pets
               </h3>
-              <button 
-                onClick={() => setShowAddPetModal(true)}
-                className={styles.addPetBtn}
-              >
-                <Plus size={18} />
-                Add Pet
-              </button>
             </div>
 
             {/* Loading State */}
@@ -154,9 +145,9 @@ export default function Profile() {
             {/* Error State */}
             {petsError && (
               <div style={{
-                padding: '32px 24px',
+                padding: '20px',
                 background: 'linear-gradient(135deg, #fee2e2 0%, #fecaca 100%)',
-                border: '2px solid #f87171',
+                border: '1px solid #f87171',
                 borderRadius: '12px',
                 textAlign: 'center'
               }}>
@@ -174,40 +165,25 @@ export default function Profile() {
                   <PawPrint size={48} />
                 </div>
                 <h4 className={styles.emptyTitle}>No pets added yet</h4>
-                <p className={styles.emptyText}>Add your first pet to get started with VetConnect</p>
-                <button 
-                  onClick={() => setShowAddPetModal(true)}
-                  className={styles.emptyActionBtn}
-                >
-                  <Plus size={20} />
-                  Add Your First Pet
-                </button>
+                <p className={styles.emptyText}>Add pets from the Pets page in the sidebar</p>
               </div>
             )}
 
-            {/* Pets Grid */}
+            {/* Pets List - Read Only Display */}
             {!petsLoading && !petsError && pets.length > 0 && (
               <div className={styles.petsGrid}>
                 {pets.map((pet) => (
-                  <div key={pet.id} className={styles.petCard}>
-                    <div className={styles.petAvatar}>
-                      {pet.avatarURL ? (
-                        <img src={pet.avatarURL} alt={pet.name} />
-                      ) : (
-                        <PawPrint size={32} />
-                      )}
+                  <div key={pet.id} className={styles.petCardReadOnly}>
+                    <div className={styles.petAvatarReadOnly}>
+                      <PawPrint size={32} color="#818cf8" />
                     </div>
-                    <div className={styles.petInfo}>
-                      <h4 className={styles.petName}>{pet.name}</h4>
-                      <p className={styles.petSpecies}>{pet.species} {pet.breed && `• ${pet.breed}`}</p>
-                      {pet.dob && (
-                        <p className={styles.petDetail}>Born: {formatDate(pet.dob)}</p>
-                      )}
+                    <div className={styles.petInfoReadOnly}>
+                      <h4 className={styles.petNameReadOnly}>{pet.name}</h4>
+                      <p className={styles.petSpeciesReadOnly}>
+                        {pet.species} {pet.breed && `• ${pet.breed}`}
+                      </p>
                       {pet.gender && (
-                        <p className={styles.petDetail}>Gender: {pet.gender}</p>
-                      )}
-                      {pet.weightKg && (
-                        <p className={styles.petDetail}>Weight: {pet.weightKg} kg</p>
+                        <p className={styles.petDetailReadOnly}>Gender: {pet.gender}</p>
                       )}
                     </div>
                   </div>
@@ -217,12 +193,6 @@ export default function Profile() {
           </div>
         </main>
       </div>
-
-      {/* Add Pet Modal */}
-      <AddPetModal 
-        open={showAddPetModal} 
-        onClose={() => setShowAddPetModal(false)} 
-      />
     </div>
   );
 }

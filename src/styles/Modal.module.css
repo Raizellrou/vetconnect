@@ -27,10 +27,10 @@
 /* Modal Content */
 .modalContent {
   background: white;
-  border-radius: var(--vc-border-radius);
+  border-radius: 12px;
   width: 100%;
-  max-width: 440px;
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25), 0 10px 20px rgba(0, 0, 0, 0.15);
+  max-width: 400px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2), 0 8px 16px rgba(0, 0, 0, 0.12);
   animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
@@ -72,14 +72,14 @@
 
 /* Modal Icon Section */
 .modalIcon {
-  padding: 40px 32px 24px;
+  padding: 32px 24px 20px;
   display: flex;
   justify-content: center;
 }
 
 .successIconWrapper {
-  width: 80px;
-  height: 80px;
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
   background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
   display: flex;
@@ -94,8 +94,8 @@
 }
 
 .warningIconWrapper {
-  width: 80px;
-  height: 80px;
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
   background: linear-gradient(135deg, #fff7ed 0%, #fed7aa 100%);
   display: flex;
@@ -110,8 +110,8 @@
 }
 
 .downloadIconWrapper {
-  width: 80px;
-  height: 80px;
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
   background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
   display: flex;
@@ -138,46 +138,46 @@
 
 /* Modal Body */
 .modalBody {
-  padding: 0 32px 32px;
+  padding: 0 24px 24px;
   text-align: center;
 }
 
 .modalTitle {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 700;
   color: var(--vc-text-dark);
-  margin: 0 0 12px 0;
-  letter-spacing: -0.02em;
+  margin: 0 0 10px 0;
+  letter-spacing: -0.01em;
 }
 
 .modalMessage {
-  font-size: 1rem;
+  font-size: 0.875rem;
   color: var(--vc-text-muted);
   margin: 0;
-  line-height: 1.6;
+  line-height: 1.5;
 }
 
 /* Modal Actions */
 .modalActions {
-  padding: 0 32px 32px;
+  padding: 0 24px 24px;
   display: flex;
-  gap: 12px;
+  gap: 10px;
   justify-content: center;
 }
 
 /* Buttons */
 .primaryButton {
-  padding: 12px 32px;
+  padding: 10px 24px;
   background: linear-gradient(135deg, var(--vc-primary) 0%, #a78bfa 100%);
   color: white;
   border: none;
-  border-radius: 10px;
-  font-size: 1rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 4px 12px rgba(129, 140, 248, 0.3);
-  min-width: 120px;
+  min-width: 100px;
 }
 
 .primaryButton:hover {
@@ -191,12 +191,12 @@
 }
 
 .secondaryButton {
-  padding: 12px 24px;
+  padding: 10px 20px;
   background: white;
   color: var(--vc-text-dark);
-  border: 2px solid #e2e8f0;
-  border-radius: 10px;
-  font-size: 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);

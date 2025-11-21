@@ -5,6 +5,7 @@ import { saveClinic, updateClinic } from '../../utils/clinicStorage';
 import { useAuth } from '../../contexts/AuthContext';
 import TopBar from '../../components/layout/TopBar';
 import ClinicSidebar from '../../components/layout/ClinicSidebar';
+import styles from '../../styles/ClinicDashboard.module.css';
 
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
@@ -105,124 +106,29 @@ export default function ClinicRegistration() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editingClinic]);
 
-  // Prevent body scroll when modal is open
-  useEffect(() => {
-    if (isMapOpen || isServiceModalOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'unset';
-    }
-    return () => { document.body.style.overflow = 'unset'; };
-  }, [isMapOpen, isServiceModalOpen]);
 
-  // Close modals on ESC key
-  useEffect(() => {
-    const handleEsc = (e) => {
-      if (e.key === 'Escape') {
-        if (isServiceModalOpen) setIsServiceModalOpen(false);
-        else if (isMapOpen) setIsMapOpen(false);
-        else navigate('/clinic/management');
-      }
-    };
-    window.addEventListener('keydown', handleEsc);
-    return () => window.removeEventListener('keydown', handleEsc);
-  }, [isMapOpen, isServiceModalOpen, navigate]);
-
-  // Set initial map center based on user location (if available)
-  useEffect(() => {
-    if (navigator?.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => setMapCenter([pos.coords.latitude, pos.coords.longitude]),
-        () => {},
-        { timeout: 5000 }
-      );
-    }
-  }, []);
-
-  const validateStep = (step) => {
-    const newErrors = {};
-
-    if (step === 1) {
-      if (!formData.clinicName.trim()) newErrors.clinicName = 'Clinic name is required';
-    }
-    if (step === 2) {
-      if (!formData.address.trim()) newErrors.address = 'Location is required';
-      if (!formData.contactNumber.trim()) newErrors.contactNumber = 'Contact number is required';
-      else if (!/^[0-9\s\-+()]{7,20}$/.test(formData.contactNumber)) newErrors.contactNumber = 'Invalid contact number format';
-    }
-    if (step === 3) {
-      if (!formData.openHours.trim()) newErrors.openHours = 'Open hours are required';
-      if (selectedServices.length === 0) newErrors.services = 'Please select at least one service';
-    }
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleNext = () => {
-    if (validateStep(currentStep)) {
-      setCurrentStep(prev => Math.min(prev + 1, totalSteps));
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  };
-
-  const handlePrevious = () => {
-    setCurrentStep(prev => Math.max(prev - 1, 1));
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    // Clear error for this field
-    if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
-  };
-
-  const handleOpenMap = () => setIsMapOpen(true);
-
-  const handleUseMyLocation = () => {
-    if (!navigator?.geolocation) {
-      alert('Geolocation not available');
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const lat = pos.coords.latitude;
-        const lng = pos.coords.longitude;
-        setSelectedCoords([lat, lng]);
-        setMapCenter([lat, lng]);
-        // Don't close the modal - let user lock the location
-      },
-      (err) => {
-        console.warn('Geolocation error', err);
-        alert('Unable to get current location.');
-      },
-      { timeout: 7000 }
-    );
-  };
-
-  // When user clicks "Pick Location", apply to formData, get address, and close modal
+  // Handle when a user picks a location on the map
   const handleMapSelect = async (coords) => {
-    setSelectedCoords(coords);
-    setFormData(prev => ({ ...prev, coordinates: { latitude: coords[0], longitude: coords[1] } }));
-    
-    // Reverse geocode to get address
+    if (!coords) return;
     try {
       const response = await fetch(
         `https://nominatim.openstreetmap.org/reverse?format=json&lat=${coords[0]}&lon=${coords[1]}`
       );
       const data = await response.json();
-      
-      if (data.display_name) {
-        setFormData(prev => ({ ...prev, address: data.display_name }));
+
+      if (data?.display_name) {
+        setFormData(prev => ({ ...prev, address: data.display_name, coordinates: coords }));
+      } else {
+        setFormData(prev => ({ ...prev, address: coords[0].toFixed(6) + ', ' + coords[1].toFixed(6), coordinates: coords }));
       }
     } catch (error) {
       console.error('Error getting address:', error);
       // If reverse geocoding fails, use coordinates as fallback
-      setFormData(prev => ({ ...prev, address: `${coords[0].toFixed(6)}, ${coords[1].toFixed(6)}` }));
+      setFormData(prev => ({ ...prev, address: coords[0].toFixed(6) + ', ' + coords[1].toFixed(6), coordinates: coords }));
+    } finally {
+      setIsMapOpen(false);
+      if (errors.address) setErrors(prev => ({ ...prev, address: '' }));
     }
-    
-    setIsMapOpen(false);
-    if (errors.address) setErrors(prev => ({ ...prev, address: '' }));
   };
 
   const handleServiceToggle = (service) => {
@@ -359,21 +265,21 @@ export default function ClinicRegistration() {
   })();
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh' }}>
+    <div className={styles.dashboard}>
       <ClinicSidebar />
-      <div style={{ flex: 1, marginLeft: '240px' }}>
+      <div className={styles.mainWrapper}>
         <TopBar username={displayName} />
-        <div style={{ background: 'linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%)', minHeight: 'calc(100vh - 64px)', padding: 'calc(64px + 48px) 32px 48px 32px' }}>
-          <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+        <div className={styles.mainContent}>
+          <div className={styles.formContainer}>
             {/* Progress Header */}
-            <div style={{ background: 'white', borderRadius: '16px', padding: '28px 32px', marginBottom: '28px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+            <div className={styles.vcCardLarge}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '24px' }}>
                 <div style={{ width: '40px', height: '40px', background: 'linear-gradient(135deg, #818cf8 0%, #a78bfa 100%)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <StepIcon size={20} color="white" />
                 </div>
                 <div style={{ flex: 1 }}>
-                  <h1 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#1f2937', margin: 0 }}>{mode === 'edit' ? 'Edit Clinic' : 'Register New Clinic'}</h1>
-                  <p style={{ fontSize: '0.8125rem', color: '#6b7280', marginTop: 2 }}>Step {currentStep} of {totalSteps}: {StepTitle}</p>
+                  <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1f2937', margin: '0 0 6px 0' }}>{mode === 'edit' ? 'Edit Clinic' : 'Register New Clinic'}</h1>
+                  <p style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: 2 }}>Step {currentStep} of {totalSteps}: {StepTitle}</p>
                 </div>
               </div>
 
@@ -386,7 +292,7 @@ export default function ClinicRegistration() {
             </div>
 
         {/* Form Content */}
-        <div style={{ background: 'white', borderRadius: 16, padding: '40px', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+        <div className={styles.vcCardLarge}>
           <form onSubmit={handleSubmit} id="clinic-form">
             {/* Step 1: Basic Information */}
             {currentStep === 1 && (
@@ -412,53 +318,33 @@ export default function ClinicRegistration() {
 
             {/* Step 2: Location & Contact */}
             {currentStep === 2 && (
-              <div style={{ maxWidth: 600, margin: '0 auto' }}>
-                <div style={{ textAlign: 'center', marginBottom: 24 }}>
-                  <div style={{ width: 60, height: 60, background: 'linear-gradient(135deg,#dbeafe 0%,#bfdbfe 100%)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
-                    <MapPin size={28} color="#3b82f6" />
+              <div className={styles.formContainer}>
+                <div className={`${styles.centerText} ${styles.sectionSpacing}`}>
+                  <div className={styles.iconBadge} style={{ background: 'linear-gradient(135deg,#fef3c7 0%,#fde68a 100%)', margin: '0 auto 12px' }}>
+                    <MapPin size={28} color="#92400e" />
                   </div>
-                  <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#1f2937', marginBottom: 6 }}>Where are you located?</h3>
-                  <p style={{ fontSize: '0.875rem', color: '#6b7280' }}>Help pet owners find and contact you</p>
+                  <h3 className={styles.stepTitle}>Location & contact</h3>
+                  <p className={styles.stepDescription}>Where is your clinic located and how can clients reach you?</p>
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#374151', marginBottom: 8 }}>
-                      Clinic Location <span style={{ color: '#ef4444' }}>*</span>
-                    </label>
-                    <div style={{ display: 'flex', gap: 10 }}>
-                      <input
-                        type="text"
-                        name="address"
-                        value={formData.address}
-                        onChange={handleChange}
-                        placeholder="Enter address or pick on map"
-                        style={{ flex: 1, padding: '12px 16px', border: `2px solid ${errors.address ? '#ef4444' : '#e5e7eb'}`, borderRadius: 10, fontSize: '0.9375rem' }}
-                      />
-                      <button
-                        type="button"
-                        onClick={handleOpenMap}
-                        style={{ padding: '12px 20px', background: 'linear-gradient(135deg,#3b82f6 0%,#2563eb 100%)', color: 'white', borderRadius: 10, display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.875rem', whiteSpace: 'nowrap' }}
-                      >
-                        <MapPin size={18} /> Pick on Map
-                      </button>
+                    <label className={styles.stepTitle}>Clinic Address <span style={{ color: '#ef4444' }}>*</span></label>
+                    <div style={{ position: 'relative' }}>
+                      <MapPin size={18} style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }} />
+                      <input type="text" name="address" value={formData.address} onChange={handleChange} placeholder="Enter clinic address"
+                        className={styles.formInput} style={{ paddingLeft: 44, borderColor: errors.address ? '#ef4444' : undefined }} />
                     </div>
                     {errors.address && <p style={{ color: '#ef4444', marginTop: 10 }}>{errors.address}</p>}
                   </div>
 
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#374151', marginBottom: 8 }}>
-                      Contact Number <span style={{ color: '#ef4444' }}>*</span>
-                    </label>
+                    <label className={styles.stepTitle}>Contact Number <span style={{ color: '#ef4444' }}>*</span></label>
                     <div style={{ position: 'relative' }}>
                       <Phone size={18} style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }} />
-                      <input
-                        type="tel"
-                        name="contactNumber"
-                        value={formData.contactNumber}
-                        onChange={handleChange}
+                      <input type="text" name="contactNumber" value={formData.contactNumber} onChange={handleChange}
                         placeholder="Enter contact number"
-                        style={{ width: '100%', padding: '12px 16px 12px 44px', border: `2px solid ${errors.contactNumber ? '#ef4444' : '#e5e7eb'}`, borderRadius: 10, fontSize: '0.9375rem' }}
+                        className={styles.formInput} style={{ paddingLeft: 44, borderColor: errors.contactNumber ? '#ef4444' : undefined }}
                       />
                     </div>
                     {errors.contactNumber && <p style={{ color: '#ef4444', marginTop: 10 }}>{errors.contactNumber}</p>}
@@ -469,30 +355,31 @@ export default function ClinicRegistration() {
 
             {/* Step 3: Services & Hours */}
             {currentStep === 3 && (
-              <div style={{ maxWidth: 600, margin: '0 auto' }}>
-                <div style={{ textAlign: 'center', marginBottom: 24 }}>
-                  <div style={{ width: 60, height: 60, background: 'linear-gradient(135deg,#fef3c7 0%,#fde68a 100%)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
+              <div className={styles.formContainer}>
+                <div className={`${styles.centerText} ${styles.sectionSpacing}`}>
+                  <div className={styles.iconBadge} style={{ background: 'linear-gradient(135deg,#fef3c7 0%,#fde68a 100%)', margin: '0 auto 12px' }}>
                     <Clock size={28} color="#f59e0b" />
                   </div>
-                  <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: 6 }}>Services and availability</h3>
-                  <p style={{ fontSize: '0.875rem', color: '#6b7280' }}>What services do you offer and when are you open?</p>
+                  <h3 className={styles.stepTitle}>Services and availability</h3>
+                  <p className={styles.stepDescription}>What services do you offer and when are you open?</p>
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: 8 }}>Services Offered <span style={{ color: '#ef4444' }}>*</span></label>
-                    <button type="button" onClick={() => setIsServiceModalOpen(true)} style={{ width: '100%', padding: '14px 16px', borderRadius: 10, border: `2px solid ${errors.services ? '#ef4444' : (selectedServices.length > 0 ? '#818cf8' : '#e5e7eb')}`, textAlign: 'left', fontSize: '0.9375rem' }}>
+                    <label className={styles.stepTitle}>Services Offered <span style={{ color: '#ef4444' }}>*</span></label>
+                    <button type="button" onClick={() => setIsServiceModalOpen(true)} className={styles.formInput}
+                      style={{ textAlign: 'left', borderColor: errors.services ? '#ef4444' : (selectedServices.length > 0 ? '#818cf8' : undefined) }}>
                       {selectedServices.length > 0 ? `${selectedServices.length} selected` : 'Click to select services'}
                     </button>
                     {errors.services && <p style={{ color: '#ef4444', marginTop: 8, fontSize: '0.875rem' }}>{errors.services}</p>}
                   </div>
 
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: 8 }}>Open Hours <span style={{ color: '#ef4444' }}>*</span></label>
+                    <label className={styles.stepTitle}>Open Hours <span style={{ color: '#ef4444' }}>*</span></label>
                     <div style={{ position: 'relative' }}>
                       <Clock size={18} style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }} />
                       <input type="text" name="openHours" value={formData.openHours} onChange={handleChange} placeholder="e.g., Mon-Fri: 8AM-6PM"
-                        style={{ width: '100%', padding: '12px 16px 12px 44px', border: `2px solid ${errors.openHours ? '#ef4444' : '#e5e7eb'}`, borderRadius: 10, fontSize: '0.9375rem' }} />
+                        className={styles.formInput} style={{ paddingLeft: 44, borderColor: errors.openHours ? '#ef4444' : undefined }} />
                     </div>
                     {errors.openHours && <p style={{ color: '#ef4444', marginTop: 8, fontSize: '0.875rem' }}>{errors.openHours}</p>}
                   </div>
@@ -502,40 +389,31 @@ export default function ClinicRegistration() {
 
             {/* Step 4: Additional Details */}
             {currentStep === 4 && (
-              <div style={{ maxWidth: 600, margin: '0 auto' }}>
-                <div style={{ textAlign: 'center', marginBottom: 24 }}>
-                  <div style={{ width: 60, height: 60, background: 'linear-gradient(135deg,#d1fae5 0%,#a7f3d0 100%)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px' }}>
+              <div className={styles.formContainer}>
+                <div className={`${styles.centerText} ${styles.sectionSpacing}`}>
+                  <div className={styles.iconBadge} style={{ background: 'linear-gradient(135deg,#d1fae5 0%,#a7f3d0 100%)', margin: '0 auto 12px' }}>
                     <FileText size={28} color="#10b981" />
                   </div>
-                  <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: 6 }}>Tell us more (Optional)</h3>
-                  <p style={{ fontSize: '0.875rem', color: '#6b7280' }}>Add any additional information about your clinic</p>
+                  <h3 className={styles.stepTitle}>Tell us more (Optional)</h3>
+                  <p className={styles.stepDescription}>Add any additional information about your clinic</p>
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: 8 }}>Brief Description</label>
+                  <label className={styles.stepTitle}>Brief Description</label>
                   <textarea name="description" value={formData.description} onChange={handleChange} rows="8" placeholder="Describe your clinic..."
-                    style={{ width: '100%', padding: '12px 16px', border: '2px solid #e5e7eb', borderRadius: 10, fontSize: '0.9375rem', resize: 'vertical' }} />
+                    className={styles.formTextarea} />
                 </div>
               </div>
             )}
-          </form>
-          
+
           {/* Navigation Footer - Inside Box */}
           <div style={{ marginTop: 40, paddingTop: 28, borderTop: '2px solid #f3f4f6', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <button type="button" onClick={currentStep === 1 ? handleCancel : handlePrevious} style={{ padding: '14px 28px', background: 'white', border: '2px solid #e5e7eb', borderRadius: 10, fontSize: '0.9375rem', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <button type="button" onClick={currentStep === 1 ? handleCancel : handlePrevious} className={styles.vcNeutralBtn}>
               <ArrowLeft size={16} /> {currentStep === 1 ? 'Cancel' : 'Previous'}
             </button>
 
             {currentStep < totalSteps ? (
-              <button type="button" onClick={handleNext} style={{ padding: '14px 36px', background: 'linear-gradient(135deg,#818cf8 0%,#6366f1 100%)', color: 'white', border: 'none', borderRadius: 10, fontSize: '0.9375rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 2px 12px rgba(129, 140, 248, 0.4)', transition: 'all 0.2s' }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-1px)';
-                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(129, 140, 248, 0.5)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(129, 140, 248, 0.4)';
-                }}>
+              <button type="button" onClick={handleNext} className={styles.vcPrimaryAction}>
                 Next Step <ArrowRight size={16} />
               </button>
             ) : (
@@ -545,19 +423,13 @@ export default function ClinicRegistration() {
                   e.preventDefault();
                   handleSubmit(e);
                 }}
-                style={{ padding: '14px 36px', background: 'linear-gradient(135deg,#10b981 0%,#059669 100%)', color: 'white', border: 'none', borderRadius: 10, fontSize: '0.9375rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 2px 12px rgba(16, 185, 129, 0.4)', transition: 'all 0.2s' }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-1px)';
-                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.5)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 2px 8px rgba(16, 185, 129, 0.4)';
-                }}>
+                className={styles.vcSuccessBtn}
+              >
                 <CheckSquare size={16} /> {mode === 'edit' ? 'Update Clinic' : 'Save Clinic'}
               </button>
             )}
           </div>
+          </form>
         </div>
           </div>
         </div>
@@ -676,30 +548,29 @@ export default function ClinicRegistration() {
 
       {/* Service Selection Modal */}
       {isServiceModalOpen && (
-        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
-             onClick={(e) => { if (e.target === e.currentTarget) setIsServiceModalOpen(false); }}>
-          <div style={{ background: 'white', borderRadius: 20, width: '100%', maxWidth: 600, maxHeight: '80vh', display: 'flex', flexDirection: 'column' }}>
-            <div style={{ background: 'linear-gradient(135deg,#818cf8 0%,#a78bfa 100%)', padding: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div className={styles.modalOverlay} onClick={(e) => { if (e.target === e.currentTarget) setIsServiceModalOpen(false); }}>
+          <div className={styles.modalContent} style={{ maxWidth: 600, maxHeight: '80vh', width: '100%', display: 'flex', flexDirection: 'column' }}>
+            <div className={styles.modalHeader} style={{ background: 'linear-gradient(135deg,#818cf8 0%,#a78bfa 100%)', color: 'white' }}>
               <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
                 <div style={{ width: 48, height: 48, background: 'rgba(255,255,255,0.2)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <CheckSquare size={24} color="white" />
                 </div>
                 <div>
-                  <h3 style={{ color: 'white', margin: 0 }}>Select Services</h3>
-                  <p style={{ color: 'rgba(255,255,255,0.9)', margin: 0 }}>Choose the services your clinic offers</p>
+                  <h3 className={styles.modalTitle}>Select Services</h3>
+                  <p className={styles.modalIntro}>Choose the services your clinic offers</p>
                 </div>
               </div>
-              <button onClick={() => setIsServiceModalOpen(false)} style={{ background: 'transparent', border: 'none', color: 'white' }}><X /></button>
+              <button onClick={() => setIsServiceModalOpen(false)} className={styles.modalCloseBtn}><X /></button>
             </div>
 
-            <div style={{ padding: 20, borderBottom: '1px solid #e5e7eb' }}>
+            <div className={styles.modalBody} style={{ padding: 20, borderBottom: '1px solid #e5e7eb' }}>
               <div style={{ position: 'relative' }}>
                 <Search size={20} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }} />
-                <input value={serviceSearch} onChange={(e) => setServiceSearch(e.target.value)} placeholder="Search services..." style={{ width: '100%', padding: '12px 12px 12px 44px', border: '2px solid #e5e7eb', borderRadius: 10 }} />
+                <input value={serviceSearch} onChange={(e) => setServiceSearch(e.target.value)} placeholder="Search services..." className={styles.formInput} style={{ paddingLeft: 44 }} />
               </div>
               <div style={{ marginTop: 12, display: 'flex', gap: 8 }}>
-                <button type="button" onClick={handleSelectAllServices} style={{ padding: '6px 16px', background: '#eef2ff', borderRadius: 6 }}>Select All</button>
-                <button type="button" onClick={handleDeselectAllServices} style={{ padding: '6px 16px', background: '#f3f4f6', borderRadius: 6 }}>Deselect All</button>
+                <button type="button" onClick={handleSelectAllServices} className={styles.vcPrimarySmall}>Select All</button>
+                <button type="button" onClick={handleDeselectAllServices} className={styles.vcNeutralBtn}>Deselect All</button>
                 {selectedServices.length > 0 && <div style={{ marginLeft: 'auto', padding: '6px 12px', background: 'linear-gradient(135deg,#dbeafe 0%,#bfdbfe 100%)', borderRadius: 6 }}>{selectedServices.length} selected</div>}
               </div>
             </div>
@@ -717,8 +588,8 @@ export default function ClinicRegistration() {
             </div>
 
             <div style={{ padding: 16, display: 'flex', justifyContent: 'flex-end', gap: 8, borderTop: '1px solid #e5e7eb' }}>
-              <button onClick={() => { setIsServiceModalOpen(false); setServiceSearch(''); }} style={{ padding: '12px 24px', background: '#f3f4f6', borderRadius: 10 }}>Cancel</button>
-              <button onClick={handleConfirmServices} style={{ padding: '12px 24px', background: 'linear-gradient(135deg,#818cf8 0%,#6366f1 100%)', color: 'white', borderRadius: 10 }}>Confirm Selection</button>
+              <button onClick={() => { setIsServiceModalOpen(false); setServiceSearch(''); }} className={styles.vcNeutralBtn}>Cancel</button>
+              <button onClick={handleConfirmServices} className={styles.vcPrimaryAction}>Confirm Selection</button>
             </div>
           </div>
         </div>

@@ -1,0 +1,193 @@
+/* VetConnect Design System - Consistent spacing, sizing, and styling */
+
+:root {
+  /* === SPACING SYSTEM (8px base unit) === */
+  --vc-space-1: 4px;
+  --vc-space-2: 8px;
+  --vc-space-3: 12px;
+  --vc-space-4: 16px;
+  --vc-space-5: 20px;
+  --vc-space-6: 24px;
+  --vc-space-8: 32px;
+  --vc-space-10: 40px;
+  --vc-space-12: 48px;
+
+  /* === BORDER RADIUS === */
+  --vc-radius-sm: 8px;
+  --vc-radius-md: 10px;
+  --vc-radius-lg: 12px;
+  --vc-radius-xl: 16px;
+
+  /* === FONT SIZES === */
+  --vc-text-xs: 0.75rem;      /* 12px */
+  --vc-text-sm: 0.8125rem;    /* 13px */
+  --vc-text-base: 0.875rem;   /* 14px */
+  --vc-text-md: 0.9375rem;    /* 15px */
+  --vc-text-lg: 1rem;         /* 16px */
+  --vc-text-xl: 1.125rem;     /* 18px */
+  --vc-text-2xl: 1.25rem;     /* 20px */
+  --vc-text-3xl: 1.5rem;      /* 24px */
+  --vc-text-4xl: 1.75rem;     /* 28px */
+
+  /* === ICON SIZES === */
+  --vc-icon-xs: 14px;
+  --vc-icon-sm: 16px;
+  --vc-icon-md: 20px;
+  --vc-icon-lg: 24px;
+  --vc-icon-xl: 32px;
+  --vc-icon-2xl: 40px;
+  --vc-icon-3xl: 48px;
+
+  /* === BUTTON SIZES === */
+  --vc-btn-sm-padding: 8px 16px;
+  --vc-btn-md-padding: 10px 20px;
+  --vc-btn-lg-padding: 12px 24px;
+  --vc-btn-sm-height: 32px;
+  --vc-btn-md-height: 36px;
+  --vc-btn-lg-height: 40px;
+
+  /* === CARD SIZES === */
+  --vc-card-padding-sm: 16px;
+  --vc-card-padding-md: 20px;
+  --vc-card-padding-lg: 24px;
+
+  /* === SHADOWS === */
+  --vc-shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.06);
+  --vc-shadow-md: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --vc-shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --vc-shadow-primary: 0 4px 12px rgba(129, 140, 248, 0.3);
+  --vc-shadow-primary-hover: 0 6px 16px rgba(129, 140, 248, 0.4);
+
+  /* === GRADIENTS === */
+  --vc-gradient-primary: linear-gradient(135deg, #818cf8 0%, #a78bfa 100%);
+  --vc-gradient-card: linear-gradient(135deg, #fafbfc 0%, #f8f9fa 100%);
+  --vc-gradient-bg: linear-gradient(135deg, #f8fafc 0%, #f3f4f6 100%);
+  --vc-gradient-accent: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  --vc-gradient-error: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+
+  /* === ICON BADGE SIZES === */
+  --vc-badge-sm: 36px;
+  --vc-badge-md: 44px;
+  --vc-badge-lg: 52px;
+  --vc-badge-xl: 60px;
+
+  /* === PAGE LAYOUT === */
+  --vc-page-padding: 80px 24px 24px 24px;
+  --vc-page-max-width: 1200px;
+  --vc-section-gap: 20px;
+}
+
+/* === REUSABLE COMPONENT CLASSES === */
+
+.vc-card {
+  background: var(--vc-bg-card);
+  border-radius: var(--vc-radius-lg);
+  padding: var(--vc-card-padding-md);
+  box-shadow: var(--vc-shadow-md);
+  border: 2px solid var(--vc-border);
+}
+
+.vc-card-sm {
+  padding: var(--vc-card-padding-sm);
+  border-radius: var(--vc-radius-md);
+}
+
+.vc-card-lg {
+  padding: var(--vc-card-padding-lg);
+  border-radius: var(--vc-radius-xl);
+}
+
+.vc-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--vc-space-2);
+  padding: var(--vc-btn-md-padding);
+  background: var(--vc-gradient-primary);
+  color: white;
+  border: none;
+  border-radius: var(--vc-radius-md);
+  font-size: var(--vc-text-base);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: var(--vc-shadow-primary);
+}
+
+.vc-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--vc-shadow-primary-hover);
+}
+
+.vc-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--vc-space-2);
+  padding: var(--vc-btn-md-padding);
+  background: white;
+  color: #374151;
+  border: 2px solid #e5e7eb;
+  border-radius: var(--vc-radius-md);
+  font-size: var(--vc-text-base);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.vc-btn-secondary:hover {
+  border-color: var(--vc-primary);
+  color: var(--vc-primary);
+}
+
+.vc-icon-badge {
+  width: var(--vc-badge-md);
+  height: var(--vc-badge-md);
+  background: var(--vc-gradient-primary);
+  border-radius: var(--vc-radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: var(--vc-shadow-primary);
+}
+
+.vc-icon-badge-sm {
+  width: var(--vc-badge-sm);
+  height: var(--vc-badge-sm);
+  border-radius: var(--vc-radius-md);
+}
+
+.vc-icon-badge-lg {
+  width: var(--vc-badge-lg);
+  height: var(--vc-badge-lg);
+  border-radius: var(--vc-radius-lg);
+}
+
+.vc-page-header {
+  background: white;
+  border-radius: var(--vc-radius-lg);
+  padding: var(--vc-card-padding-md);
+  margin-bottom: var(--vc-section-gap);
+  box-shadow: var(--vc-shadow-md);
+  border: 2px solid var(--vc-border);
+}
+
+.vc-section-title {
+  font-size: var(--vc-text-xl);
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 var(--vc-space-4) 0;
+}
+
+.vc-text-muted {
+  color: var(--vc-text-muted);
+  font-size: var(--vc-text-base);
+  line-height: 1.5;
+}
+
+.vc-info-row {
+  display: flex;
+  align-items: center;
+  gap: var(--vc-space-2);
+  font-size: var(--vc-text-base);
+  color: #374151;
+}
