@@ -144,12 +144,12 @@ function SavedClinicsList() {
               <div style={{ 
                 width: '48px', 
                 height: '48px', 
-                background: 'linear-gradient(135deg, #818cf8 0%, #a78bfa 100%)', 
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', 
                 borderRadius: '12px', 
                 display: 'flex', 
                 alignItems: 'center', 
                 justifyContent: 'center',
-                boxShadow: '0 4px 12px rgba(129, 140, 248, 0.25)'
+                boxShadow: '0 4px 12px rgba(102, 126, 234, 0.25)'
               }}>
                 <MapPin size={24} color="white" strokeWidth={2.5} />
               </div>
@@ -269,41 +269,46 @@ function SavedClinicsList() {
             </div>
           )}
 
-          {/* Clinics List */}
+          {/* Clinics Grid */}
           {!bookmarksLoading && !enriching && enrichedClinics.length > 0 && (
             <div style={{ 
               background: 'white', 
-              borderRadius: '12px', 
-              padding: '20px', 
+              borderRadius: 'var(--vc-radius-xl)', 
+              padding: '24px', 
               boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
               border: '1px solid var(--vc-border)'
             }}>
-              <h3 style={{ 
-                margin: '0 0 20px 0', 
-                fontSize: '1.125rem', 
-                fontWeight: 700, 
-                color: '#1f2937',
+              <div style={{
                 display: 'flex',
+                justifyContent: 'space-between',
                 alignItems: 'center',
-                gap: '8px'
+                marginBottom: '24px'
               }}>
-                Your Saved Clinics
+                <h3 style={{ 
+                  margin: 0, 
+                  fontSize: '1.125rem', 
+                  fontWeight: 700, 
+                  color: '#1e293b'
+                }}>
+                  Your Saved Clinics
+                </h3>
                 <span style={{ 
                   background: 'linear-gradient(135deg, #818cf8 0%, #a78bfa 100%)',
                   color: 'white',
-                  padding: '3px 8px',
-                  borderRadius: '6px',
-                  fontSize: '0.75rem',
+                  padding: '6px 14px',
+                  borderRadius: 'var(--vc-radius-sm)',
+                  fontSize: '0.875rem',
                   fontWeight: 700,
                   boxShadow: '0 2px 6px rgba(129, 140, 248, 0.25)'
                 }}>
-                  {enrichedClinics.length}
+                  {enrichedClinics.length} {enrichedClinics.length === 1 ? 'Clinic' : 'Clinics'}
                 </span>
-              </h3>
+              </div>
 
               <div style={{ 
-                display: 'grid', 
-                gap: '12px' 
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+                gap: '20px'
               }}>
                 {enrichedClinics.map((clinic) => (
                   <div
@@ -315,104 +320,126 @@ function SavedClinicsList() {
                       if (e.key === 'Enter') navigate(`/saved/${clinic.id}`);
                     }}
                     style={{
-                      background: 'linear-gradient(135deg, #fafbfc 0%, #f8f9fa 100%)',
-                      border: '1px solid #e5e7eb',
-                      borderRadius: '8px',
-                      padding: '12px',
+                      background: 'white',
+                      border: '1px solid var(--vc-border)',
+                      borderRadius: 'var(--vc-radius-xl)',
+                      padding: '20px',
                       cursor: 'pointer',
                       transition: 'all 0.2s ease',
                       display: 'flex',
-                      alignItems: 'center',
-                      gap: '12px',
-                      position: 'relative'
+                      flexDirection: 'column',
+                      gap: '16px',
+                      position: 'relative',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.04)'
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = 'translateY(-2px)';
-                      e.currentTarget.style.boxShadow = '0 4px 16px rgba(129, 140, 248, 0.12)';
+                      e.currentTarget.style.transform = 'translateY(-4px)';
+                      e.currentTarget.style.boxShadow = '0 8px 24px rgba(129, 140, 248, 0.15)';
                       e.currentTarget.style.borderColor = '#818cf8';
-                      e.currentTarget.style.background = 'white';
                     }}
                     onMouseLeave={(e) => {
                       e.currentTarget.style.transform = 'translateY(0)';
-                      e.currentTarget.style.boxShadow = 'none';
-                      e.currentTarget.style.borderColor = '#e5e7eb';
-                      e.currentTarget.style.background = 'linear-gradient(135deg, #fafbfc 0%, #f8f9fa 100%)';
+                      e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.04)';
+                      e.currentTarget.style.borderColor = 'var(--vc-border)';
                     }}
                   >
-                    <div style={{
-                      width: '44px',
-                      height: '44px',
-                      background: 'linear-gradient(135deg, #818cf8 0%, #a78bfa 100%)',
-                      borderRadius: '10px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0,
-                      boxShadow: '0 4px 12px rgba(129, 140, 248, 0.25)'
-                    }}>
-                      <MapPin size={22} color="white" strokeWidth={2.5} />
+                    {/* Icon and Header */}
+                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
+                      <div style={{
+                        width: '56px',
+                        height: '56px',
+                        background: 'linear-gradient(135deg, #818cf8 0%, #a78bfa 100%)',
+                        borderRadius: 'var(--vc-radius-md)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                        boxShadow: '0 4px 12px rgba(129, 140, 248, 0.3)'
+                      }}>
+                        <MapPin size={28} color="white" strokeWidth={2.5} />
+                      </div>
+
+                      <button
+                        onClick={(e) => handleUnsave(e, clinic)}
+                        aria-label={`Unsave ${clinic.clinicName || clinic.name}`}
+                        title="Remove from saved"
+                        style={{
+                          background: '#fef2f2',
+                          border: '1px solid #fecaca',
+                          borderRadius: 'var(--vc-radius-sm)',
+                          width: '36px',
+                          height: '36px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s',
+                          flexShrink: 0
+                        }}
+                        onMouseEnter={(e) => {
+                          e.stopPropagation();
+                          e.currentTarget.style.background = '#fee2e2';
+                          e.currentTarget.style.borderColor = '#ef4444';
+                          e.currentTarget.style.transform = 'scale(1.1)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.stopPropagation();
+                          e.currentTarget.style.background = '#fef2f2';
+                          e.currentTarget.style.borderColor = '#fecaca';
+                          e.currentTarget.style.transform = 'scale(1)';
+                        }}
+                      >
+                        <BookmarkX size={18} color="#ef4444" strokeWidth={2.5} />
+                      </button>
                     </div>
 
-                    <div style={{ flex: 1, minWidth: 0 }}>
+                    {/* Clinic Info */}
+                    <div style={{ flex: 1 }}>
                       <h4 style={{ 
-                        margin: 0, 
-                        fontSize: '0.9375rem', 
+                        margin: '0 0 8px 0', 
+                        fontSize: '1.125rem', 
                         fontWeight: 700, 
-                        color: '#1f2937',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
+                        color: '#1e293b',
                         lineHeight: '1.3'
                       }}>
                         {clinic.clinicName || clinic.name}
                       </h4>
                       <p style={{ 
-                        margin: '4px 0 0 0', 
-                        fontSize: '0.8125rem', 
-                        color: '#6b7280',
+                        margin: 0, 
+                        fontSize: '0.875rem', 
+                        color: '#64748b',
                         fontWeight: 500,
                         display: 'flex',
-                        alignItems: 'center',
-                        gap: '4px',
-                        lineHeight: '1.4'
+                        alignItems: 'flex-start',
+                        gap: '8px',
+                        lineHeight: '1.5'
                       }}>
-                        <MapPin size={13} color="#9ca3af" strokeWidth={2.5} />
-                        {clinic.address}
+                        <MapPin size={16} color="#94a3b8" strokeWidth={2.5} style={{ flexShrink: 0, marginTop: '2px' }} />
+                        <span>{clinic.address}</span>
                       </p>
                     </div>
 
-                    <button
-                      onClick={(e) => handleUnsave(e, clinic)}
-                      aria-label={`Unsave ${clinic.clinicName || clinic.name}`}
-                      title="Remove from saved"
-                      style={{
-                        background: 'white',
-                        border: '1px solid #e5e7eb',
-                        borderRadius: '8px',
-                        width: '36px',
-                        height: '36px',
+                    {/* View Details Button */}
+                    <div style={{
+                      paddingTop: '12px',
+                      borderTop: '1px solid var(--vc-border)',
+                      display: 'flex',
+                      justifyContent: 'center'
+                    }}>
+                      <span style={{
+                        fontSize: '0.875rem',
+                        fontWeight: 600,
+                        color: '#818cf8',
                         display: 'flex',
                         alignItems: 'center',
-                        justifyContent: 'center',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s',
-                        flexShrink: 0
-                      }}
-                      onMouseEnter={(e) => {
-                        e.stopPropagation();
-                        e.currentTarget.style.background = '#fee2e2';
-                        e.currentTarget.style.borderColor = '#ef4444';
-                        e.currentTarget.style.transform = 'scale(1.05)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.stopPropagation();
-                        e.currentTarget.style.background = 'white';
-                        e.currentTarget.style.borderColor = '#e5e7eb';
-                        e.currentTarget.style.transform = 'scale(1)';
-                      }}
-                    >
-                      <BookmarkX size={16} color="#ef4444" strokeWidth={2.5} />
-                    </button>
+                        gap: '4px'
+                      }}>
+                        View Details
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                      </span>
+                    </div>
                   </div>
                 ))}
               </div>

@@ -1,7 +1,21 @@
 import React from 'react';
-import { CheckCircle, X } from 'lucide-react';
+import { CheckCircle } from 'lucide-react';
 
-export default function SuccessModal({ isOpen, onClose, title, message }) {
+/**
+ * Success Modal Component
+ * Displays a centered success message with fade+scale animation
+ * Uses the global design system for consistency
+ */
+export default function SuccessModal({ isOpen, onClose, title, message, autoClose = true, autoCloseDelay = 2000 }) {
+  React.useEffect(() => {
+    if (isOpen && autoClose) {
+      const timer = setTimeout(() => {
+        onClose();
+      }, autoCloseDelay);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen, autoClose, autoCloseDelay, onClose]);
+
   if (!isOpen) return null;
 
   return (
@@ -52,79 +66,62 @@ export default function SuccessModal({ isOpen, onClose, title, message }) {
         <div 
           onClick={(e) => e.stopPropagation()}
           style={{
-            backgroundColor: 'white',
+            background: 'white',
             borderRadius: '16px',
             boxShadow: '0 20px 40px rgba(0, 0, 0, 0.2)',
+            padding: '32px',
             maxWidth: '420px',
             width: '100%',
-            padding: '32px',
             textAlign: 'center',
             position: 'relative',
             animation: 'scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)'
           }}
         >
-          {/* Close Button */}
-          <button 
+          {/* Icon Container */}
+          <div 
             style={{
-              position: 'absolute',
-              top: '16px',
-              right: '16px',
-              background: 'transparent',
-              border: 'none',
-              cursor: 'pointer',
-              padding: '6px',
+              width: '72px',
+              height: '72px',
+              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+              borderRadius: '50%',
+              border: '3px solid #10b981',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              borderRadius: '6px',
-              transition: 'background 0.2s',
-              zIndex: 10
+              margin: '0 auto 20px',
+              boxShadow: '0 8px 24px rgba(16, 185, 129, 0.3)'
             }}
-            onClick={onClose} 
-            aria-label="Close"
-            onMouseEnter={(e) => e.currentTarget.style.background = '#f1f5f9'}
-            onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
           >
-            <X size={18} color="#64748b" />
-          </button>
-          
-          {/* Icon Container */}
-          <div style={{
-            width: '72px',
-            height: '72px',
-            borderRadius: '50%',
-            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-            border: '3px solid #10b981',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            margin: '0 auto 20px',
-            boxShadow: '0 8px 24px rgba(16, 185, 129, 0.3)'
-          }}>
             <CheckCircle size={36} color="white" strokeWidth={2.5} />
           </div>
-
+          
           {/* Title */}
-          <h2 style={{
-            fontSize: '1.5rem',
-            fontWeight: 700,
-            color: '#1e293b',
-            margin: '0 0 12px 0',
-            letterSpacing: '-0.01em'
-          }}>
+          <h2 
+            style={{
+              fontSize: '1.5rem',
+              fontWeight: 700,
+              color: '#1e293b',
+              margin: '0 0 12px 0',
+              letterSpacing: '-0.01em'
+            }}
+          >
             {title || 'Success!'}
           </h2>
           
           {/* Message */}
-          <p style={{
-            color: '#64748b',
-            fontSize: '0.9375rem',
-            lineHeight: '1.6',
-            margin: 0,
-            fontWeight: 500
-          }}>
-            {message || 'Your action was completed successfully.'}
-          </p>
+          {message && (
+            <p 
+              style={{
+                fontSize: '0.9375rem',
+                color: '#64748b',
+                lineHeight: '1.6',
+                margin: 0,
+                fontWeight: 500
+              }}
+            >
+              {message}
+            </p>
+          )}
         </div>
       </div>
     </>

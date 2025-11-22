@@ -1,0 +1,363 @@
+/* Unified Clinic Owner Styles - Design System Applied */
+
+/* Import design system variables */
+@import './designSystem.css';
+
+/* === CARD STYLES === */
+.vcCard {
+  background: var(--vc-bg-card);
+  border-radius: var(--vc-radius-md);
+  padding: var(--vc-space-6);
+  border: 1px solid var(--vc-border);
+  box-shadow: var(--vc-shadow-sm);
+  transition: all 0.2s ease;
+}
+
+.vcCard:hover {
+  box-shadow: var(--vc-shadow-md);
+  transform: translateY(-2px);
+}
+
+.vcCardLarge {
+  background: var(--vc-bg-card);
+  border-radius: var(--vc-radius-md);
+  padding: var(--vc-space-8);
+  border: 1px solid var(--vc-border);
+  box-shadow: var(--vc-shadow-sm);
+  transition: all 0.2s ease;
+}
+
+.clientCard {
+  background: var(--vc-bg-card);
+  border-radius: var(--vc-radius-md);
+  padding: var(--vc-space-6);
+  border: 1px solid var(--vc-border);
+  box-shadow: var(--vc-shadow-sm);
+  transition: all 0.2s ease;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: var(--vc-space-4);
+}
+
+.clientCard:hover {
+  box-shadow: var(--vc-shadow-md);
+  transform: translateY(-2px);
+}
+
+.clientHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--vc-space-3);
+  padding-bottom: var(--vc-space-4);
+  border-bottom: 1px solid var(--vc-border-light);
+}
+
+.clientContact {
+  display: flex;
+  flex-direction: column;
+  gap: var(--vc-space-2);
+  padding: var(--vc-space-3);
+  background: var(--vc-bg-secondary);
+  border-radius: var(--vc-radius-sm);
+  color: var(--vc-text-secondary);
+}
+
+.petsSection {
+  padding: var(--vc-space-3);
+  background: var(--vc-bg-tertiary);
+  border-radius: var(--vc-radius-sm);
+}
+
+.viewDetailsWrap {
+  margin-top: var(--vc-space-2);
+}
+
+/* === BUTTON STYLES === */
+.vcPrimarySmall {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--vc-space-2);
+  padding: var(--vc-space-3) var(--vc-space-4);
+  background: var(--vc-primary);
+  color: white;
+  border: none;
+  border-radius: var(--vc-radius-md);
+  font-size: var(--vc-text-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+
+.vcPrimarySmall:hover {
+  background: var(--vc-primary-hover);
+  transform: translateY(-1px);
+}
+
+.vcSmallBtn {
+  height: 40px;
+}
+
+.vcSecondarySmall {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--vc-space-2);
+  padding: var(--vc-space-3) var(--vc-space-4);
+  background: white;
+  color: var(--vc-text-secondary);
+  border: 1px solid var(--vc-border);
+  border-radius: var(--vc-radius-md);
+  font-size: var(--vc-text-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+  height: 40px;
+}
+
+.vcSecondarySmall:hover {
+  background: var(--vc-primary-bg);
+  color: var(--vc-primary);
+  border-color: var(--vc-primary);
+  transform: translateY(-1px);
+}
+
+/* === SEARCH BAR === */
+.searchBar {
+  display: flex;
+  align-items: center;
+  gap: var(--vc-space-3);
+  padding: var(--vc-space-3) var(--vc-space-4);
+  background: white;
+  border: 1px solid var(--vc-border);
+  border-radius: var(--vc-radius-md);
+  margin-bottom: var(--vc-space-6);
+  transition: all 0.2s ease;
+}
+
+.searchBar:focus-within {
+  border-color: var(--vc-primary);
+  box-shadow: 0 0 0 3px var(--vc-primary-bg);
+}
+
+.searchInlineInput {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: var(--vc-text-base);
+  color: var(--vc-text-primary);
+  background: transparent;
+}
+
+.searchInlineInput::placeholder {
+  color: var(--vc-text-muted);
+}
+
+/* === MODAL STYLES === */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease-out;
+  padding: var(--vc-space-4);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modalContent {
+  background: white;
+  border-radius: var(--vc-radius-lg);
+  box-shadow: var(--vc-shadow-modal);
+  max-width: 700px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: scaleIn 0.2s ease-out;
+  padding: var(--vc-space-8);
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.clientModal {
+  background: white;
+  border-radius: var(--vc-radius-lg);
+  box-shadow: var(--vc-shadow-modal);
+  max-width: 700px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: scaleIn 0.2s ease-out;
+  padding: var(--vc-space-8);
+}
+
+/* === FILE ITEM === */
+.fileItem {
+  display: flex;
+  align-items: center;
+  gap: var(--vc-space-3);
+  padding: var(--vc-space-4);
+  background: white;
+  border: 1px solid var(--vc-border);
+  border-radius: var(--vc-radius-md);
+  transition: all 0.2s ease;
+}
+
+.fileItem:hover {
+  background: var(--vc-bg-secondary);
+  border-color: var(--vc-primary);
+}
+
+.fileIcon {
+  width: 40px;
+  height: 40px;
+  background: var(--vc-gradient-primary);
+  border-radius: var(--vc-radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
+}
+
+.fileInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.fileName {
+  font-size: var(--vc-text-base);
+  font-weight: 600;
+  color: var(--vc-text-primary);
+  margin: 0 0 4px 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fileMeta {
+  font-size: var(--vc-text-sm);
+  color: var(--vc-text-muted);
+  margin: 0;
+}
+
+/* === PET CARD === */
+.petCard {
+  padding: var(--vc-space-4);
+  background: white;
+  border: 1px solid var(--vc-border);
+  border-radius: var(--vc-radius-md);
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.petCard:hover {
+  box-shadow: var(--vc-shadow-md);
+  border-color: var(--vc-primary);
+}
+
+.petHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--vc-space-3);
+  margin-bottom: var(--vc-space-3);
+}
+
+.petAvatar {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--vc-radius-md);
+  background: var(--vc-gradient-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 700;
+  font-size: var(--vc-text-lg);
+}
+
+.petName {
+  font-size: var(--vc-text-lg);
+  font-weight: 600;
+  color: var(--vc-text-primary);
+  margin: 0 0 4px 0;
+}
+
+.petBreed {
+  font-size: var(--vc-text-sm);
+  color: var(--vc-text-muted);
+  margin: 0;
+}
+
+/* === BADGES === */
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--vc-space-1);
+  padding: 4px 12px;
+  border-radius: var(--vc-radius-full);
+  font-size: var(--vc-text-sm);
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.statusPending {
+  background: var(--vc-accent-bg);
+  color: var(--vc-accent);
+}
+
+.statusConfirmed {
+  background: var(--vc-secondary-bg);
+  color: var(--vc-secondary);
+}
+
+.statusCompleted {
+  background: var(--vc-primary-bg);
+  color: var(--vc-primary);
+}
+
+.statusRejected {
+  background: var(--vc-error-bg);
+  color: var(--vc-error);
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 768px) {
+  .vcCard {
+    padding: var(--vc-space-4);
+  }
+
+  .vcCardLarge {
+    padding: var(--vc-space-6);
+  }
+
+  .modalContent {
+    padding: var(--vc-space-6);
+    margin: var(--vc-space-2);
+  }
+}

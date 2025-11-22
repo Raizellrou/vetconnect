@@ -9,6 +9,7 @@ import { db } from '../../firebase/firebase';
 import { uploadImageToCloudinary } from '../../utils/uploadImage';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import Toast from '../../components/Toast';
+import SuccessModal from '../../components/SuccessModal';
 import styles from '../../styles/ClinicDashboard.module.css';
 
 export default function ClinicManagement() {
@@ -126,13 +127,13 @@ export default function ClinicManagement() {
         <TopBar />
         
         <main className={styles.mainContent}>
-          {/* Success Message */}
-          {successMessage && (
-            <div className={styles.successBanner}>
-              <div className={styles.successBadge}>✓</div>
-              <span className={styles.successText}>{successMessage}</span>
-            </div>
-          )}
+          {/* Success Modal */}
+          <SuccessModal
+            isOpen={!!successMessage}
+            onClose={() => setSuccessMessage('')}
+            title="Success!"
+            message={successMessage}
+          />
 
           {/* Header with gradient background */}
           <div className={styles.welcomeBanner}>
@@ -149,121 +150,567 @@ export default function ClinicManagement() {
             </button>
           </div>
 
-          {/* Clinics List */}
-          <div className={`${styles.stack} ${styles.rowStack} ${styles.rowStackRight}`}>
+          {/* Clinics Container */}
+          <div style={{
+            background: 'white',
+            borderRadius: 'var(--vc-radius-xl)',
+            padding: '24px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+            border: '1px solid var(--vc-border)',
+            marginTop: '24px'
+          }}>
             {loading ? (
-              <div className={`${styles.vcCardLarge} ${styles.centerText}`}>
+              <div style={{ textAlign: 'center', padding: '60px 20px' }}>
                 <LoadingSpinner size="large" message="Loading your clinics..." />
               </div>
-              ) : clinics.length === 0 ? (
-              <div className={`${styles.vcCardLarge} ${styles.centerText}`}>
-                <div className={styles.heroCircle}>
-                  <MapPin size={40} color="#818cf8" />
+            ) : clinics.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+                <div style={{
+                  width: '80px',
+                  height: '80px',
+                  borderRadius: 'var(--vc-radius-2xl)',
+                  background: 'linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 20px',
+                  boxShadow: '0 4px 16px rgba(59, 130, 246, 0.2)'
+                }}>
+                  <MapPin size={40} color="#3b82f6" strokeWidth={2.5} />
                 </div>
-                <h3 style={{ fontSize: '1.125rem', fontWeight: 700, color: '#1f2937', marginBottom: '8px' }}>No clinics registered yet</h3>
-                <p style={{ color: '#6b7280', marginBottom: '18px' }}>Add your first clinic to get started with VetConnect</p>
-                <button onClick={handleAddClinic} className={`${styles.vcPrimaryAction}`} style={{ marginTop: '8px' }}>
-                  <Plus size={20} />
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--vc-text-dark)', marginBottom: '8px' }}>No clinics registered yet</h3>
+                <p style={{ color: 'var(--vc-text-muted)', marginBottom: '24px', fontSize: '0.9375rem' }}>Add your first clinic to get started with VetConnect</p>
+                <button onClick={handleAddClinic} className={styles.vcPrimaryBtn}>
+                  <Plus size={18} />
                   ADD CLINIC
                 </button>
               </div>
             ) : (
-                <>
+              <>
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: '24px'
+                }}>
+                  <h3 style={{
+                    margin: 0,
+                    fontSize: '1.125rem',
+                    fontWeight: 700,
+                    color: '#1e293b'
+                  }}>
+                    Your Clinics
+                  </h3>
+                  <span style={{
+                    background: 'linear-gradient(135deg, #818cf8 0%, #a78bfa 100%)',
+                    color: 'white',
+                    padding: '6px 14px',
+                    borderRadius: 'var(--vc-radius-sm)',
+                    fontSize: '0.875rem',
+                    fontWeight: 700,
+                    boxShadow: '0 2px 6px rgba(129, 140, 248, 0.25)'
+                  }}>
+                    {clinics.length} {clinics.length === 1 ? 'Clinic' : 'Clinics'}
+                  </span>
+                </div>
+
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+                  gap: '20px'
+                }}>
                   {clinics.map((clinic) => (
-                    <div key={clinic.id} className={`${styles.clinicCard} ${styles.clinicCardCompact}`}>
-                      <div className={styles.clinicPhoto}>
+                    <div key={clinic.id} style={{
+                      background: 'white',
+                      border: '1px solid var(--vc-border)',
+                      borderRadius: 'var(--vc-radius-xl)',
+                      padding: '20px',
+                      transition: 'all 0.2s ease',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '16px',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.04)',
+                      cursor: 'pointer'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-4px)';
+                      e.currentTarget.style.boxShadow = '0 8px 24px rgba(129, 140, 248, 0.15)';
+                      e.currentTarget.style.borderColor = '#818cf8';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.04)';
+                      e.currentTarget.style.borderColor = 'var(--vc-border)';
+                    }}>
+                      {/* Photo and Upload Button */}
+                      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px' }}>
+                        <div style={{
+                          width: '80px',
+                          height: '80px',
+                          borderRadius: 'var(--vc-radius-xl)',
+                          overflow: 'hidden',
+                          flexShrink: 0,
+                          background: clinic.photoURL ? 'transparent' : 'linear-gradient(135deg, #818cf8 0%, #a78bfa 100%)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          boxShadow: '0 4px 12px rgba(129, 140, 248, 0.3)'
+                        }}>
                           {clinic.photoURL ? (
-                            <img src={clinic.photoURL} alt={`${clinic.clinicName} photo`} />
+                            <img src={clinic.photoURL} alt={clinic.clinicName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                           ) : (
-                            <div className={styles.clinicInitials}>{(clinic.clinicName || 'CL').split(' ').map(n => n[0]).join('').slice(0,2)}</div>
+                            <span style={{ color: 'white', fontSize: '1.75rem', fontWeight: 700 }}>
+                              {(clinic.clinicName || 'C').split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase()}
+                            </span>
                           )}
                         </div>
 
-                      <div className={styles.clinicMeta}>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', marginBottom: '10px' }}>
-                          <div>
-                            <h3 style={{ fontSize: '1.125rem', fontWeight: 700, marginBottom: '4px', color: '#1f2937' }}>{clinic.clinicName}</h3>
-                            <p className={styles.sectionDescription}>Clinic Branch</p>
-                          </div>
-                          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                            <label htmlFor={`photo-input-${clinic.id}`} className={`${styles.vcSmallBtn}`}>
-                              Upload Photo
-                            </label>
-                            <input id={`photo-input-${clinic.id}`} type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => handlePhotoUpload(e, clinic)} />
-                          </div>
-                        </div>
+                        <label htmlFor={`photo-input-${clinic.id}`} style={{
+                          padding: '8px 16px',
+                          background: '#f8f9fa',
+                          border: '1px solid var(--vc-border)',
+                          borderRadius: 'var(--vc-radius-sm)',
+                          fontSize: '0.8125rem',
+                          fontWeight: 600,
+                          color: '#64748b',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = '#f1f5f9';
+                          e.currentTarget.style.borderColor = '#818cf8';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = '#f8f9fa';
+                          e.currentTarget.style.borderColor = 'var(--vc-border)';
+                        }}>
+                          Upload Photo
+                        </label>
+                        <input id={`photo-input-${clinic.id}`} type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => handlePhotoUpload(e, clinic)} />
+                      </div>
 
-                        <div className={styles.infoGrid}>
+                      {/* Upload Progress */}
+                      {uploadProgress[clinic.id] > 0 && (
+                        <div style={{
+                          width: '100%',
+                          height: '6px',
+                          background: '#e5e7eb',
+                          borderRadius: '3px',
+                          overflow: 'hidden'
+                        }}>
+                          <div style={{
+                            width: `${uploadProgress[clinic.id]}%`,
+                            height: '100%',
+                            background: 'linear-gradient(135deg, #818cf8 0%, #a78bfa 100%)',
+                            transition: 'width 0.3s ease'
+                          }} />
+                        </div>
+                      )}
+
+                      {/* Clinic Info */}
+                      <div style={{ flex: 1 }}>
+                        <h3 style={{
+                          margin: '0 0 6px 0',
+                          fontSize: '1.125rem',
+                          fontWeight: 700,
+                          color: '#1e293b',
+                          lineHeight: '1.3'
+                        }}>
+                          {clinic.clinicName}
+                        </h3>
+                        <p style={{
+                          margin: '0 0 16px 0',
+                          fontSize: '0.8125rem',
+                          color: '#94a3b8',
+                          fontWeight: 600,
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.5px'
+                        }}>
+                          Clinic Branch
+                        </p>
+
+                        {/* Details */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                           <div>
-                            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Address</p>
-                            <p className="text-gray-800 break-words">{clinic.address}</p>
+                            <p style={{
+                              margin: '0 0 4px 0',
+                              fontSize: '0.75rem',
+                              fontWeight: 600,
+                              color: '#94a3b8',
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.5px'
+                            }}>
+                              Address
+                            </p>
+                            <p style={{
+                              margin: 0,
+                              fontSize: '0.875rem',
+                              color: '#64748b',
+                              lineHeight: '1.5',
+                              display: 'flex',
+                              alignItems: 'flex-start',
+                              gap: '6px'
+                            }}>
+                              <MapPin size={14} color="#94a3b8" strokeWidth={2.5} style={{ flexShrink: 0, marginTop: '2px' }} />
+                              <span>{clinic.address}</span>
+                            </p>
                           </div>
+
                           <div>
-                            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Contact</p>
-                            <p className="text-gray-800 break-words font-medium">{clinic.contactNumber}</p>
+                            <p style={{
+                              margin: '0 0 4px 0',
+                              fontSize: '0.75rem',
+                              fontWeight: 600,
+                              color: '#94a3b8',
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.5px'
+                            }}>
+                              Contact
+                            </p>
+                            <p style={{
+                              margin: 0,
+                              fontSize: '0.875rem',
+                              color: '#64748b',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '6px'
+                            }}>
+                              <Phone size={14} color="#94a3b8" strokeWidth={2.5} />
+                              <span>{clinic.contactNumber}</span>
+                            </p>
                           </div>
+
                           <div>
-                            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Schedule</p>
-                            <p className="text-gray-800 break-words">{clinic.openHours}</p>
+                            <p style={{
+                              margin: '0 0 4px 0',
+                              fontSize: '0.75rem',
+                              fontWeight: 600,
+                              color: '#94a3b8',
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.5px'
+                            }}>
+                              Schedule
+                            </p>
+                            <p style={{
+                              margin: 0,
+                              fontSize: '0.875rem',
+                              color: '#64748b',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '6px'
+                            }}>
+                              <Clock size={14} color="#94a3b8" strokeWidth={2.5} />
+                              <span>{clinic.openHours}</span>
+                            </p>
                           </div>
+
                           <div>
-                            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Services Offered</p>
-                            <p className="text-gray-800 break-words">{clinic.services}</p>
+                            <p style={{
+                              margin: '0 0 4px 0',
+                              fontSize: '0.75rem',
+                              fontWeight: 600,
+                              color: '#94a3b8',
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.5px'
+                            }}>
+                              Services
+                            </p>
+                            <p style={{
+                              margin: 0,
+                              fontSize: '0.875rem',
+                              color: '#64748b',
+                              display: 'flex',
+                              alignItems: 'flex-start',
+                              gap: '6px',
+                              lineHeight: '1.5'
+                            }}>
+                              <Briefcase size={14} color="#94a3b8" strokeWidth={2.5} style={{ flexShrink: 0, marginTop: '2px' }} />
+                              <span>{clinic.services}</span>
+                            </p>
                           </div>
+
                           {clinic.description && (
-                            <div className={styles.vcCard}>
-                              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">Description</p>
-                              <p className="text-gray-700 text-sm break-words">{clinic.description}</p>
+                            <div style={{
+                              padding: '12px',
+                              background: '#f8f9fa',
+                              borderRadius: 'var(--vc-radius-md)',
+                              border: '1px solid var(--vc-border)'
+                            }}>
+                              <p style={{
+                                margin: '0 0 4px 0',
+                                fontSize: '0.75rem',
+                                fontWeight: 600,
+                                color: '#94a3b8',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.5px'
+                              }}>
+                                Description
+                              </p>
+                              <p style={{
+                                margin: 0,
+                                fontSize: '0.875rem',
+                                color: '#64748b',
+                                lineHeight: '1.5'
+                              }}>
+                                {clinic.description}
+                              </p>
                             </div>
                           )}
                         </div>
+                      </div>
 
-                        {/* Upload progress */}
-                        {uploadProgress[clinic.id] > 0 && (
-                          <div style={{ marginTop: '8px' }}>
-                            <div className={styles.progressTrack}>
-                              <div className={styles.progressFill} style={{ width: `${uploadProgress[clinic.id]}%` }} />
-                            </div>
-                            <div style={{ fontSize: '0.75rem', color: '#475569', marginTop: '6px' }}>{uploadProgress[clinic.id]}%</div>
-                          </div>
-                        )}
-
-                        <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
-                          <button onClick={() => handleEditClinic(clinic)} className={`${styles.vcSmallBtn} ${styles.vcPrimarySmall}`}>
-                            <Edit size={16} />
-                            EDIT
-                          </button>
-                          <button onClick={() => handleDeleteClick(clinic)} className={`${styles.vcSmallBtn} ${styles.vcDangerBtn}`}>
-                            <Trash2 size={16} />
-                            DELETE
-                          </button>
-                        </div>
+                      {/* Action Buttons */}
+                      <div style={{
+                        paddingTop: '16px',
+                        borderTop: '1px solid var(--vc-border)',
+                        display: 'flex',
+                        gap: '8px'
+                      }}>
+                        <button onClick={(e) => { e.stopPropagation(); handleEditClinic(clinic); }} style={{
+                          flex: 1,
+                          padding: '10px 16px',
+                          background: 'linear-gradient(135deg, #818cf8 0%, #a78bfa 100%)',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: 'var(--vc-radius-md)',
+                          fontSize: '0.875rem',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '6px',
+                          transition: 'all 0.2s',
+                          boxShadow: '0 2px 8px rgba(129, 140, 248, 0.25)'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.transform = 'translateY(-2px)';
+                          e.currentTarget.style.boxShadow = '0 4px 12px rgba(129, 140, 248, 0.35)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.transform = 'translateY(0)';
+                          e.currentTarget.style.boxShadow = '0 2px 8px rgba(129, 140, 248, 0.25)';
+                        }}>
+                          <Edit size={16} strokeWidth={2.5} />
+                          Edit
+                        </button>
+                        <button onClick={(e) => { e.stopPropagation(); handleDeleteClick(clinic); }} style={{
+                          padding: '10px 16px',
+                          background: 'white',
+                          color: '#ef4444',
+                          border: '2px solid #fecaca',
+                          borderRadius: 'var(--vc-radius-md)',
+                          fontSize: '0.875rem',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '6px',
+                          transition: 'all 0.2s'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = '#fee2e2';
+                          e.currentTarget.style.borderColor = '#ef4444';
+                          e.currentTarget.style.transform = 'translateY(-2px)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = 'white';
+                          e.currentTarget.style.borderColor = '#fecaca';
+                          e.currentTarget.style.transform = 'translateY(0)';
+                        }}>
+                          <Trash2 size={16} strokeWidth={2.5} />
+                        </button>
                       </div>
                     </div>
                   ))}
-                </>
-              )}
-            </div>
+                </div>
+              </>
+            )}
+          </div>
         </main>
       </div>
 
       {/* Delete Confirmation Modal */}
       {deleteConfirm && (
         <div className={styles.modalOverlay} onClick={(e) => { if (e.target === e.currentTarget) handleCancelDelete(); }}>
-          <div className={styles.modalContent} style={{ maxWidth: '480px', padding: 24 }}>
-            <div className={styles.deleteBadge}>
-              <Trash2 size={32} color="#ef4444" />
+          <div className={styles.modalContent} style={{ maxWidth: '520px', padding: 0, overflow: 'hidden' }}>
+            {/* Modal Header */}
+            <div style={{
+              background: 'linear-gradient(135deg, #fee2e2 0%, #fecaca 100%)',
+              padding: '24px',
+              borderBottom: '1px solid #fca5a5'
+            }}>
+              <div style={{
+                width: '64px',
+                height: '64px',
+                borderRadius: '16px',
+                background: 'white',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 16px',
+                boxShadow: '0 4px 12px rgba(239, 68, 68, 0.2)'
+              }}>
+                <Trash2 size={32} color="#ef4444" strokeWidth={2.5} />
+              </div>
+              <h3 style={{ 
+                fontSize: '1.5rem', 
+                fontWeight: 700, 
+                color: '#991b1b', 
+                margin: 0,
+                textAlign: 'center'
+              }}>
+                Delete Clinic?
+              </h3>
             </div>
 
-            <h3 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1f2937', marginBottom: '12px' }}>Delete Clinic?</h3>
+            {/* Modal Body */}
+            <div style={{ padding: '24px' }}>
+              {/* Warning Message */}
+              <div style={{
+                background: '#fef2f2',
+                border: '1px solid #fecaca',
+                borderRadius: '12px',
+                padding: '16px',
+                marginBottom: '20px'
+              }}>
+                <p style={{ 
+                  color: '#991b1b', 
+                  margin: 0, 
+                  lineHeight: '1.6',
+                  fontSize: '0.875rem',
+                  fontWeight: 500
+                }}>
+                  ⚠️ This action cannot be undone. All clinic data, appointments, and records will be permanently deleted.
+                </p>
+              </div>
 
-            <p style={{ color: '#6b7280', marginBottom: '24px', lineHeight: '1.6' }}>
-              Are you sure you want to delete <span style={{ fontWeight: '700', color: '#1f2937' }}>{deleteConfirm.clinicName}</span>? This action cannot be undone.
-            </p>
+              {/* Clinic Details Card */}
+              <div style={{
+                background: '#f8fafc',
+                border: '2px solid #e2e8f0',
+                borderRadius: '12px',
+                padding: '16px',
+                marginBottom: '20px'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                  {/* Clinic Photo */}
+                  <div style={{
+                    width: '56px',
+                    height: '56px',
+                    borderRadius: '12px',
+                    overflow: 'hidden',
+                    flexShrink: 0,
+                    background: deleteConfirm.photoURL ? 'transparent' : 'linear-gradient(135deg, #818cf8 0%, #a78bfa 100%)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
+                  }}>
+                    {deleteConfirm.photoURL ? (
+                      <img 
+                        src={deleteConfirm.photoURL} 
+                        alt={deleteConfirm.clinicName}
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      />
+                    ) : (
+                      <span style={{ color: 'white', fontSize: '1.25rem', fontWeight: 700 }}>
+                        {(deleteConfirm.clinicName || 'C').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+                      </span>
+                    )}
+                  </div>
 
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-              <button onClick={handleCancelDelete} className={styles.vcNeutralBtn}>Cancel</button>
-              <button onClick={handleConfirmDelete} className={`${styles.vcSmallBtn} ${styles.vcDangerBtn}`}>Delete Clinic</button>
+                  {/* Clinic Info */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <h4 style={{
+                      margin: '0 0 8px 0',
+                      fontSize: '1.125rem',
+                      fontWeight: 700,
+                      color: '#1e293b'
+                    }}>
+                      {deleteConfirm.clinicName}
+                    </h4>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <MapPin size={14} color="#64748b" strokeWidth={2.5} />
+                        <span style={{ fontSize: '0.8125rem', color: '#64748b' }}>
+                          {deleteConfirm.address}
+                        </span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Phone size={14} color="#64748b" strokeWidth={2.5} />
+                        <span style={{ fontSize: '0.8125rem', color: '#64748b' }}>
+                          {deleteConfirm.contactNumber}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <button 
+                  onClick={handleCancelDelete} 
+                  style={{
+                    flex: 1,
+                    padding: '12px 20px',
+                    background: 'white',
+                    border: '2px solid #e5e7eb',
+                    borderRadius: '10px',
+                    fontSize: '0.9375rem',
+                    fontWeight: 600,
+                    color: '#64748b',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = '#f8fafc';
+                    e.currentTarget.style.borderColor = '#cbd5e1';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'white';
+                    e.currentTarget.style.borderColor = '#e5e7eb';
+                  }}
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={handleConfirmDelete}
+                  style={{
+                    flex: 1,
+                    padding: '12px 20px',
+                    background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+                    border: 'none',
+                    borderRadius: '10px',
+                    fontSize: '0.9375rem',
+                    fontWeight: 600,
+                    color: 'white',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    boxShadow: '0 4px 12px rgba(239, 68, 68, 0.3)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-1px)';
+                    e.currentTarget.style.boxShadow = '0 6px 16px rgba(239, 68, 68, 0.4)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(239, 68, 68, 0.3)';
+                  }}
+                >
+                  <Trash2 size={18} strokeWidth={2.5} />
+                  Delete Clinic
+                </button>
+              </div>
             </div>
           </div>
         </div>

@@ -5,7 +5,7 @@ import ClinicSidebar from '../../components/layout/ClinicSidebar';
 import WorkingHoursModal from '../../components/modals/WorkingHoursModal';
 import ExtendAppointmentModal from '../../components/modals/ExtendAppointmentModal';
 import { useAuth } from '../../contexts/AuthContext';
-import { Calendar, Clock, User, Dog, CheckCircle, XCircle, AlertCircle, ArrowLeft, Building2, Filter, Search, ChevronRight, FileText, Plus, Settings, ArrowRightLeft } from 'lucide-react';
+import { Calendar, Clock, User, Dog, CheckCircle, XCircle, AlertCircle, ArrowLeft, Building2, Filter, Search, ChevronRight, FileText, Plus, Settings, ArrowRightLeft, MapPin } from 'lucide-react';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import styles from '../../styles/ClinicDashboard.module.css';
 import { useCollection } from '../../hooks/useCollection';
@@ -47,6 +47,36 @@ export default function ClinicAppointments() {
   const [showWorkingHoursModal, setShowWorkingHoursModal] = useState(false);
   const [showExtendModal, setShowExtendModal] = useState(false);
   const [extendingAppointment, setExtendingAppointment] = useState(null);
+  
+  // Medical record modal state
+  const [showMedicalRecordModal, setShowMedicalRecordModal] = useState(false);
+  const [selectedAppointmentForRecord, setSelectedAppointmentForRecord] = useState(null);
+  const [medicalRecordData, setMedicalRecordData] = useState({
+    diagnosis: '',
+    treatment: '',
+    prescriptions: '',
+    labResults: '',
+    notes: '',
+    files: []
+  });
+  const [isSavingRecord, setIsSavingRecord] = useState(false);
+
+  // Helper function to get appointment date/time
+  const getAppointmentDateTime = (apt) => {
+    // If dateTime exists (old format), use it
+    if (apt.dateTime) {
+      return apt.dateTime?.toDate ? apt.dateTime.toDate() : new Date(apt.dateTime);
+    }
+    // If date and startTime exist (new format), combine them
+    if (apt.date && apt.startTime) {
+      const [hours, minutes] = apt.startTime.split(':');
+      const dateObj = new Date(apt.date);
+      dateObj.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+      return dateObj;
+    }
+    // Fallback to current date if nothing is available
+    return new Date();
+  };
 
   // Real-time listener for appointments of selected clinic
   const {
@@ -57,6 +87,56 @@ export default function ClinicAppointments() {
     selectedClinic ? 'appointments' : null,
     selectedClinic ? [where('clinicId', '==', selectedClinic.id)] : []
   );
+
+  // Auto-update appointment statuses when dates pass
+  useEffect(() => {
+    if (!appointments || appointments.length === 0) return;
+
+    const checkAndUpdateStatuses = async () => {
+      const now = new Date();
+      const appointmentsToUpdate = [];
+
+      appointments.forEach(apt => {
+        // Skip if already completed or cancelled
+        if (apt.status === 'completed' || apt.status === 'cancelled') return;
+
+        const aptDateTime = getAppointmentDateTime(apt);
+        
+        // If appointment date has passed and status is confirmed, mark as completed
+        if (aptDateTime < now && apt.status === 'confirmed') {
+          appointmentsToUpdate.push({
+            id: apt.id,
+            newStatus: 'completed'
+          });
+        }
+      });
+
+      // Update statuses in batch
+      if (appointmentsToUpdate.length > 0) {
+        console.log(`Auto-updating ${appointmentsToUpdate.length} past appointments to completed`);
+        
+        for (const apt of appointmentsToUpdate) {
+          try {
+            await completeAppointment(apt.id, {
+              status: 'completed',
+              completedAt: new Date().toISOString(),
+              autoCompleted: true
+            });
+          } catch (error) {
+            console.error(`Failed to auto-complete appointment ${apt.id}:`, error);
+          }
+        }
+      }
+    };
+
+    // Check immediately
+    checkAndUpdateStatuses();
+
+    // Set up interval to check every 5 minutes
+    const intervalId = setInterval(checkAndUpdateStatuses, 5 * 60 * 1000);
+
+    return () => clearInterval(intervalId);
+  }, [appointments]);
 
   // Fetch all clinics owned by this user
   useEffect(() => {
@@ -242,8 +322,11 @@ export default function ClinicAppointments() {
         : 'Appointment Rejected';
       
       const clinicName = selectedClinic.clinicName || selectedClinic.name;
-      const appointmentDate = formatShortDate(appointment.dateTime);
-      const appointmentTime = formatTime(appointment.dateTime);
+      const appointmentDateTime = getAppointmentDateTime(appointment);
+      const appointmentDate = formatShortDate(appointmentDateTime);
+      const appointmentTime = appointment.startTime && appointment.endTime 
+        ? `${appointment.startTime} - ${appointment.endTime}` 
+        : formatTime(appointmentDateTime);
       
       const notificationBody = newStatus === 'confirmed'
         ? `Your appointment for ${appointment.petName} at ${clinicName} on ${appointmentDate} at ${appointmentTime} has been confirmed! ✅`
@@ -312,8 +395,56 @@ export default function ClinicAppointments() {
   };
 
   const handleCreateMedicalRecord = (apt) => {
-    // Navigate to medical record creation page
-    window.location.href = `/clinic/medical-records/create?appointmentId=${apt.id}&petId=${apt.petId}&ownerId=${apt.ownerId}`;
+    setSelectedAppointmentForRecord(apt);
+    setMedicalRecordData({
+      diagnosis: '',
+      treatment: '',
+      prescriptions: '',
+      labResults: '',
+      notes: '',
+      files: []
+    });
+    setShowMedicalRecordModal(true);
+  };
+
+  const handleSaveMedicalRecord = async () => {
+    if (!selectedAppointmentForRecord) return;
+    
+    setIsSavingRecord(true);
+    try {
+      const { createMedicalRecord } = await import('../../firebase/firestoreHelpers');
+      
+      const recordData = {
+        petId: selectedAppointmentForRecord.petId,
+        ownerId: selectedAppointmentForRecord.ownerId,
+        clinicId: selectedClinic.id,
+        vetInCharge: userData?.fullName || userData?.displayName || '',
+        diagnosis: medicalRecordData.diagnosis,
+        treatment: medicalRecordData.treatment,
+        prescriptions: medicalRecordData.prescriptions.split('\n').filter(p => p.trim()),
+        labResults: medicalRecordData.labResults,
+        notes: medicalRecordData.notes
+      };
+
+      await createMedicalRecord(selectedAppointmentForRecord.id, recordData);
+      
+      // Mark appointment as completed if not already
+      if (selectedAppointmentForRecord.status !== 'completed') {
+        await completeAppointment(selectedAppointmentForRecord.id, {
+          status: 'completed',
+          completedAt: new Date().toISOString()
+        });
+      }
+      
+      setShowMedicalRecordModal(false);
+      setSelectedAppointmentForRecord(null);
+      alert('Medical record created successfully!');
+    } catch (error) {
+      console.error('Failed to create medical record:', error);
+      alert('Failed to create medical record. Please try again.');
+    } finally {
+      setIsSavingRecord(false);
+    }
   };
 
   const handleExtendAppointment = (apt) => {
@@ -345,7 +476,7 @@ export default function ClinicAppointments() {
 
   // Check if appointment date has passed
   const canMarkAsCompleted = (apt) => {
-    const appointmentDate = apt.dateTime?.toDate ? apt.dateTime.toDate() : new Date(apt.dateTime);
+    const appointmentDate = getAppointmentDateTime(apt);
     const now = new Date();
     return appointmentDate < now && apt.status === 'confirmed';
   };
@@ -367,7 +498,7 @@ export default function ClinicAppointments() {
       tomorrow.setDate(tomorrow.getDate() + 1);
       
       filtered = filtered.filter(apt => {
-        const aptDate = apt.dateTime?.toDate ? apt.dateTime.toDate() : new Date(apt.dateTime);
+        const aptDate = getAppointmentDateTime(apt);
         return aptDate >= today && aptDate < tomorrow;
       });
     } else if (dateFilter === 'tomorrow') {
@@ -378,7 +509,7 @@ export default function ClinicAppointments() {
       dayAfter.setDate(dayAfter.getDate() + 1);
       
       filtered = filtered.filter(apt => {
-        const aptDate = apt.dateTime?.toDate ? apt.dateTime.toDate() : new Date(apt.dateTime);
+        const aptDate = getAppointmentDateTime(apt);
         return aptDate >= tomorrow && aptDate < dayAfter;
       });
     } else if (dateFilter === 'custom' && customDateStart && customDateEnd) {
@@ -388,7 +519,7 @@ export default function ClinicAppointments() {
       end.setHours(23, 59, 59, 999);
       
       filtered = filtered.filter(apt => {
-        const aptDate = apt.dateTime?.toDate ? apt.dateTime.toDate() : new Date(apt.dateTime);
+        const aptDate = getAppointmentDateTime(apt);
         return aptDate >= start && aptDate <= end;
       });
     }
@@ -405,8 +536,8 @@ export default function ClinicAppointments() {
 
     // Sort by date (newest first)
     filtered.sort((a, b) => {
-      const dateA = a.dateTime?.toDate ? a.dateTime.toDate() : new Date(a.dateTime);
-      const dateB = b.dateTime?.toDate ? b.dateTime.toDate() : new Date(b.dateTime);
+      const dateA = getAppointmentDateTime(a);
+      const dateB = getAppointmentDateTime(b);
       return dateB - dateA;
     });
 
@@ -418,7 +549,7 @@ export default function ClinicAppointments() {
     const groups = {};
     
     appointments.forEach(apt => {
-      const date = apt.dateTime?.toDate ? apt.dateTime.toDate() : new Date(apt.dateTime);
+      const date = getAppointmentDateTime(apt);
       const dateKey = date.toLocaleDateString('en-US', { 
         year: 'numeric', 
         month: 'long', 
@@ -505,45 +636,111 @@ export default function ClinicAppointments() {
         <main className={styles.mainContent}>
           {viewState === 'clinic-list' ? (
             <>
-              {/* Clinic Selection View */}
-              <header style={{ marginBottom: '32px' }}>
-                <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1e293b', margin: '0 0 6px 0' }}>
-                  Select a Clinic
-                </h1>
-                <p style={{ fontSize: '0.875rem', color: '#64748b', margin: 0 }}>
-                  Choose a clinic to view and manage its appointments
-                </p>
-              </header>
+              {/* Enhanced Clinic Selection Header */}
+              <div style={{
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                borderRadius: '16px',
+                padding: '24px 28px',
+                marginBottom: '24px',
+                boxShadow: '0 4px 16px rgba(102, 126, 234, 0.25)',
+                position: 'relative',
+                overflow: 'hidden'
+              }}>
+                <div style={{
+                  position: 'absolute',
+                  top: '-50%',
+                  right: '-10%',
+                  width: '300px',
+                  height: '300px',
+                  background: 'radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%)',
+                  borderRadius: '50%'
+                }} />
+                <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: '16px' }}>
+                  <div style={{
+                    width: '56px',
+                    height: '56px',
+                    borderRadius: '14px',
+                    background: 'rgba(255, 255, 255, 0.2)',
+                    backdropFilter: 'blur(10px)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
+                  }}>
+                    <Calendar size={28} color="white" strokeWidth={2.5} />
+                  </div>
+                  <div>
+                    <h1 style={{ 
+                      fontSize: '1.75rem', 
+                      fontWeight: 700, 
+                      color: 'white', 
+                      margin: '0 0 4px 0',
+                      letterSpacing: '-0.02em'
+                    }}>
+                      Select a Clinic
+                    </h1>
+                    <p style={{ fontSize: '0.9375rem', color: 'rgba(255, 255, 255, 0.9)', margin: 0 }}>
+                      Choose a clinic to view and manage its appointments
+                    </p>
+                  </div>
+                </div>
+              </div>
 
               {clinics.length === 0 ? (
-                <div style={{ 
-                  background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)', 
-                  padding: '48px', 
-                  borderRadius: '20px', 
-                  border: '2px solid #fbbf24',
-                  textAlign: 'center'
+                <div style={{
+                  background: 'white',
+                  borderRadius: '16px',
+                  padding: '60px 40px',
+                  textAlign: 'center',
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+                  border: '1px solid #e5e7eb'
                 }}>
-                  <AlertCircle size={64} color="#f59e0b" style={{ margin: '0 auto 24px' }} />
-                  <h3 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#92400e', marginBottom: '12px' }}>No Clinics Found</h3>
-                  <p style={{ color: '#78350f', marginBottom: '24px' }}>Please register your clinic first to manage appointments.</p>
+                  <div style={{
+                    width: '96px',
+                    height: '96px',
+                    borderRadius: '20px',
+                    background: 'linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    margin: '0 auto 20px'
+                  }}>
+                    <Building2 size={48} color="#6366f1" strokeWidth={2} />
+                  </div>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#1e293b', marginBottom: '8px' }}>No Clinics Found</h3>
+                  <p style={{ fontSize: '0.9375rem', color: '#64748b', margin: '0 0 24px 0', maxWidth: '400px', marginLeft: 'auto', marginRight: 'auto' }}>Please register your clinic first to manage appointments.</p>
                   <button
                     onClick={() => window.location.href = '/clinic/management'}
                     style={{
-                      padding: '14px 32px',
-                      background: 'linear-gradient(135deg, #818cf8 0%, #6366f1 100%)',
+                      padding: '12px 28px',
+                      background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
                       color: 'white',
                       border: 'none',
-                      borderRadius: '12px',
-                      fontSize: '1rem',
-                      fontWeight: 700,
-                      cursor: 'pointer'
+                      borderRadius: '10px',
+                      fontSize: '0.9375rem',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)',
+                      transition: 'all 0.2s',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '8px'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                      e.currentTarget.style.boxShadow = '0 6px 16px rgba(99, 102, 241, 0.4)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(99, 102, 241, 0.3)';
                     }}
                   >
+                    <Building2 size={18} strokeWidth={2.5} />
                     Register Clinic
                   </button>
                 </div>
               ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '24px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(380px, 1fr))', gap: '20px' }}>
                   {clinics.map(clinic => {
                     const stats = getClinicStats(clinic.id);
                     return (
@@ -553,16 +750,18 @@ export default function ClinicAppointments() {
                         style={{
                           background: 'white',
                           borderRadius: '16px',
-                          padding: '24px',
+                          padding: '20px',
                           boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-                          border: '2px solid #e5e7eb',
+                          border: '1px solid #e5e7eb',
                           cursor: 'pointer',
-                          transition: 'all 0.3s ease'
+                          transition: 'all 0.2s ease',
+                          position: 'relative',
+                          overflow: 'hidden'
                         }}
                         onMouseEnter={(e) => {
-                          e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.12)';
+                          e.currentTarget.style.boxShadow = '0 12px 32px rgba(99, 102, 241, 0.15)';
                           e.currentTarget.style.transform = 'translateY(-4px)';
-                          e.currentTarget.style.borderColor = '#818cf8';
+                          e.currentTarget.style.borderColor = '#6366f1';
                         }}
                         onMouseLeave={(e) => {
                           e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.06)';
@@ -570,25 +769,27 @@ export default function ClinicAppointments() {
                           e.currentTarget.style.borderColor = '#e5e7eb';
                         }}
                       >
-                        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px', marginBottom: '20px' }}>
+                        {/* Header Section */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '16px', paddingBottom: '16px', borderBottom: '2px solid #f1f5f9' }}>
                           <div style={{
-                            width: '56px',
-                            height: '56px',
-                            borderRadius: '12px',
-                            background: 'linear-gradient(135deg, #818cf8 0%, #a78bfa 100%)',
+                            width: '64px',
+                            height: '64px',
+                            borderRadius: '14px',
+                            background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            flexShrink: 0
+                            flexShrink: 0,
+                            boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)'
                           }}>
-                            <Building2 size={28} color="white" />
+                            <Building2 size={32} color="white" strokeWidth={2.5} />
                           </div>
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <h3 style={{
-                              fontSize: '1.25rem',
+                              fontSize: '1.125rem',
                               fontWeight: 700,
-                              color: '#1f2937',
-                              marginBottom: '4px',
+                              color: '#1e293b',
+                              marginBottom: '6px',
                               overflow: 'hidden',
                               textOverflow: 'ellipsis',
                               whiteSpace: 'nowrap'
@@ -596,27 +797,44 @@ export default function ClinicAppointments() {
                               {clinic.clinicName || clinic.name}
                             </h3>
                             <p style={{
-                              fontSize: '0.875rem',
-                              color: '#6b7280',
+                              fontSize: '0.8125rem',
+                              color: '#64748b',
                               margin: 0,
                               display: 'flex',
                               alignItems: 'center',
-                              gap: '6px'
+                              gap: '6px',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap'
                             }}>
+                              <MapPin size={14} color="#64748b" strokeWidth={2.5} />
                               <span>{clinic.address || 'No address'}</span>
                             </p>
                           </div>
-                          <ChevronRight size={24} color="#9ca3af" />
+                          <ChevronRight size={24} color="#6366f1" strokeWidth={2.5} />
                         </div>
 
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', paddingTop: '16px', borderTop: '2px solid #f3f4f6' }}>
-                          <div style={{ textAlign: 'center', padding: '12px', background: '#fef3c7', borderRadius: '10px' }}>
-                            <p style={{ fontSize: '0.75rem', color: '#92400e', margin: 0, fontWeight: 600, textTransform: 'uppercase' }}>Pending</p>
-                            <p style={{ fontSize: '1.5rem', color: '#78350f', margin: '4px 0 0 0', fontWeight: 700 }}>{stats.pending}</p>
+                        {/* Stats Section */}
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                          <div style={{ 
+                            textAlign: 'center', 
+                            padding: '14px', 
+                            background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)', 
+                            borderRadius: '12px',
+                            border: '1px solid #fbbf24'
+                          }}>
+                            <p style={{ fontSize: '0.6875rem', color: '#78350f', margin: '0 0 4px 0', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Pending</p>
+                            <p style={{ fontSize: '1.75rem', color: '#92400e', margin: 0, fontWeight: 700, lineHeight: 1 }}>{stats.pending}</p>
                           </div>
-                          <div style={{ textAlign: 'center', padding: '12px', background: '#e0e7ff', borderRadius: '10px' }}>
-                            <p style={{ fontSize: '0.75rem', color: '#4338ca', margin: 0, fontWeight: 600, textTransform: 'uppercase' }}>Total</p>
-                            <p style={{ fontSize: '1.5rem', color: '#3730a3', margin: '4px 0 0 0', fontWeight: 700 }}>{stats.total}</p>
+                          <div style={{ 
+                            textAlign: 'center', 
+                            padding: '14px', 
+                            background: 'linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%)', 
+                            borderRadius: '12px',
+                            border: '1px solid #818cf8'
+                          }}>
+                            <p style={{ fontSize: '0.6875rem', color: '#3730a3', margin: '0 0 4px 0', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total</p>
+                            <p style={{ fontSize: '1.75rem', color: '#4338ca', margin: 0, fontWeight: 700, lineHeight: 1 }}>{stats.total}</p>
                           </div>
                         </div>
                       </div>
@@ -971,7 +1189,7 @@ export default function ClinicAppointments() {
                                 </p>
                                 <p style={{ margin: 0, fontSize: '0.875rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '6px' }}>
                                   <Clock size={14} />
-                                  <strong>Time:</strong> {apt.dateTime ? formatTime(apt.dateTime) : 'N/A'}
+                                  <strong>Time:</strong> {apt.startTime && apt.endTime ? `${apt.startTime} - ${apt.endTime}` : apt.dateTime ? formatTime(apt.dateTime) : 'N/A'}
                                 </p>
                                 {apt.service && (
                                   <p style={{ margin: 0, fontSize: '0.875rem', color: '#64748b' }}>
@@ -1017,7 +1235,7 @@ export default function ClinicAppointments() {
                               <>
                                 <button style={{
                                   padding: '10px 20px',
-                                  background: '#22c55e',
+                                  background: 'var(--vc-success)',
                                   color: 'white',
                                   border: 'none',
                                   borderRadius: '8px',
@@ -1031,8 +1249,8 @@ export default function ClinicAppointments() {
                                   transition: 'all 0.2s'
                                 }} 
                                 onClick={() => handleUpdateStatus(apt.id, 'confirmed', apt)}
-                                onMouseEnter={(e) => e.currentTarget.style.background = '#16a34a'}
-                                onMouseLeave={(e) => e.currentTarget.style.background = '#22c55e'}
+                                onMouseEnter={(e) => e.currentTarget.style.background = '#059669'}
+                                onMouseLeave={(e) => e.currentTarget.style.background = 'var(--vc-success)'}
                                 >
                                   <CheckCircle size={16} />
                                   Approve
@@ -1137,7 +1355,7 @@ export default function ClinicAppointments() {
                               <>
                                 <div style={{ 
                                   padding: '8px 20px', 
-                                  background: '#22c55e', 
+                                  background: 'var(--vc-success)', 
                                   color: 'white', 
                                   borderRadius: '20px',
                                   fontSize: '0.75rem',
@@ -1327,6 +1545,237 @@ export default function ClinicAppointments() {
         }}
         appointment={extendingAppointment}
       />
+
+      {/* Medical Record Creation Modal */}
+      {showMedicalRecordModal && selectedAppointmentForRecord && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(15, 23, 42, 0.4)',
+          backdropFilter: 'blur(4px)',
+          zIndex: 99999,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '20px',
+          overflowY: 'auto'
+        }} onClick={() => !isSavingRecord && setShowMedicalRecordModal(false)}>
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '16px',
+            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.2)',
+            maxWidth: '700px',
+            width: '100%',
+            maxHeight: '90vh',
+            overflowY: 'auto',
+            position: 'relative'
+          }} onClick={(e) => e.stopPropagation()}>
+            
+            {/* Header */}
+            <div style={{
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              padding: '24px 28px',
+              borderRadius: '16px 16px 0 0'
+            }}>
+              <h2 style={{ margin: 0, color: 'white', fontSize: '1.5rem', fontWeight: 700 }}>
+                Create Medical Record
+              </h2>
+              <p style={{ margin: '8px 0 0 0', color: 'rgba(255,255,255,0.9)', fontSize: '0.9375rem' }}>
+                For {selectedAppointmentForRecord.petName} - {selectedAppointmentForRecord.ownerName}
+              </p>
+            </div>
+
+            {/* Content */}
+            <div style={{ padding: '32px' }}>
+              
+              {/* Diagnosis */}
+              <div style={{ marginBottom: '24px' }}>
+                <label style={{
+                  display: 'block',
+                  marginBottom: '8px',
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  color: '#374151'
+                }}>
+                  Diagnosis <span style={{ color: '#ef4444' }}>*</span>
+                </label>
+                <textarea
+                  value={medicalRecordData.diagnosis}
+                  onChange={(e) => setMedicalRecordData({...medicalRecordData, diagnosis: e.target.value})}
+                  placeholder="Enter diagnosis details..."
+                  rows={3}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    border: '2px solid #e5e7eb',
+                    borderRadius: '8px',
+                    fontSize: '0.9375rem',
+                    resize: 'vertical'
+                  }}
+                  disabled={isSavingRecord}
+                />
+              </div>
+
+              {/* Treatment */}
+              <div style={{ marginBottom: '24px' }}>
+                <label style={{
+                  display: 'block',
+                  marginBottom: '8px',
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  color: '#374151'
+                }}>
+                  Treatment Provided <span style={{ color: '#ef4444' }}>*</span>
+                </label>
+                <textarea
+                  value={medicalRecordData.treatment}
+                  onChange={(e) => setMedicalRecordData({...medicalRecordData, treatment: e.target.value})}
+                  placeholder="Describe the treatment provided..."
+                  rows={3}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    border: '2px solid #e5e7eb',
+                    borderRadius: '8px',
+                    fontSize: '0.9375rem',
+                    resize: 'vertical'
+                  }}
+                  disabled={isSavingRecord}
+                />
+              </div>
+
+              {/* Prescriptions */}
+              <div style={{ marginBottom: '24px' }}>
+                <label style={{
+                  display: 'block',
+                  marginBottom: '8px',
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  color: '#374151'
+                }}>
+                  Prescriptions (one per line)
+                </label>
+                <textarea
+                  value={medicalRecordData.prescriptions}
+                  onChange={(e) => setMedicalRecordData({...medicalRecordData, prescriptions: e.target.value})}
+                  placeholder="e.g., Amoxicillin 500mg - 2x daily for 7 days"
+                  rows={4}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    border: '2px solid #e5e7eb',
+                    borderRadius: '8px',
+                    fontSize: '0.9375rem',
+                    resize: 'vertical'
+                  }}
+                  disabled={isSavingRecord}
+                />
+              </div>
+
+              {/* Lab Results */}
+              <div style={{ marginBottom: '24px' }}>
+                <label style={{
+                  display: 'block',
+                  marginBottom: '8px',
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  color: '#374151'
+                }}>
+                  Lab Results (if any)
+                </label>
+                <textarea
+                  value={medicalRecordData.labResults}
+                  onChange={(e) => setMedicalRecordData({...medicalRecordData, labResults: e.target.value})}
+                  placeholder="Enter lab test results..."
+                  rows={3}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    border: '2px solid #e5e7eb',
+                    borderRadius: '8px',
+                    fontSize: '0.9375rem',
+                    resize: 'vertical'
+                  }}
+                  disabled={isSavingRecord}
+                />
+              </div>
+
+              {/* Additional Notes */}
+              <div style={{ marginBottom: '24px' }}>
+                <label style={{
+                  display: 'block',
+                  marginBottom: '8px',
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  color: '#374151'
+                }}>
+                  Additional Notes
+                </label>
+                <textarea
+                  value={medicalRecordData.notes}
+                  onChange={(e) => setMedicalRecordData({...medicalRecordData, notes: e.target.value})}
+                  placeholder="Any additional notes or recommendations..."
+                  rows={3}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    border: '2px solid #e5e7eb',
+                    borderRadius: '8px',
+                    fontSize: '0.9375rem',
+                    resize: 'vertical'
+                  }}
+                  disabled={isSavingRecord}
+                />
+              </div>
+
+              {/* Action Buttons */}
+              <div style={{
+                display: 'flex',
+                gap: '12px',
+                justifyContent: 'flex-end'
+              }}>
+                <button
+                  onClick={() => setShowMedicalRecordModal(false)}
+                  disabled={isSavingRecord}
+                  style={{
+                    padding: '12px 24px',
+                    border: '2px solid #e5e7eb',
+                    borderRadius: '10px',
+                    background: 'white',
+                    color: '#6b7280',
+                    fontSize: '0.9375rem',
+                    fontWeight: 600,
+                    cursor: isSavingRecord ? 'not-allowed' : 'pointer',
+                    opacity: isSavingRecord ? 0.5 : 1
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleSaveMedicalRecord}
+                  disabled={isSavingRecord || !medicalRecordData.diagnosis || !medicalRecordData.treatment}
+                  style={{
+                    padding: '12px 24px',
+                    border: 'none',
+                    borderRadius: '10px',
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    color: 'white',
+                    fontSize: '0.9375rem',
+                    fontWeight: 600,
+                    cursor: (isSavingRecord || !medicalRecordData.diagnosis || !medicalRecordData.treatment) ? 'not-allowed' : 'pointer',
+                    opacity: (isSavingRecord || !medicalRecordData.diagnosis || !medicalRecordData.treatment) ? 0.5 : 1
+                  }}
+                >
+                  {isSavingRecord ? 'Saving...' : 'Create Record'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,0 +1,335 @@
+/* Book Appointment Page Styles */
+
+.pageContainer {
+  min-height: calc(100vh - 64px);
+  background: var(--vc-gradient-bg);
+  padding: 88px var(--vc-space-6) var(--vc-space-6);
+}
+
+.formWrapper {
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.clinicBanner {
+  background: white;
+  border-radius: var(--vc-radius-lg);
+  padding: var(--vc-space-4) var(--vc-space-5);
+  margin-bottom: var(--vc-space-5);
+  box-shadow: var(--vc-shadow-sm);
+  border: 1px solid var(--vc-border-light);
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--vc-space-3);
+  padding-right: 60px;
+}
+
+.clinicIcon {
+  width: 40px;
+  height: 40px;
+  background: var(--vc-gradient-primary);
+  border-radius: var(--vc-radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.clinicInfo {
+  flex: 1;
+}
+
+.clinicLabel {
+  margin: 0;
+  font-size: var(--vc-text-sm);
+  color: var(--vc-text-muted);
+  font-weight: 600;
+}
+
+.clinicName {
+  margin: 2px 0 0 0;
+  font-size: var(--vc-text-xl);
+  font-weight: 700;
+  color: var(--vc-text-primary);
+}
+
+.closeButton {
+  position: absolute;
+  right: var(--vc-space-4);
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  background: white;
+  border: 1px solid var(--vc-border);
+  border-radius: var(--vc-radius-md);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.closeButton:hover {
+  background: var(--vc-bg-secondary);
+  border-color: var(--vc-border-dark);
+}
+
+.pageHeader {
+  background: white;
+  border-radius: var(--vc-radius-lg);
+  padding: var(--vc-space-5);
+  margin-bottom: var(--vc-space-5);
+  box-shadow: var(--vc-shadow-sm);
+  display: flex;
+  align-items: center;
+  gap: var(--vc-space-3);
+}
+
+.headerIcon {
+  width: 52px;
+  height: 52px;
+  background: var(--vc-gradient-primary);
+  border-radius: var(--vc-radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.headerContent h1 {
+  font-size: var(--vc-text-3xl);
+  font-weight: 700;
+  color: var(--vc-text-primary);
+  margin: 0 0 4px 0;
+}
+
+.headerContent p {
+  font-size: var(--vc-text-base);
+  color: var(--vc-text-muted);
+  margin: 0;
+}
+
+.formCard {
+  background: white;
+  border-radius: var(--vc-radius-lg);
+  padding: var(--vc-space-6);
+  box-shadow: var(--vc-shadow-sm);
+}
+
+.formGroup {
+  margin-bottom: var(--vc-space-5);
+}
+
+.formLabel {
+  display: block;
+  font-size: var(--vc-text-sm);
+  font-weight: 600;
+  color: var(--vc-text-secondary);
+  margin-bottom: var(--vc-space-2);
+}
+
+.required {
+  color: var(--vc-error);
+}
+
+.formInput {
+  width: 100%;
+  padding: var(--vc-space-3) var(--vc-space-4);
+  border: 1px solid var(--vc-border);
+  border-radius: var(--vc-radius-md);
+  font-size: var(--vc-text-base);
+  color: var(--vc-text-primary);
+  transition: all 0.2s ease;
+  background: white;
+}
+
+.formInput:focus {
+  outline: none;
+  border-color: var(--vc-primary);
+  box-shadow: 0 0 0 3px var(--vc-primary-bg);
+}
+
+.formSelect {
+  width: 100%;
+  padding: var(--vc-space-3) var(--vc-space-4);
+  border: 1px solid var(--vc-border);
+  border-radius: var(--vc-radius-md);
+  font-size: var(--vc-text-base);
+  color: var(--vc-text-primary);
+  transition: all 0.2s ease;
+  background: white;
+  cursor: pointer;
+}
+
+.formSelect:focus {
+  outline: none;
+  border-color: var(--vc-primary);
+  box-shadow: 0 0 0 3px var(--vc-primary-bg);
+}
+
+.formTextarea {
+  width: 100%;
+  padding: var(--vc-space-3) var(--vc-space-4);
+  border: 1px solid var(--vc-border);
+  border-radius: var(--vc-radius-md);
+  font-size: var(--vc-text-base);
+  color: var(--vc-text-primary);
+  transition: all 0.2s ease;
+  background: white;
+  resize: vertical;
+  min-height: 100px;
+  font-family: inherit;
+}
+
+.formTextarea:focus {
+  outline: none;
+  border-color: var(--vc-primary);
+  box-shadow: 0 0 0 3px var(--vc-primary-bg);
+}
+
+.errorText {
+  color: var(--vc-error);
+  margin-top: var(--vc-space-2);
+  font-size: var(--vc-text-sm);
+  font-weight: 500;
+}
+
+.inputWithIcon {
+  position: relative;
+}
+
+.inputIcon {
+  position: absolute;
+  left: var(--vc-space-3);
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--vc-text-light);
+  pointer-events: none;
+}
+
+.inputWithIconPadding {
+  padding-left: 42px !important;
+}
+
+.alert {
+  padding: var(--vc-space-3) var(--vc-space-4);
+  border-radius: var(--vc-radius-md);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--vc-space-3);
+  margin-bottom: var(--vc-space-5);
+}
+
+.alertSuccess {
+  background: var(--vc-secondary-bg);
+  border: 1px solid var(--vc-secondary-light);
+}
+
+.alertSuccess p:first-of-type {
+  margin: 0;
+  font-size: var(--vc-text-sm);
+  font-weight: 700;
+  color: var(--vc-secondary-hover);
+}
+
+.alertSuccess p:last-of-type {
+  margin: 2px 0 0 0;
+  font-size: var(--vc-text-sm);
+  color: var(--vc-secondary);
+}
+
+.alertError {
+  background: var(--vc-error-bg);
+  border: 1px solid var(--vc-error-light);
+}
+
+.alertError p:first-of-type {
+  margin: 0;
+  font-size: var(--vc-text-sm);
+  font-weight: 700;
+  color: var(--vc-error-hover);
+}
+
+.alertError p:last-of-type {
+  margin: 2px 0 0 0;
+  font-size: var(--vc-text-sm);
+  color: var(--vc-error);
+}
+
+.alertWarning {
+  background: var(--vc-accent-bg);
+  border: 1px solid var(--vc-accent-light);
+}
+
+.noPetsAlert {
+  padding: var(--vc-space-3) var(--vc-space-4);
+  border-radius: var(--vc-radius-md);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--vc-space-3);
+  margin-bottom: var(--vc-space-5);
+  background: var(--vc-accent-bg);
+  border: 1px solid var(--vc-accent-light);
+}
+
+.noPetsAlert p:first-of-type {
+  margin: 0;
+  font-weight: 600;
+  font-size: var(--vc-text-sm);
+  color: var(--vc-accent-hover);
+}
+
+.noPetsAlert p:last-of-type {
+  margin: 2px 0 0 0;
+  font-size: var(--vc-text-sm);
+  color: var(--vc-accent);
+}
+
+.linkButton {
+  color: var(--vc-primary);
+  text-decoration: underline;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font: inherit;
+}
+
+.linkButton:hover {
+  color: var(--vc-primary-hover);
+}
+
+.gridTwo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--vc-space-3);
+}
+
+.formActions {
+  display: flex;
+  gap: var(--vc-space-3);
+  justify-content: flex-end;
+  margin-top: var(--vc-space-6);
+  padding-top: var(--vc-space-5);
+  border-top: 1px solid var(--vc-border-light);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .pageContainer {
+    padding: 88px var(--vc-space-4) var(--vc-space-4);
+  }
+
+  .formCard {
+    padding: var(--vc-space-4);
+  }
+
+  .gridTwo {
+    grid-template-columns: 1fr;
+  }
+
+  .clinicBanner {
+    padding-right: 48px;
+  }
+}

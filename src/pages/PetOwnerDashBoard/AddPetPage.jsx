@@ -48,7 +48,7 @@ export default function AddPetPage() {
                 onClick={() => setShowAddModal(true)}
                 style={{
                   padding: '12px 24px',
-                  background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                   color: 'white',
                   border: 'none',
                   borderRadius: '8px',
@@ -58,16 +58,16 @@ export default function AddPetPage() {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
-                  boxShadow: '0 4px 12px rgba(59, 130, 246, 0.35)',
+                  boxShadow: '0 4px 12px rgba(102, 126, 234, 0.35)',
                   transition: 'all 0.2s ease'
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = '0 6px 16px rgba(59, 130, 246, 0.4)';
+                  e.currentTarget.style.boxShadow = '0 6px 16px rgba(102, 126, 234, 0.4)';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(59, 130, 246, 0.35)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.35)';
                 }}
               >
                 <Plus size={20} strokeWidth={2.5} />
@@ -123,7 +123,7 @@ export default function AddPetPage() {
                 onClick={() => setShowAddModal(true)}
                 style={{
                   padding: '12px 24px',
-                  background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                   color: 'white',
                   border: 'none',
                   borderRadius: '8px',
@@ -133,7 +133,7 @@ export default function AddPetPage() {
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '8px',
-                  boxShadow: '0 4px 12px rgba(59, 130, 246, 0.35)',
+                  boxShadow: '0 4px 12px rgba(102, 126, 234, 0.35)',
                   transition: 'all 0.2s ease'
                 }}
                 onMouseEnter={(e) => {

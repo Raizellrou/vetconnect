@@ -213,10 +213,42 @@ export default function ClinicDetails() {
         
         <main className={styles.main}>
           {/* Hero Section with Cover Photo and Profile */}
-          <div className={styles.card}>
-            {/* Close Button - upper-right of hero (restored) */}
-            <button onClick={() => navigate(-1)} aria-label="Close" className={styles.backButton}>
-              <X size={18} />
+          <div className={styles.card} style={{ position: 'relative', padding: 0, overflow: 'hidden' }}>
+            {/* Close Button - top-right corner */}
+            <button 
+              onClick={() => navigate(-1)} 
+              aria-label="Close" 
+              style={{
+                position: 'absolute',
+                top: '16px',
+                right: '16px',
+                zIndex: 10,
+                width: '36px',
+                height: '36px',
+                borderRadius: '50%',
+                background: 'rgba(255, 255, 255, 0.95)',
+                backdropFilter: 'blur(8px)',
+                border: 'none',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#374151',
+                transition: 'all 0.2s',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'white';
+                e.currentTarget.style.color = '#6366f1';
+                e.currentTarget.style.transform = 'scale(1.05)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.95)';
+                e.currentTarget.style.color = '#374151';
+                e.currentTarget.style.transform = 'scale(1)';
+              }}
+            >
+              <X size={20} />
             </button>
             {/* Cover / Gallery Carousel */}
             {clinic.galleryPhotos && clinic.galleryPhotos.length > 0 ? (
@@ -354,14 +386,14 @@ export default function ClinicDetails() {
             )}
 
             {/* Profile Section */}
-            <div style={{ padding: '0 20px 20px 20px', position: 'relative' }}>
+            <div style={{ padding: 'var(--vc-space-6, 24px)', position: 'relative' }}>
             
               {/* Profile Picture & Main Info */}
               <div style={{ 
-                marginTop: '-24px',
-                marginBottom: '16px'
+                marginTop: 0,
+                marginBottom: 'var(--vc-space-5, 20px)'
               }}>
-                <div className={styles.header} style={{ marginBottom: '12px' }}>
+                <div className={styles.header} style={{ marginBottom: 'var(--vc-space-4, 16px)' }}>
                   {/* Profile Picture */}
                   {(clinic.photoURL || clinic.profilePicture) ? (
                     <img
@@ -397,22 +429,33 @@ export default function ClinicDetails() {
                   )}
 
                   {/* Clinic Name & Rating */}
-                  <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                    <h1 className={styles.title}>
+                  <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '8px' }}>
+                    <h1 style={{ 
+                      fontSize: '1.75rem', 
+                      fontWeight: 700, 
+                      color: '#1e293b', 
+                      margin: 0, 
+                      lineHeight: 1.2,
+                      letterSpacing: '-0.01em'
+                    }}>
                       {clinic.clinicName || clinic.name}
                     </h1>
-                    <div className={styles.rating}>
-                      <div className={styles.stars}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <div style={{ display: 'flex', gap: '2px' }}>
                         {[1, 2, 3, 4, 5].map((star) => (
                           <Star
                             key={star}
-                            size={16}
+                            size={18}
                             fill={star <= Math.round(averageRating) ? '#fbbf24' : 'none'}
                             color={star <= Math.round(averageRating) ? '#fbbf24' : '#d1d5db'}
                           />
                         ))}
                       </div>
-                      <span className={styles.ratingText}>
+                      <span style={{ 
+                        fontSize: '0.9375rem', 
+                        color: '#64748b',
+                        fontWeight: 500
+                      }}>
                         {averageRating > 0 ? averageRating.toFixed(1) : 'No ratings'} ({reviews.length} review{reviews.length !== 1 ? 's' : ''})
                       </span>
                     </div>

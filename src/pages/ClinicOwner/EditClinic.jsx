@@ -13,6 +13,7 @@ import { db } from '../../firebase/firebase';
 import { fetchWorkingHours } from '../../firebase/firestoreHelpers';
 import { uploadMultipleImagesToCloudinary } from '../../utils/uploadImage';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import '../../styles/designSystem.css';
 
 export default function EditClinic() {
   const { clinicId } = useParams();
@@ -342,60 +343,54 @@ export default function EditClinic() {
         <main className={styles.mainContent}>
           <div className={styles.formContainer}>
             {/* Header */}
-            <div className={styles.vcCardLarge}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', marginBottom: '8px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                  <div className={styles.iconBadge} style={{ background: 'linear-gradient(135deg, #818cf8 0%, #a78bfa 100%)' }}>
-                    <Building2 size={28} color="white" />
+            <div className={styles.vcCardLarge} style={{ padding: '16px 20px', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', marginBottom: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <div style={{
+                    width: '48px',
+                    height: '48px',
+                    borderRadius: 'var(--vc-radius-lg)',
+                    background: 'linear-gradient(135deg, #818cf8 0%, #a78bfa 100%)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: '0 2px 8px rgba(129, 140, 248, 0.3)'
+                  }}>
+                    <Building2 size={24} color="white" />
                   </div>
                   <div>
-                    <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1e293b', margin: '0 0 6px 0' }}>
+                    <h1 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#1e293b', margin: '0 0 4px 0' }}>
                       Edit Clinic
                     </h1>
-                    <p style={{ fontSize: '0.875rem', color: '#64748b', margin: 0 }}>
+                    <p style={{ fontSize: '0.8125rem', color: '#64748b', margin: 0 }}>
                       Step {currentStep} of 4: {steps[currentStep - 1].title}
                     </p>
                   </div>
                 </div>
                 <button
                   onClick={() => setShowWorkingHoursModal(true)}
+                  className="vc-btn-primary"
                   style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '8px',
-                    padding: '10px 20px',
-                    background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '10px',
-                    cursor: 'pointer',
-                    fontSize: '0.875rem',
-                    fontWeight: 600,
-                    boxShadow: '0 4px 12px rgba(245, 158, 11, 0.3)',
-                    transition: 'all 0.2s'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-2px)';
-                    e.currentTarget.style.boxShadow = '0 6px 16px rgba(245, 158, 11, 0.4)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(245, 158, 11, 0.3)';
+                    gap: '6px',
+                    padding: '8px 14px',
+                    fontSize: '0.75rem'
                   }}
                 >
-                  <Settings size={18} />
-                  Working Hours {workingHours && `(${workingHours.start} - ${workingHours.end})`}
+                  <Clock size={14} />
+                  Hours {workingHours && `(${workingHours.start}-${workingHours.end})`}
                 </button>
               </div>
 
               {/* Progress Bar */}
-              <div style={{ display: 'flex', gap: '8px', marginTop: '24px' }}>
+              <div style={{ display: 'flex', gap: '6px' }}>
                 {steps.map((step) => (
                   <div
                     key={step.number}
                     style={{
                       flex: 1,
-                      height: '8px',
+                      height: '6px',
                       borderRadius: '4px',
                       background: step.number <= currentStep 
                         ? 'linear-gradient(135deg, #818cf8 0%, #a78bfa 100%)'
@@ -413,76 +408,110 @@ export default function EditClinic() {
             )}
 
             {/* Form Steps */}
-            <div className={styles.vcCard}>
+            <div className={styles.vcCard} style={{ padding: '20px' }}>
               {/* Step 1: Basic Information */}
               {currentStep === 1 && (
                 <div>
-                  <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-                        <div className={styles.iconBadge} style={{ width: '80px', height: '80px', borderRadius: '16px', background: 'linear-gradient(135deg, #e0e7ff 0%, #ddd6fe 100%)', margin: '0 auto 16px' }}>
-                          <Building2 size={40} color="#818cf8" />
-                        </div>
-                    <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '8px' }}>
+                  <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+                    <div style={{ 
+                      width: '64px', 
+                      height: '64px', 
+                      borderRadius: '12px', 
+                      background: 'linear-gradient(135deg, #e0e7ff 0%, #ddd6fe 100%)', 
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      margin: '0 auto 12px' 
+                    }}>
+                      <Building2 size={32} color="#818cf8" />
+                    </div>
+                    <h2 style={{ fontSize: '1.125rem', fontWeight: 700, marginBottom: '4px' }}>
                       Update basic information
                     </h2>
-                    <p style={{ color: '#64748b' }}>Edit your clinic details</p>
+                    <p style={{ color: '#64748b', fontSize: '0.8125rem' }}>Edit your clinic details</p>
                   </div>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                     <div>
-                      <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#374151', marginBottom: '8px' }}>
+                      <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
                         Clinic Name <span style={{ color: '#ef4444' }}>*</span>
                       </label>
-                        <input
-                          type="text"
-                          name="clinicName"
-                          value={formData.clinicName}
-                          onChange={handleInputChange}
-                          placeholder="e.g., Happy Paws Veterinary Clinic"
-                          className={styles.formInput}
-                        />
+                      <input
+                        type="text"
+                        name="clinicName"
+                        value={formData.clinicName}
+                        onChange={handleInputChange}
+                        placeholder="e.g., Happy Paws Veterinary Clinic"
+                        style={{
+                          width: '100%',
+                          padding: '10px 12px',
+                          border: '1px solid #e5e7eb',
+                          borderRadius: '8px',
+                          fontSize: '0.875rem'
+                        }}
+                      />
                     </div>
 
                     <div>
-                      <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#374151', marginBottom: '8px' }}>
+                      <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
                         Complete Address <span style={{ color: '#ef4444' }}>*</span>
                       </label>
-                      <div style={{ display: 'flex', gap: '12px', marginBottom: '8px' }}>
-                        <textarea
-                          name="address"
-                          value={formData.address}
-                          onChange={handleInputChange}
-                          placeholder="Street, City, Province/State, Postal Code, Country"
-                          rows={3}
-                          className={styles.formTextarea}
-                        />
-                      </div>
+                      <textarea
+                        name="address"
+                        value={formData.address}
+                        onChange={handleInputChange}
+                        placeholder="Street, City, Province/State, Postal Code, Country"
+                        rows={3}
+                        style={{
+                          width: '100%',
+                          padding: '10px 12px',
+                          border: '1px solid #e5e7eb',
+                          borderRadius: '8px',
+                          fontSize: '0.875rem',
+                          resize: 'vertical',
+                          marginBottom: '8px'
+                        }}
+                      />
                       <button
                         type="button"
                         onClick={() => setShowMapPicker(true)}
-                        className={styles.secondaryBtn}
+                        className="vc-btn-primary"
+                        style={{
+                          padding: '8px 14px',
+                          fontSize: '0.8125rem',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px'
+                        }}
                       >
-                        <Map size={18} />
+                        <Map size={16} />
                         Pick Location on Map
                       </button>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                       <div>
-                        <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#374151', marginBottom: '8px' }}>
+                        <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
                           Contact Number <span style={{ color: '#ef4444' }}>*</span>
                         </label>
-                          <input
-                            type="tel"
-                            name="contactNumber"
-                            value={formData.contactNumber}
-                            onChange={handleInputChange}
-                            placeholder="+1 (555) 123-4567"
-                            className={styles.formInput}
-                          />
+                        <input
+                          type="tel"
+                          name="contactNumber"
+                          value={formData.contactNumber}
+                          onChange={handleInputChange}
+                          placeholder="+1 (555) 123-4567"
+                          style={{
+                            width: '100%',
+                            padding: '10px 12px',
+                            border: '1px solid #e5e7eb',
+                            borderRadius: '8px',
+                            fontSize: '0.875rem'
+                          }}
+                        />
                       </div>
 
                       <div>
-                        <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#374151', marginBottom: '8px' }}>
+                        <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
                           Email Address
                         </label>
                         <input
@@ -491,42 +520,13 @@ export default function EditClinic() {
                           value={formData.email}
                           onChange={handleInputChange}
                           placeholder="clinic@example.com"
-                          className={styles.formInput}
-                        />
-                      </div>
-                    </div>
-
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                      <div>
-                        <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#374151', marginBottom: '8px' }}>
-                          Latitude (Optional)
-                        </label>
-                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                          <input
-                            type="text"
-                            name="latitude"
-                            value={formData.latitude}
-                            onChange={handleInputChange}
-                            placeholder="e.g., 14.5995"
-                            className={styles.formInput}
-                          />
-                          <button type="button" onClick={() => setShowMapPicker(true)} className={styles.secondaryBtn}>
-                            <Map size={16} />
-                            Use map picker
-                          </button>
-                        </div>
-                      </div>
-                      <div>
-                        <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#374151', marginBottom: '8px' }}>
-                          Longitude (Optional)
-                        </label>
-                        <input
-                          type="text"
-                          name="longitude"
-                          value={formData.longitude}
-                          onChange={handleInputChange}
-                          placeholder="e.g., 121.0369"
-                          className={styles.formInput}
+                          style={{
+                            width: '100%',
+                            padding: '10px 12px',
+                            border: '1px solid #e5e7eb',
+                            borderRadius: '8px',
+                            fontSize: '0.875rem'
+                          }}
                         />
                       </div>
                     </div>
@@ -534,31 +534,31 @@ export default function EditClinic() {
                 </div>
               )}
 
-              {/* Step 2: Services & Hours - Same as Create */}
+              {/* Step 2: Services & Hours */}
               {currentStep === 2 && (
                 <div>
-                  <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+                  <div style={{ textAlign: 'center', marginBottom: '24px' }}>
                     <div style={{
-                      width: '80px',
-                      height: '80px',
-                      borderRadius: '16px',
+                      width: '64px',
+                      height: '64px',
+                      borderRadius: '12px',
                       background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      margin: '0 auto 16px'
+                      margin: '0 auto 12px'
                     }}>
-                      <Clock size={40} color="#f59e0b" />
+                      <Clock size={32} color="#f59e0b" strokeWidth={2.5} />
                     </div>
-                    <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '8px' }}>
+                    <h2 style={{ fontSize: '1.125rem', fontWeight: 700, marginBottom: '4px' }}>
                       Services & Operating Hours
                     </h2>
-                    <p style={{ color: '#64748b' }}>Update your services and hours</p>
+                    <p style={{ color: '#64748b', fontSize: '0.8125rem' }}>Update your services and hours</p>
                   </div>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                     <div>
-                      <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#374151', marginBottom: '8px' }}>
+                      <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
                         Services Offered <span style={{ color: '#ef4444' }}>*</span>
                       </label>
                       <textarea
@@ -567,15 +567,22 @@ export default function EditClinic() {
                         onChange={handleInputChange}
                         placeholder="e.g., Vaccination, Surgery, Dental Care, Emergency Care, Pet Grooming"
                         rows={4}
-                        className={styles.formTextarea}
+                        style={{
+                          width: '100%',
+                          padding: '10px 12px',
+                          border: '1px solid #e5e7eb',
+                          borderRadius: '8px',
+                          fontSize: '0.875rem',
+                          resize: 'vertical'
+                        }}
                       />
-                      <p style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '4px' }}>
+                      <p style={{ fontSize: '0.6875rem', color: '#6b7280', marginTop: '4px' }}>
                         Separate services with commas
                       </p>
                     </div>
 
                     <div>
-                      <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#374151', marginBottom: '8px' }}>
+                      <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
                         Opening Hours <span style={{ color: '#ef4444' }}>*</span>
                       </label>
                       <input
@@ -584,12 +591,18 @@ export default function EditClinic() {
                         value={formData.openHours}
                         onChange={handleInputChange}
                         placeholder="e.g., Mon-Fri: 8:00 AM - 6:00 PM, Sat: 9:00 AM - 3:00 PM"
-                        className={styles.formInput}
+                        style={{
+                          width: '100%',
+                          padding: '10px 12px',
+                          border: '1px solid #e5e7eb',
+                          borderRadius: '8px',
+                          fontSize: '0.875rem'
+                        }}
                       />
                     </div>
 
                     <div>
-                      <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#374151', marginBottom: '8px' }}>
+                      <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
                         About Your Clinic
                       </label>
                       <textarea
@@ -598,42 +611,49 @@ export default function EditClinic() {
                         onChange={handleInputChange}
                         placeholder="Tell pet owners about your clinic, facilities, and what makes you special..."
                         rows={5}
-                        className={styles.formTextarea}
+                        style={{
+                          width: '100%',
+                          padding: '10px 12px',
+                          border: '1px solid #e5e7eb',
+                          borderRadius: '8px',
+                          fontSize: '0.875rem',
+                          resize: 'vertical'
+                        }}
                       />
                     </div>
                   </div>
                 </div>
               )}
 
-              {/* Step 3 & 4: Same structure as Create but with existing data loaded */}
+              {/* Step 3: Manage Veterinarians */}
               {currentStep === 3 && (
                 <div>
-                  <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+                  <div style={{ textAlign: 'center', marginBottom: '24px' }}>
                     <div style={{
-                      width: '80px',
-                      height: '80px',
-                      borderRadius: '16px',
+                      width: '64px',
+                      height: '64px',
+                      borderRadius: '12px',
                       background: 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      margin: '0 auto 16px'
+                      margin: '0 auto 12px'
                     }}>
-                      <Plus size={40} color="#10b981" />
+                      <Plus size={32} color="#10b981" />
                     </div>
-                    <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '8px' }}>
+                    <h2 style={{ fontSize: '1.125rem', fontWeight: 700, marginBottom: '4px' }}>
                       Manage Veterinarians
                     </h2>
-                    <p style={{ color: '#64748b' }}>Update your team of veterinarians</p>
+                    <p style={{ color: '#64748b', fontSize: '0.8125rem' }}>Update your team of veterinarians</p>
                   </div>
 
                   {/* Existing Veterinarians */}
                   {veterinarians.length > 0 && (
-                    <div style={{ marginBottom: '24px' }}>
-                      <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '12px' }}>
+                    <div style={{ marginBottom: '16px' }}>
+                      <h3 style={{ fontSize: '0.875rem', fontWeight: 600, marginBottom: '10px' }}>
                         Current Veterinarians ({veterinarians.length})
                       </h3>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                         {veterinarians.map((vet) => (
                           <div key={vet.id} className={styles.vetItem}>
                             <div>
@@ -765,31 +785,34 @@ export default function EditClinic() {
                 </div>
               )}
 
-              {/* Step 4: Photos - Similar to Create but shows existing photos */}
+              {/* Step 4: Photos */}
               {currentStep === 4 && (
                 <div>
-                  <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+                  <div style={{ textAlign: 'center', marginBottom: '24px' }}>
                     <div style={{
-                      width: '80px',
-                      height: '80px',
-                      borderRadius: '16px',
+                      width: '64px',
+                      height: '64px',
+                      borderRadius: '12px',
                       background: 'linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      margin: '0 auto 16px'
+                      margin: '0 auto 12px'
                     }}>
-                      <Camera size={40} color="#0ea5e9" />
+                      <Camera size={32} color="#0ea5e9" />
                     </div>
-                    <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '8px' }}>
+                    <h2 style={{ fontSize: '1.125rem', fontWeight: 700, marginBottom: '4px' }}>
                       Update Photos
                     </h2>
-                    <p style={{ color: '#64748b' }}>Update your clinic photos</p>
+                    <p style={{ color: '#64748b', fontSize: '0.8125rem' }}>Update your clinic photos</p>
                   </div>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                     {/* Profile Picture */}
-                    <div>
+                    <div style={{ maxWidth: '240px', margin: '0 auto' }}>
+                      <h3 style={{ fontSize: '0.8125rem', fontWeight: 600, marginBottom: '10px', textAlign: 'center' }}>
+                        Profile Picture
+                      </h3>
                       <ImageUploader
                         onUpload={handleProfilePictureUpload}
                         currentImage={profilePicturePreview || existingProfilePicture}
@@ -800,18 +823,18 @@ export default function EditClinic() {
 
                     {/* Gallery Photos */}
                     <div>
-                      <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '12px' }}>
+                      <h3 style={{ fontSize: '0.875rem', fontWeight: 600, marginBottom: '8px' }}>
                         Gallery Photos (Max 6)
                       </h3>
-                      <p style={{ fontSize: '0.875rem', color: '#64748b', marginBottom: '16px' }}>
+                      <p style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '12px' }}>
                         Photos of your clinic facilities, equipment, and team
                       </p>
 
                       <div style={{ 
                         display: 'grid', 
                         gridTemplateColumns: 'repeat(3, 1fr)',
-                        gap: '16px',
-                        marginBottom: '16px'
+                        gap: '10px',
+                        marginBottom: '12px'
                       }}>
                         {galleryPreviews.map((preview, index) => (
                           <div key={index} style={{ position: 'relative' }}>
@@ -820,10 +843,10 @@ export default function EditClinic() {
                               alt={`Gallery ${index + 1}`}
                               style={{
                                 width: '100%',
-                                height: '150px',
+                                height: '120px',
                                 objectFit: 'cover',
-                                borderRadius: '12px',
-                                border: '2px solid #e5e7eb'
+                                borderRadius: '8px',
+                                border: '1px solid #e5e7eb'
                               }}
                             />
                             <button
@@ -877,11 +900,14 @@ export default function EditClinic() {
               )}
             </div>
 
-            {/* Navigation Buttons */}
+            {/* Navigation Buttons - Arrow Style */}
             <div style={{ 
               display: 'flex', 
               justifyContent: 'space-between',
-              gap: '16px'
+              alignItems: 'center',
+              marginTop: '24px',
+              paddingTop: '20px',
+              borderTop: '1px solid #e5e7eb'
             }}>
               <button
                 onClick={() => {
@@ -892,57 +918,58 @@ export default function EditClinic() {
                   }
                 }}
                 disabled={isSubmitting}
+                className="vc-btn-secondary"
                 style={{
-                  padding: '14px 32px',
-                  background: 'white',
-                  border: '2px solid #e5e7eb',
-                  borderRadius: '12px',
-                  fontSize: '1rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '10px 20px',
+                  fontSize: '0.875rem',
                   fontWeight: 600,
-                  color: '#374151',
-                  cursor: isSubmitting ? 'not-allowed' : 'pointer',
-                  opacity: isSubmitting ? 0.5 : 1
+                  opacity: isSubmitting ? 0.5 : 1,
+                  cursor: isSubmitting ? 'not-allowed' : 'pointer'
                 }}
               >
+                {currentStep > 1 && (
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                )}
                 {currentStep === 1 ? 'Cancel' : 'Previous'}
               </button>
 
               {currentStep < 4 ? (
                 <button
                   onClick={nextStep}
+                  className="vc-btn-primary"
                   style={{
-                    padding: '14px 40px',
-                    background: 'linear-gradient(135deg, #818cf8 0%, #6366f1 100%)',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '12px',
-                    fontSize: '1rem',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    boxShadow: '0 4px 12px rgba(129, 140, 248, 0.4)'
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '10px 20px',
+                    fontSize: '0.875rem',
+                    fontWeight: 600
                   }}
                 >
-                  Next Step
+                  Next
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M6 12L10 8L6 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
                 </button>
               ) : (
                 <button
                   onClick={handleSubmit}
                   disabled={isSubmitting}
+                  className="vc-btn-success"
                   style={{
-                    padding: '14px 40px',
-                    background: isSubmitting 
-                      ? '#9ca3af' 
-                      : 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '12px',
-                    fontSize: '1rem',
-                    fontWeight: 700,
-                    cursor: isSubmitting ? 'not-allowed' : 'pointer',
-                    boxShadow: isSubmitting ? 'none' : '0 4px 12px rgba(16, 185, 129, 0.4)',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '8px'
+                    gap: '8px',
+                    padding: '10px 20px',
+                    fontSize: '0.875rem',
+                    fontWeight: 600,
+                    opacity: isSubmitting ? 0.6 : 1,
+                    cursor: isSubmitting ? 'not-allowed' : 'pointer'
                   }}
                 >
                   {isSubmitting ? (
@@ -952,7 +979,7 @@ export default function EditClinic() {
                     </>
                   ) : (
                     <>
-                      <Save size={20} />
+                      <Save size={18} />
                       Save Changes
                     </>
                   )}

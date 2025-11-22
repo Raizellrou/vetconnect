@@ -11,6 +11,7 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../firebase/firebase';
 import { uploadMultipleImagesToCloudinary } from '../../utils/uploadImage';
 import LoadingSpinner from '../../components/LoadingSpinner';
+import '../../styles/designSystem.css';
 
 export default function CreateClinic() {
   const { userData, currentUser } = useAuth();
@@ -230,24 +231,25 @@ export default function CreateClinic() {
         <main className={styles.mainContent}>
           <div className={styles.formContainer}>
             {/* Header */}
-            <div className={styles.vcCardLarge}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '8px' }}>
+            <div className={styles.vcCardLarge} style={{ padding: '16px 20px', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
                 <div style={{
-                  width: '56px',
-                  height: '56px',
-                  borderRadius: '16px',
-                  background: 'linear-gradient(135deg, #818cf8 0%, #a78bfa 100%)',
+                  width: '48px',
+                  height: '48px',
+                  borderRadius: 'var(--vc-radius-lg)',
+                  background: 'linear-gradient(135deg, var(--vc-primary) 0%, var(--vc-primary-hover) 100%)',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center'
+                  justifyContent: 'center',
+                  boxShadow: '0 2px 8px rgba(129, 140, 248, 0.3)'
                 }}>
-                  <Building2 size={28} color="white" />
+                  <Building2 size={24} color="white" strokeWidth={2.5} />
                 </div>
                 <div>
-                  <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1e293b', margin: '0 0 6px 0' }}>
+                  <h1 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--vc-text-dark)', margin: '0 0 4px 0' }}>
                     Create New Clinic
                   </h1>
-                  <p style={{ fontSize: '0.875rem', color: '#64748b', margin: 0 }}>
+                  <p style={{ fontSize: '0.8125rem', color: 'var(--vc-text-muted)', margin: 0, fontWeight: 500 }}>
                     Step {currentStep} of 4: {steps[currentStep - 1].title}
                   </p>
                 </div>
@@ -256,20 +258,19 @@ export default function CreateClinic() {
               {/* Progress Bar */}
               <div style={{ 
                 display: 'flex', 
-                gap: '8px', 
-                marginTop: '24px'
+                gap: '6px'
               }}>
                 {steps.map((step) => (
                   <div
                     key={step.number}
                     style={{
                       flex: 1,
-                      height: '8px',
-                      borderRadius: '4px',
+                      height: '6px',
+                      borderRadius: 'var(--vc-radius-sm)',
                       background: step.number <= currentStep 
-                        ? 'linear-gradient(135deg, #818cf8 0%, #a78bfa 100%)'
+                        ? 'linear-gradient(135deg, var(--vc-primary) 0%, var(--vc-primary-hover) 100%)'
                         : '#e5e7eb',
-                      transition: 'all 0.3s'
+                      transition: 'all 0.3s ease'
                     }}
                   />
                 ))}
@@ -280,44 +281,49 @@ export default function CreateClinic() {
             {error && (
               <div style={{
                 background: '#fee2e2',
-                border: '2px solid #f87171',
-                borderRadius: '12px',
-                padding: '16px',
-                marginBottom: '24px',
+                border: '1px solid #ef4444',
+                borderRadius: 'var(--vc-radius-lg)',
+                padding: '12px 16px',
+                marginBottom: '16px',
                 color: '#991b1b',
-                fontWeight: 600
+                fontWeight: 500,
+                fontSize: '0.8125rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px'
               }}>
-                {error}
+                <X size={16} color="#ef4444" strokeWidth={2} />
+                <span>{error}</span>
               </div>
             )}
 
             {/* Form Steps */}
-            <div className={styles.vcCardLarge}>
+            <div className={styles.vcCardLarge} style={{ padding: '20px' }}>
               {/* Step 1: Basic Information */}
               {currentStep === 1 && (
                 <div>
-                  <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+                  <div style={{ textAlign: 'center', marginBottom: '24px' }}>
                     <div style={{
-                      width: '80px',
-                      height: '80px',
-                      borderRadius: '16px',
+                      width: '64px',
+                      height: '64px',
+                      borderRadius: '12px',
                       background: 'linear-gradient(135deg, #e0e7ff 0%, #ddd6fe 100%)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      margin: '0 auto 16px'
+                      margin: '0 auto 12px'
                     }}>
-                      <Building2 size={40} color="#818cf8" />
+                      <Building2 size={32} color="#818cf8" />
                     </div>
-                    <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '8px' }}>
+                    <h2 style={{ fontSize: '1.125rem', fontWeight: 700, marginBottom: '4px' }}>
                       Let's start with the basics
                     </h2>
-                    <p style={{ color: '#64748b' }}>Tell us about your clinic</p>
+                    <p style={{ color: '#64748b', fontSize: '0.8125rem' }}>Tell us about your clinic</p>
                   </div>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                     <div>
-                      <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#374151', marginBottom: '8px' }}>
+                      <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
                         Clinic Name <span style={{ color: '#ef4444' }}>*</span>
                       </label>
                       <input
@@ -328,70 +334,54 @@ export default function CreateClinic() {
                         placeholder="e.g., Happy Paws Veterinary Clinic"
                         style={{
                           width: '100%',
-                          padding: '14px 16px',
-                          border: '2px solid #e5e7eb',
-                          borderRadius: '10px',
-                          fontSize: '1rem'
+                          padding: '10px 12px',
+                          border: '1px solid #e5e7eb',
+                          borderRadius: '8px',
+                          fontSize: '0.875rem'
                         }}
                       />
                     </div>
 
                     <div>
-                      <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#374151', marginBottom: '8px' }}>
+                      <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
                         Complete Address <span style={{ color: '#ef4444' }}>*</span>
                       </label>
-                      <div style={{ display: 'flex', gap: '12px', marginBottom: '8px' }}>
-                        <textarea
-                          name="address"
-                          value={formData.address}
-                          onChange={handleInputChange}
-                          placeholder="Street, City, Province/State, Postal Code, Country"
-                          rows={3}
-                          style={{
-                            flex: 1,
-                            padding: '14px 16px',
-                            border: '2px solid #e5e7eb',
-                            borderRadius: '10px',
-                            fontSize: '1rem',
-                            resize: 'vertical'
-                          }}
-                        />
-                      </div>
+                      <textarea
+                        name="address"
+                        value={formData.address}
+                        onChange={handleInputChange}
+                        placeholder="Street, City, Province/State, Postal Code, Country"
+                        rows={3}
+                        style={{
+                          width: '100%',
+                          padding: '10px 12px',
+                          border: '1px solid #e5e7eb',
+                          borderRadius: '8px',
+                          fontSize: '0.875rem',
+                          resize: 'vertical',
+                          marginBottom: '8px'
+                        }}
+                      />
                       <button
                         type="button"
                         onClick={() => setShowMapPicker(true)}
+                        className="vc-btn-primary"
                         style={{
-                          padding: '12px 20px',
-                          background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '10px',
-                          fontSize: '0.875rem',
-                          fontWeight: 600,
-                          cursor: 'pointer',
+                          padding: '8px 14px',
+                          fontSize: '0.8125rem',
                           display: 'flex',
                           alignItems: 'center',
-                          gap: '8px',
-                          boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)',
-                          transition: 'all 0.2s'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.transform = 'translateY(-2px)';
-                          e.currentTarget.style.boxShadow = '0 6px 16px rgba(59, 130, 246, 0.4)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.transform = 'translateY(0)';
-                          e.currentTarget.style.boxShadow = '0 4px 12px rgba(59, 130, 246, 0.3)';
+                          gap: '6px'
                         }}
                       >
-                        <Map size={18} />
+                        <Map size={16} />
                         Pick Location on Map
                       </button>
                     </div>
 
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                       <div>
-                        <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#374151', marginBottom: '8px' }}>
+                        <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
                           Contact Number <span style={{ color: '#ef4444' }}>*</span>
                         </label>
                         <input
@@ -402,16 +392,16 @@ export default function CreateClinic() {
                           placeholder="+1 (555) 123-4567"
                           style={{
                             width: '100%',
-                            padding: '14px 16px',
-                            border: '2px solid #e5e7eb',
-                            borderRadius: '10px',
-                            fontSize: '1rem'
+                            padding: '10px 12px',
+                            border: '1px solid #e5e7eb',
+                            borderRadius: '8px',
+                            fontSize: '0.875rem'
                           }}
                         />
                       </div>
 
                       <div>
-                        <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#374151', marginBottom: '8px' }}>
+                        <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
                           Email Address
                         </label>
                         <input
@@ -422,52 +412,10 @@ export default function CreateClinic() {
                           placeholder="clinic@example.com"
                           style={{
                             width: '100%',
-                            padding: '14px 16px',
-                            border: '2px solid #e5e7eb',
-                            borderRadius: '10px',
-                            fontSize: '1rem'
-                          }}
-                        />
-                      </div>
-                    </div>
-
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                      <div>
-                        <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#374151', marginBottom: '8px' }}>
-                          Latitude (Optional)
-                        </label>
-                        <input
-                          type="text"
-                          name="latitude"
-                          value={formData.latitude}
-                          onChange={handleInputChange}
-                          placeholder="e.g., 14.5995"
-                          style={{
-                            width: '100%',
-                            padding: '14px 16px',
-                            border: '2px solid #e5e7eb',
-                            borderRadius: '10px',
-                            fontSize: '1rem'
-                          }}
-                        />
-                      </div>
-
-                      <div>
-                        <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#374151', marginBottom: '8px' }}>
-                          Longitude (Optional)
-                        </label>
-                        <input
-                          type="text"
-                          name="longitude"
-                          value={formData.longitude}
-                          onChange={handleInputChange}
-                          placeholder="e.g., 120.9842"
-                          style={{
-                            width: '100%',
-                            padding: '14px 16px',
-                            border: '2px solid #e5e7eb',
-                            borderRadius: '10px',
-                            fontSize: '1rem'
+                            padding: '10px 12px',
+                            border: '1px solid #e5e7eb',
+                            borderRadius: '8px',
+                            fontSize: '0.875rem'
                           }}
                         />
                       </div>
@@ -479,28 +427,28 @@ export default function CreateClinic() {
               {/* Step 2: Services & Hours */}
               {currentStep === 2 && (
                 <div>
-                  <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+                  <div style={{ textAlign: 'center', marginBottom: '24px' }}>
                     <div style={{
-                      width: '80px',
-                      height: '80px',
-                      borderRadius: '16px',
+                      width: '64px',
+                      height: '64px',
+                      borderRadius: '12px',
                       background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      margin: '0 auto 16px'
+                      margin: '0 auto 12px'
                     }}>
-                      <Clock size={40} color="#f59e0b" />
+                      <Clock size={32} color="#f59e0b" strokeWidth={2.5} />
                     </div>
-                    <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '8px' }}>
+                    <h2 style={{ fontSize: '1.125rem', fontWeight: 700, marginBottom: '4px' }}>
                       Services & Operating Hours
                     </h2>
-                    <p style={{ color: '#64748b' }}>What services do you offer?</p>
+                    <p style={{ color: '#64748b', fontSize: '0.8125rem' }}>What services do you offer?</p>
                   </div>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                     <div>
-                      <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#374151', marginBottom: '8px' }}>
+                      <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
                         Services Offered <span style={{ color: '#ef4444' }}>*</span>
                       </label>
                       <textarea
@@ -511,20 +459,20 @@ export default function CreateClinic() {
                         rows={4}
                         style={{
                           width: '100%',
-                          padding: '14px 16px',
-                          border: '2px solid #e5e7eb',
-                          borderRadius: '10px',
-                          fontSize: '1rem',
+                          padding: '10px 12px',
+                          border: '1px solid #e5e7eb',
+                          borderRadius: '8px',
+                          fontSize: '0.875rem',
                           resize: 'vertical'
                         }}
                       />
-                      <p style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '4px' }}>
+                      <p style={{ fontSize: '0.6875rem', color: '#6b7280', marginTop: '4px' }}>
                         Separate services with commas
                       </p>
                     </div>
 
                     <div>
-                      <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#374151', marginBottom: '8px' }}>
+                      <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
                         Opening Hours <span style={{ color: '#ef4444' }}>*</span>
                       </label>
                       <input
@@ -535,16 +483,16 @@ export default function CreateClinic() {
                         placeholder="e.g., Mon-Fri: 8:00 AM - 6:00 PM, Sat: 9:00 AM - 3:00 PM"
                         style={{
                           width: '100%',
-                          padding: '14px 16px',
-                          border: '2px solid #e5e7eb',
-                          borderRadius: '10px',
-                          fontSize: '1rem'
+                          padding: '10px 12px',
+                          border: '1px solid #e5e7eb',
+                          borderRadius: '8px',
+                          fontSize: '0.875rem'
                         }}
                       />
                     </div>
 
                     <div>
-                      <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#374151', marginBottom: '8px' }}>
+                      <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
                         About Your Clinic
                       </label>
                       <textarea
@@ -555,10 +503,10 @@ export default function CreateClinic() {
                         rows={5}
                         style={{
                           width: '100%',
-                          padding: '14px 16px',
-                          border: '2px solid #e5e7eb',
-                          borderRadius: '10px',
-                          fontSize: '1rem',
+                          padding: '10px 12px',
+                          border: '1px solid #e5e7eb',
+                          borderRadius: '8px',
+                          fontSize: '0.875rem',
                           resize: 'vertical'
                         }}
                       />
@@ -570,39 +518,39 @@ export default function CreateClinic() {
               {/* Step 3: Veterinarians */}
               {currentStep === 3 && (
                 <div>
-                  <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+                  <div style={{ textAlign: 'center', marginBottom: '24px' }}>
                     <div style={{
-                      width: '80px',
-                      height: '80px',
-                      borderRadius: '16px',
+                      width: '64px',
+                      height: '64px',
+                      borderRadius: '12px',
                       background: 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      margin: '0 auto 16px'
+                      margin: '0 auto 12px'
                     }}>
-                      <Plus size={40} color="#10b981" />
+                      <Plus size={32} color="var(--vc-success)" strokeWidth={2.5} />
                     </div>
-                    <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '8px' }}>
+                    <h2 style={{ fontSize: '1.125rem', fontWeight: 700, marginBottom: '4px' }}>
                       Add Your Veterinarians
                     </h2>
-                    <p style={{ color: '#64748b' }}>List the veterinarians working at your clinic</p>
+                    <p style={{ color: '#64748b', fontSize: '0.8125rem' }}>List the veterinarians working at your clinic</p>
                   </div>
 
                   {/* Existing Veterinarians */}
                   {veterinarians.length > 0 && (
-                    <div style={{ marginBottom: '24px' }}>
-                      <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '12px' }}>
+                    <div style={{ marginBottom: '16px' }}>
+                      <h3 style={{ fontSize: '0.875rem', fontWeight: 600, marginBottom: '10px' }}>
                         Added Veterinarians ({veterinarians.length})
                       </h3>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                         {veterinarians.map((vet) => (
                           <div
                             key={vet.id}
                             style={{
-                              padding: '16px',
+                              padding: '12px',
                               background: '#f8fafc',
-                              borderRadius: '10px',
+                              borderRadius: '8px',
                               border: '1px solid #e5e7eb',
                               display: 'flex',
                               justifyContent: 'space-between',
@@ -610,15 +558,15 @@ export default function CreateClinic() {
                             }}
                           >
                             <div>
-                              <p style={{ margin: '0 0 4px 0', fontWeight: 600, color: '#1e293b' }}>
+                              <p style={{ margin: '0 0 4px 0', fontWeight: 600, color: '#1e293b', fontSize: '0.875rem' }}>
                                 Dr. {vet.name}
                               </p>
-                              <p style={{ margin: 0, fontSize: '0.875rem', color: '#64748b' }}>
+                              <p style={{ margin: 0, fontSize: '0.75rem', color: '#64748b' }}>
                                 {vet.specialization}
                                 {vet.yearsOfExperience && ` • ${vet.yearsOfExperience} years experience`}
                               </p>
                               {vet.licenseNumber && (
-                                <p style={{ margin: '4px 0 0 0', fontSize: '0.75rem', color: '#94a3b8' }}>
+                                <p style={{ margin: '4px 0 0 0', fontSize: '0.6875rem', color: '#94a3b8' }}>
                                   License: {vet.licenseNumber}
                                 </p>
                               )}
@@ -626,15 +574,15 @@ export default function CreateClinic() {
                             <button
                               onClick={() => removeVeterinarian(vet.id)}
                               style={{
-                                padding: '8px',
+                                padding: '6px',
                                 background: '#fee2e2',
                                 border: 'none',
-                                borderRadius: '8px',
+                                borderRadius: '6px',
                                 cursor: 'pointer',
                                 color: '#ef4444'
                               }}
                             >
-                              <Trash2 size={18} />
+                              <Trash2 size={16} />
                             </button>
                           </div>
                         ))}
@@ -644,19 +592,19 @@ export default function CreateClinic() {
 
                   {/* Add New Veterinarian Form */}
                   <div style={{ 
-                    padding: '24px', 
+                    padding: '16px', 
                     background: '#f8fafc', 
-                    borderRadius: '12px',
+                    borderRadius: '10px',
                     border: '2px dashed #cbd5e1'
                   }}>
-                    <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '16px' }}>
+                    <h3 style={{ fontSize: '0.875rem', fontWeight: 600, marginBottom: '12px' }}>
                       Add New Veterinarian
                     </h3>
                     
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                         <div>
-                          <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#374151', marginBottom: '8px' }}>
+                          <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
                             Full Name <span style={{ color: '#ef4444' }}>*</span>
                           </label>
                           <input
@@ -666,16 +614,16 @@ export default function CreateClinic() {
                             placeholder="e.g., John Smith"
                             style={{
                               width: '100%',
-                              padding: '12px 14px',
-                              border: '2px solid #e5e7eb',
+                              padding: '8px 10px',
+                              border: '1px solid #e5e7eb',
                               borderRadius: '8px',
-                              fontSize: '0.875rem'
+                              fontSize: '0.8125rem'
                             }}
                           />
                         </div>
 
                         <div>
-                          <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#374151', marginBottom: '8px' }}>
+                          <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
                             Specialization <span style={{ color: '#ef4444' }}>*</span>
                           </label>
                           <input
@@ -685,18 +633,18 @@ export default function CreateClinic() {
                             placeholder="e.g., Small Animal Surgery"
                             style={{
                               width: '100%',
-                              padding: '12px 14px',
-                              border: '2px solid #e5e7eb',
+                              padding: '8px 10px',
+                              border: '1px solid #e5e7eb',
                               borderRadius: '8px',
-                              fontSize: '0.875rem'
+                              fontSize: '0.8125rem'
                             }}
                           />
                         </div>
                       </div>
 
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                         <div>
-                          <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#374151', marginBottom: '8px' }}>
+                          <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
                             License Number
                           </label>
                           <input
@@ -706,16 +654,16 @@ export default function CreateClinic() {
                             placeholder="e.g., VET-12345"
                             style={{
                               width: '100%',
-                              padding: '12px 14px',
-                              border: '2px solid #e5e7eb',
+                              padding: '8px 10px',
+                              border: '1px solid #e5e7eb',
                               borderRadius: '8px',
-                              fontSize: '0.875rem'
+                              fontSize: '0.8125rem'
                             }}
                           />
                         </div>
 
                         <div>
-                          <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#374151', marginBottom: '8px' }}>
+                          <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
                             Years of Experience
                           </label>
                           <input
@@ -725,18 +673,18 @@ export default function CreateClinic() {
                             placeholder="e.g., 5"
                             style={{
                               width: '100%',
-                              padding: '12px 14px',
-                              border: '2px solid #e5e7eb',
+                              padding: '8px 10px',
+                              border: '1px solid #e5e7eb',
                               borderRadius: '8px',
-                              fontSize: '0.875rem'
+                              fontSize: '0.8125rem'
                             }}
                           />
                         </div>
                       </div>
 
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                         <div>
-                          <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#374151', marginBottom: '8px' }}>
+                          <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
                             Email
                           </label>
                           <input
@@ -746,16 +694,16 @@ export default function CreateClinic() {
                             placeholder="vet@example.com"
                             style={{
                               width: '100%',
-                              padding: '12px 14px',
-                              border: '2px solid #e5e7eb',
+                              padding: '8px 10px',
+                              border: '1px solid #e5e7eb',
                               borderRadius: '8px',
-                              fontSize: '0.875rem'
+                              fontSize: '0.8125rem'
                             }}
                           />
                         </div>
 
                         <div>
-                          <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#374151', marginBottom: '8px' }}>
+                          <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, color: '#374151', marginBottom: '6px' }}>
                             Phone
                           </label>
                           <input
@@ -765,10 +713,10 @@ export default function CreateClinic() {
                             placeholder="+1 (555) 123-4567"
                             style={{
                               width: '100%',
-                              padding: '12px 14px',
-                              border: '2px solid #e5e7eb',
+                              padding: '8px 10px',
+                              border: '1px solid #e5e7eb',
                               borderRadius: '8px',
-                              fontSize: '0.875rem'
+                              fontSize: '0.8125rem'
                             }}
                           />
                         </div>
@@ -776,21 +724,18 @@ export default function CreateClinic() {
 
                       <button
                         onClick={handleAddVeterinarian}
+                        className="vc-btn-success"
                         style={{
-                          padding: '12px 24px',
-                          background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '8px',
-                          fontWeight: 600,
-                          cursor: 'pointer',
+                          padding: '10px 20px',
+                          fontSize: '0.8125rem',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          gap: '8px'
+                          gap: '6px',
+                          width: '100%'
                         }}
                       >
-                        <Plus size={18} />
+                        <Plus size={16} />
                         Add Veterinarian
                       </button>
                     </div>
@@ -801,28 +746,31 @@ export default function CreateClinic() {
               {/* Step 4: Photos */}
               {currentStep === 4 && (
                 <div>
-                  <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+                  <div style={{ textAlign: 'center', marginBottom: '24px' }}>
                     <div style={{
-                      width: '80px',
-                      height: '80px',
-                      borderRadius: '16px',
+                      width: '64px',
+                      height: '64px',
+                      borderRadius: '12px',
                       background: 'linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      margin: '0 auto 16px'
+                      margin: '0 auto 12px'
                     }}>
-                      <Camera size={40} color="#0ea5e9" />
+                      <Camera size={32} color="#0ea5e9" />
                     </div>
-                    <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginBottom: '8px' }}>
+                    <h2 style={{ fontSize: '1.125rem', fontWeight: 700, marginBottom: '4px' }}>
                       Add Photos
                     </h2>
-                    <p style={{ color: '#64748b' }}>Show pet owners your clinic</p>
+                    <p style={{ color: '#64748b', fontSize: '0.8125rem' }}>Show pet owners your clinic</p>
                   </div>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                     {/* Profile Picture */}
-                    <div>
+                    <div style={{ maxWidth: '240px', margin: '0 auto' }}>
+                      <h3 style={{ fontSize: '0.8125rem', fontWeight: 600, marginBottom: '10px', textAlign: 'center' }}>
+                        Profile Picture
+                      </h3>
                       <ImageUploader
                         onUpload={handleProfilePictureUpload}
                         currentImage={profilePicturePreview}
@@ -833,18 +781,18 @@ export default function CreateClinic() {
 
                     {/* Gallery Photos */}
                     <div>
-                      <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '12px' }}>
+                      <h3 style={{ fontSize: '0.875rem', fontWeight: 600, marginBottom: '8px' }}>
                         Gallery Photos (Max 6)
                       </h3>
-                      <p style={{ fontSize: '0.875rem', color: '#64748b', marginBottom: '16px' }}>
+                      <p style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '12px' }}>
                         Upload photos of your clinic facilities, equipment, and team
                       </p>
 
                       <div style={{ 
                         display: 'grid', 
                         gridTemplateColumns: 'repeat(3, 1fr)',
-                        gap: '16px',
-                        marginBottom: '16px'
+                        gap: '10px',
+                        marginBottom: '12px'
                       }}>
                         {galleryPreviews.map((preview, index) => (
                           <div key={index} style={{ position: 'relative' }}>
@@ -853,27 +801,27 @@ export default function CreateClinic() {
                               alt={`Gallery ${index + 1}`}
                               style={{
                                 width: '100%',
-                                height: '150px',
+                                height: '120px',
                                 objectFit: 'cover',
-                                borderRadius: '12px',
-                                border: '2px solid #e5e7eb'
+                                borderRadius: '8px',
+                                border: '1px solid #e5e7eb'
                               }}
                             />
                             <button
                               onClick={() => removeGalleryPhoto(index)}
                               style={{
                                 position: 'absolute',
-                                top: '8px',
-                                right: '8px',
-                                padding: '6px',
+                                top: '6px',
+                                right: '6px',
+                                padding: '4px',
                                 background: '#ef4444',
                                 border: 'none',
-                                borderRadius: '6px',
+                                borderRadius: '4px',
                                 cursor: 'pointer',
                                 color: 'white'
                               }}
                             >
-                              <X size={16} />
+                              <X size={14} />
                             </button>
                           </div>
                         ))}
@@ -884,14 +832,14 @@ export default function CreateClinic() {
                             flexDirection: 'column',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            height: '150px',
+                            height: '120px',
                             border: '2px dashed #cbd5e1',
-                            borderRadius: '12px',
+                            borderRadius: '8px',
                             cursor: 'pointer',
                             background: '#f8fafc'
                           }}>
-                            <Upload size={24} color="#94a3b8" />
-                            <span style={{ marginTop: '8px', fontSize: '0.75rem', color: '#64748b' }}>
+                            <Upload size={20} color="#94a3b8" />
+                            <span style={{ marginTop: '6px', fontSize: '0.6875rem', color: '#64748b' }}>
                               Add photo
                             </span>
                             <input
@@ -910,11 +858,14 @@ export default function CreateClinic() {
               )}
             </div>
 
-            {/* Navigation Buttons */}
+            {/* Navigation Buttons - Arrow Style */}
             <div style={{ 
               display: 'flex', 
               justifyContent: 'space-between',
-              gap: '16px'
+              alignItems: 'center',
+              marginTop: '24px',
+              paddingTop: '20px',
+              borderTop: '1px solid #e5e7eb'
             }}>
               <button
                 onClick={() => {
@@ -925,57 +876,58 @@ export default function CreateClinic() {
                   }
                 }}
                 disabled={isSubmitting}
+                className="vc-btn-secondary"
                 style={{
-                  padding: '14px 32px',
-                  background: 'white',
-                  border: '2px solid #e5e7eb',
-                  borderRadius: '12px',
-                  fontSize: '1rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '10px 20px',
+                  fontSize: '0.875rem',
                   fontWeight: 600,
-                  color: '#374151',
-                  cursor: isSubmitting ? 'not-allowed' : 'pointer',
-                  opacity: isSubmitting ? 0.5 : 1
+                  opacity: isSubmitting ? 0.5 : 1,
+                  cursor: isSubmitting ? 'not-allowed' : 'pointer'
                 }}
               >
+                {currentStep > 1 && (
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                )}
                 {currentStep === 1 ? 'Cancel' : 'Previous'}
               </button>
 
               {currentStep < 4 ? (
                 <button
                   onClick={nextStep}
+                  className="vc-btn-primary"
                   style={{
-                    padding: '14px 40px',
-                    background: 'linear-gradient(135deg, #818cf8 0%, #6366f1 100%)',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '12px',
-                    fontSize: '1rem',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    boxShadow: '0 4px 12px rgba(129, 140, 248, 0.4)'
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '10px 20px',
+                    fontSize: '0.875rem',
+                    fontWeight: 600
                   }}
                 >
-                  Next Step
+                  Next
+                  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M6 12L10 8L6 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
                 </button>
               ) : (
                 <button
                   onClick={handleSubmit}
                   disabled={isSubmitting}
+                  className="vc-btn-success"
                   style={{
-                    padding: '14px 40px',
-                    background: isSubmitting 
-                      ? '#9ca3af' 
-                      : 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '12px',
-                    fontSize: '1rem',
-                    fontWeight: 700,
-                    cursor: isSubmitting ? 'not-allowed' : 'pointer',
-                    boxShadow: isSubmitting ? 'none' : '0 4px 12px rgba(16, 185, 129, 0.4)',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '8px'
+                    gap: '8px',
+                    padding: '10px 20px',
+                    fontSize: '0.875rem',
+                    fontWeight: 600,
+                    opacity: isSubmitting ? 0.6 : 1,
+                    cursor: isSubmitting ? 'not-allowed' : 'pointer'
                   }}
                 >
                   {isSubmitting ? (
@@ -985,7 +937,7 @@ export default function CreateClinic() {
                     </>
                   ) : (
                     <>
-                      <Check size={20} />
+                      <Check size={18} />
                       Create Clinic
                     </>
                   )}

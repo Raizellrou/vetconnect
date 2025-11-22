@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { X, Clock, Save, AlertCircle, Check } from 'lucide-react';
+import { Clock, Save, AlertCircle, Check, Info } from 'lucide-react';
 import { fetchWorkingHours, updateWorkingHours } from '../../firebase/firestoreHelpers';
 import LoadingSpinner from '../LoadingSpinner';
 import Toast from '../Toast';
-import styles from '../../styles/Modal.module.css';
+import Modal from '../Modal';
+import '../../styles/designSystem.css';
 
 export default function WorkingHoursModal({ isOpen, onClose, clinicId, clinicName }) {
   const [loading, setLoading] = useState(false);
@@ -93,260 +94,191 @@ export default function WorkingHoursModal({ isOpen, onClose, clinicId, clinicNam
     }
   };
 
-  if (!isOpen) return null;
-
-  return (
-    <div 
-      className={styles.modalOverlay}
-      onClick={(e) => {
-        if (e.target === e.currentTarget && !submitting) {
-          handleClose();
-        }
-      }}
-    >
-      <div className={styles.modalContent} style={{ maxWidth: '500px' }}>
-        {/* Header */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '24px',
-          paddingBottom: '16px',
-          borderBottom: '2px solid #e5e7eb'
-        }}>
-          <div>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1e293b', margin: '0 0 4px 0' }}>
-              Set Working Hours
-            </h2>
-            <p style={{ fontSize: '0.875rem', color: '#64748b', margin: 0 }}>
-              {clinicName}
-            </p>
-          </div>
-          <button
-            onClick={handleClose}
-            disabled={submitting}
-            style={{
-              padding: '8px',
-              background: '#f3f4f6',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: submitting ? 'not-allowed' : 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}
-          >
-            <X size={20} color="#374151" />
-          </button>
-        </div>
-
-        {/* Loading State */}
-        {loading && (
-          <div style={{ padding: '40px', textAlign: 'center' }}>
-            <LoadingSpinner size="medium" message="Loading working hours..." />
-          </div>
-        )}
-
-        {/* Form */}
-        {!loading && (
+  const modalFooter = !loading && (
+    <div style={{ display: 'flex', gap: 'var(--vc-space-3)', justifyContent: 'flex-end' }}>
+      <button
+        onClick={handleClose}
+        disabled={submitting}
+        className="vc-btn-secondary"
+        style={{ minWidth: '100px' }}
+      >
+        Cancel
+      </button>
+      <button
+        onClick={handleSubmit}
+        disabled={submitting}
+        className="vc-btn-primary"
+        style={{ minWidth: '140px' }}
+      >
+        {submitting ? (
           <>
-            {/* Info Message */}
-            <div style={{
-              padding: '12px 16px',
-              background: '#eef2ff',
-              border: '1px solid #c7d2fe',
-              borderRadius: '8px',
-              marginBottom: '24px',
-              display: 'flex',
-              alignItems: 'flex-start',
-              gap: '12px'
-            }}>
-              <AlertCircle size={20} color="#4338ca" style={{ flexShrink: 0, marginTop: '2px' }} />
-              <div>
-                <p style={{ fontSize: '0.875rem', color: '#4338ca', margin: '0 0 4px 0', fontWeight: 600 }}>
-                  How it works:
-                </p>
-                <p style={{ fontSize: '0.875rem', color: '#4338ca', margin: 0, lineHeight: '1.5' }}>
-                  Set your clinic's operating hours. This will determine the available time slots for appointments. 
-                  Appointments are scheduled in 1-hour intervals.
-                </p>
-              </div>
-            </div>
-
-            {/* Error Message */}
-            {error && (
-              <div style={{
-                padding: '12px 16px',
-                background: '#fee2e2',
-                border: '1px solid #f87171',
-                borderRadius: '8px',
-                color: '#991b1b',
-                marginBottom: '20px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '8px'
-              }}>
-                <AlertCircle size={18} />
-                {error}
-              </div>
-            )}
-
-            {/* Time Inputs */}
-            <div style={{ marginBottom: '32px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
-                <Clock size={24} color="#818cf8" />
-                <h3 style={{ fontSize: '1.125rem', fontWeight: 600, margin: 0 }}>
-                  Operating Hours
-                </h3>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-                {/* Start Time */}
-                <div>
-                  <label style={{
-                    display: 'block',
-                    fontSize: '0.875rem',
-                    fontWeight: 600,
-                    color: '#374151',
-                    marginBottom: '8px'
-                  }}>
-                    Opening Time <span style={{ color: '#ef4444' }}>*</span>
-                  </label>
-                  <input
-                    type="time"
-                    value={startTime}
-                    onChange={(e) => setStartTime(e.target.value)}
-                    disabled={submitting}
-                    style={{
-                      width: '100%',
-                      padding: '12px',
-                      border: '2px solid #e5e7eb',
-                      borderRadius: '8px',
-                      fontSize: '1rem',
-                      cursor: submitting ? 'not-allowed' : 'pointer',
-                      opacity: submitting ? 0.5 : 1
-                    }}
-                  />
-                </div>
-
-                {/* End Time */}
-                <div>
-                  <label style={{
-                    display: 'block',
-                    fontSize: '0.875rem',
-                    fontWeight: 600,
-                    color: '#374151',
-                    marginBottom: '8px'
-                  }}>
-                    Closing Time <span style={{ color: '#ef4444' }}>*</span>
-                  </label>
-                  <input
-                    type="time"
-                    value={endTime}
-                    onChange={(e) => setEndTime(e.target.value)}
-                    disabled={submitting}
-                    style={{
-                      width: '100%',
-                      padding: '12px',
-                      border: '2px solid #e5e7eb',
-                      borderRadius: '8px',
-                      fontSize: '1rem',
-                      cursor: submitting ? 'not-allowed' : 'pointer',
-                      opacity: submitting ? 0.5 : 1
-                    }}
-                  />
-                </div>
-              </div>
-
-              {/* Preview */}
-              {startTime && endTime && (
-                <div style={{
-                  marginTop: '16px',
-                  padding: '12px 16px',
-                  background: '#f0fdf4',
-                  border: '1px solid #bbf7d0',
-                  borderRadius: '8px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px'
-                }}>
-                  <Check size={18} color="#16a34a" />
-                  <p style={{ fontSize: '0.875rem', color: '#166534', margin: 0 }}>
-                    <strong>Hours:</strong> {startTime} - {endTime}
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {/* Action Buttons */}
-            <div style={{
-              display: 'flex',
-              justifyContent: 'flex-end',
-              gap: '12px',
-              paddingTop: '20px',
-              borderTop: '2px solid #e5e7eb'
-            }}>
-              <button
-                onClick={handleClose}
-                disabled={submitting}
-                style={{
-                  padding: '12px 24px',
-                  background: 'white',
-                  border: '2px solid #e5e7eb',
-                  borderRadius: '10px',
-                  fontSize: '0.9375rem',
-                  fontWeight: 600,
-                  color: '#374151',
-                  cursor: submitting ? 'not-allowed' : 'pointer',
-                  opacity: submitting ? 0.5 : 1
-                }}
-              >
-                Cancel
-              </button>
-
-              <button
-                onClick={handleSubmit}
-                disabled={submitting}
-                style={{
-                  padding: '12px 32px',
-                  background: submitting ? '#9ca3af' : 'linear-gradient(135deg, #818cf8 0%, #6366f1 100%)',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '10px',
-                  fontSize: '0.9375rem',
-                  fontWeight: 700,
-                  cursor: submitting ? 'not-allowed' : 'pointer',
-                  boxShadow: submitting ? 'none' : '0 4px 12px rgba(129, 140, 248, 0.4)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px'
-                }}
-              >
-                {submitting ? (
-                  <>
-                    <LoadingSpinner size="small" />
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <Save size={18} />
-                    Save Hours
-                  </>
-                )}
-              </button>
-            </div>
+            <LoadingSpinner size="small" />
+            Saving...
+          </>
+        ) : (
+          <>
+            <Save size={18} />
+            Save Hours
           </>
         )}
-
-        {/* Toast */}
-        {toast && (
-          <Toast
-            message={toast.message}
-            type={toast.type}
-            onClose={() => setToast(null)}
-          />
-        )}
-      </div>
+      </button>
     </div>
+  );
+
+  return (
+    <Modal
+      isOpen={isOpen}
+      onClose={handleClose}
+      title="Set Working Hours"
+      footer={modalFooter}
+      closeOnBackdrop={!submitting}
+      maxWidth="600px"
+    >
+      <div style={{ marginBottom: 'var(--vc-space-4)' }}>
+        <p style={{ fontSize: 'var(--vc-text-sm)', color: 'var(--vc-text-muted)', margin: 0 }}>
+          {clinicName}
+        </p>
+      </div>
+
+      {/* Loading State */}
+      {loading && (
+        <div style={{ padding: 'var(--vc-space-10)', textAlign: 'center' }}>
+          <LoadingSpinner size="medium" message="Loading working hours..." />
+        </div>
+      )}
+
+      {/* Form */}
+      {!loading && (
+        <>
+          {/* Info Message */}
+          <div style={{
+            padding: 'var(--vc-space-4)',
+            background: 'var(--vc-primary-bg)',
+            border: `1px solid var(--vc-primary-light)`,
+            borderRadius: 'var(--vc-radius-md)',
+            marginBottom: 'var(--vc-space-6)',
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: 'var(--vc-space-3)'
+          }}>
+            <Info size={20} color="var(--vc-primary)" style={{ flexShrink: 0, marginTop: '2px' }} />
+            <div>
+              <p style={{ fontSize: 'var(--vc-text-sm)', color: 'var(--vc-primary)', margin: '0 0 4px 0', fontWeight: 600 }}>
+                How it works:
+              </p>
+              <p style={{ fontSize: 'var(--vc-text-sm)', color: 'var(--vc-primary)', margin: 0, lineHeight: 1.5 }}>
+                Set your clinic's operating hours. This will determine the available time slots for appointments. 
+                Appointments are scheduled in 1-hour intervals.
+              </p>
+            </div>
+          </div>
+
+          {/* Error Message */}
+          {error && (
+            <div style={{
+              padding: 'var(--vc-space-3) var(--vc-space-4)',
+              background: 'var(--vc-error-bg)',
+              border: `1px solid var(--vc-error-light)`,
+              borderRadius: 'var(--vc-radius-md)',
+              color: 'var(--vc-error)',
+              marginBottom: 'var(--vc-space-5)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 'var(--vc-space-2)',
+              fontSize: 'var(--vc-text-sm)',
+              fontWeight: 600
+            }}>
+              <AlertCircle size={18} />
+              {error}
+            </div>
+          )}
+
+          {/* Time Inputs */}
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--vc-space-3)', marginBottom: 'var(--vc-space-5)' }}>
+              <Clock size={24} color="var(--vc-primary)" />
+              <h3 style={{ fontSize: 'var(--vc-text-lg)', fontWeight: 600, margin: 0, color: 'var(--vc-text-primary)' }}>
+                Operating Hours
+              </h3>
+            </div>
+
+            <div className="vc-grid vc-grid-2" style={{ marginBottom: 'var(--vc-space-4)' }}>
+              {/* Start Time */}
+              <div>
+                <label style={{
+                  display: 'block',
+                  fontSize: 'var(--vc-text-sm)',
+                  fontWeight: 600,
+                  color: 'var(--vc-text-secondary)',
+                  marginBottom: 'var(--vc-space-2)'
+                }}>
+                  Opening Time <span style={{ color: 'var(--vc-error)' }}>*</span>
+                </label>
+                <input
+                  type="time"
+                  value={startTime}
+                  onChange={(e) => setStartTime(e.target.value)}
+                  disabled={submitting}
+                  className="vc-input"
+                  aria-label="Opening time"
+                  style={{
+                    fontSize: 'var(--vc-text-base)',
+                    cursor: submitting ? 'not-allowed' : 'text'
+                  }}
+                />
+              </div>
+
+              {/* End Time */}
+              <div>
+                <label style={{
+                  display: 'block',
+                  fontSize: 'var(--vc-text-sm)',
+                  fontWeight: 600,
+                  color: 'var(--vc-text-secondary)',
+                  marginBottom: 'var(--vc-space-2)'
+                }}>
+                  Closing Time <span style={{ color: 'var(--vc-error)' }}>*</span>
+                </label>
+                <input
+                  type="time"
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
+                  disabled={submitting}
+                  className="vc-input"
+                  aria-label="Closing time"
+                  style={{
+                    fontSize: 'var(--vc-text-base)',
+                    cursor: submitting ? 'not-allowed' : 'text'
+                  }}
+                />
+              </div>
+            </div>
+
+            {/* Preview */}
+            {startTime && endTime && (
+              <div className="vc-badge vc-badge-success" style={{
+                padding: 'var(--vc-space-3) var(--vc-space-4)',
+                fontSize: 'var(--vc-text-sm)',
+                display: 'inline-flex',
+                borderRadius: 'var(--vc-radius-md)',
+                width: 'auto'
+              }}>
+                <Check size={18} />
+                <span><strong>Hours:</strong> {startTime} - {endTime}</span>
+              </div>
+            )}
+          </div>
+        </>
+      )}
+
+      {/* Toast */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
+    </Modal>
   );
 }

@@ -21,11 +21,11 @@
 
 /* Welcome Banner */
 .welcomeBanner {
-  background: linear-gradient(135deg, var(--vc-primary) 0%, #a78bfa 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border-radius: var(--vc-border-radius);
   padding: 24px 32px;
   margin-bottom: 20px;
-  box-shadow: 0 4px 12px rgba(129, 140, 248, 0.25);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.25);
   position: relative;
   overflow: hidden;
 }
@@ -214,7 +214,7 @@
 .sectionIcon {
   width: 56px;
   height: 56px;
-  border-radius: 12px;
+  border-radius: var(--vc-radius-xl, 16px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -439,10 +439,10 @@
 
 /* Client card / modal styles */
 .clientCard {
-  border-radius: 16px;
-  padding: 16px;
+  border-radius: var(--vc-radius-2xl, 20px);
+  padding: var(--vc-space-5, 20px);
   background: #fff;
-  box-shadow: 0 1px 2px rgba(16,24,40,0.05);
+  box-shadow: 0 2px 8px rgba(16,24,40,0.06);
 }
 
 .clientHeader {
@@ -616,7 +616,7 @@
 .clinicPhoto {
   width: 84px;
   height: 84px;
-  border-radius: 12px;
+  border-radius: var(--vc-radius-xl, 16px);
   background: linear-gradient(135deg, #f3f4f6 0%, #ffffff 100%);
   display: flex;
   align-items: center;
@@ -691,9 +691,9 @@
 .vcErrorCard {
   background: #fee2e2;
   border: 2px solid #f87171;
-  border-radius: 12px;
-  padding: 16px;
-  margin-bottom: 24px;
+  border-radius: var(--vc-radius-xl, 16px);
+  padding: var(--vc-space-4, 16px);
+  margin-bottom: var(--vc-space-6, 24px);
   color: #991b1b;
   font-weight: 600;
 }

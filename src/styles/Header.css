@@ -11,9 +11,9 @@
 }
 
 .vc-header-inner {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 12px 20px;
+  width: 100%;
+  margin: 0;
+  padding: 12px 32px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -42,35 +42,41 @@
 /* Navigation */
 .vc-nav {
   display: flex;
-  gap: 12px;
+  gap: 16px;
   align-items: center;
+  margin-left: auto;
 }
 
 .vc-link {
   text-decoration: none;
   font-weight: 600;
-  padding: 8px 12px;
+  padding: 10px 20px;
   border-radius: 8px;
   transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
   color: #0f172a;
+  font-size: 0.9375rem;
+  white-space: nowrap;
 }
 
 .vc-link-plain {
   background: transparent;
+  color: #475569;
 }
 
 .vc-link-plain:hover {
-  background: rgba(15, 23, 42, 0.03);
+  background: rgba(15, 23, 42, 0.05);
+  color: #0f172a;
 }
 
 .vc-link-cta {
-  background: #2563eb;
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
   color: #fff;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.25);
 }
 
 .vc-link-cta:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 22px rgba(37, 99, 235, 0.12);
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.35);
 }
 
 /* Hamburger (mobile) */
@@ -110,6 +116,10 @@
 
 /* Mobile behaviour */
 @media (max-width: 760px) {
+  .vc-header-inner {
+    padding: 12px 20px;
+  }
+
   .vc-nav {
     display: none;
     position: absolute;

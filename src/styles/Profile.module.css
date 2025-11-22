@@ -380,6 +380,13 @@
   gap: 4px;
 }
 
+.profileRole {
+  font-size: 1rem;
+  color: #64748b;
+  font-weight: 500;
+  margin: 0;
+}
+
 .profileName {
   font-size: 1.75rem;
   font-weight: 700;

@@ -57,119 +57,142 @@ const Toast = ({ message, type = 'info', onClose, duration = 5000 }) => {
   };
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        top: '24px',
-        right: '24px',
-        zIndex: 10001,
-        minWidth: '320px',
-        maxWidth: '480px',
-        background: currentConfig.gradient,
-        border: `2px solid ${currentConfig.border}`,
-        borderRadius: '16px',
-        padding: '20px 24px',
-        boxShadow: '0 10px 40px rgba(0, 0, 0, 0.15)',
-        display: 'flex',
-        alignItems: 'flex-start',
-        gap: '16px',
-        animation: 'slideInRight 0.3s ease-out',
-        backdropFilter: 'blur(8px)'
-      }}
-    >
+    <>
       <style>
         {`
-          @keyframes slideInRight {
+          @keyframes fadeIn {
             from {
-              transform: translateX(100%);
               opacity: 0;
             }
             to {
-              transform: translateX(0);
               opacity: 1;
             }
           }
-          @keyframes slideOutRight {
+          @keyframes scaleIn {
             from {
-              transform: translateX(0);
-              opacity: 1;
+              transform: scale(0.9);
+              opacity: 0;
             }
             to {
-              transform: translateX(100%);
-              opacity: 0;
+              transform: scale(1);
+              opacity: 1;
             }
           }
         `}
       </style>
-
+      
+      {/* Backdrop Overlay */}
       <div
+        onClick={onClose}
         style={{
-          width: '40px',
-          height: '40px',
-          borderRadius: '10px',
-          background: 'rgba(255, 255, 255, 0.5)',
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.6)',
+          backdropFilter: 'blur(4px)',
+          zIndex: 10000,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          flexShrink: 0
+          padding: '20px',
+          animation: 'fadeIn 0.2s ease-out'
         }}
       >
-        <IconComponent size={24} color={currentConfig.iconColor} strokeWidth={2.5} />
-      </div>
-
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <h4
+        {/* Toast Card */}
+        <div
+          onClick={(e) => e.stopPropagation()}
           style={{
-            margin: '0 0 6px 0',
-            fontSize: '1rem',
-            fontWeight: 700,
-            color: currentConfig.titleColor,
-            letterSpacing: '0.01em'
-          }}
-        >
-          {titles[type]}
-        </h4>
-        <p
-          style={{
-            margin: 0,
-            fontSize: '0.9375rem',
-            color: currentConfig.textColor,
-            lineHeight: 1.5,
-            fontWeight: 500
-          }}
-        >
-          {message}
-        </p>
-      </div>
-
-      {onClose && (
-        <button
-          onClick={onClose}
-          style={{
-            padding: '6px',
-            background: 'rgba(255, 255, 255, 0.4)',
-            border: 'none',
-            borderRadius: '8px',
-            cursor: 'pointer',
+            background: 'white',
+            borderRadius: '16px',
+            padding: '32px',
+            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.2)',
+            maxWidth: '420px',
+            width: '100%',
             display: 'flex',
+            flexDirection: 'column',
             alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0,
-            transition: 'all 0.2s'
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.6)';
-            e.currentTarget.style.transform = 'scale(1.1)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.4)';
-            e.currentTarget.style.transform = 'scale(1)';
+            textAlign: 'center',
+            position: 'relative',
+            animation: 'scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)'
           }}
         >
-          <X size={18} color={currentConfig.iconColor} />
-        </button>
-      )}
-    </div>
+          {/* Close Button */}
+          {onClose && (
+            <button
+              onClick={onClose}
+              style={{
+                position: 'absolute',
+                top: '16px',
+                right: '16px',
+                padding: '6px',
+                background: 'transparent',
+                border: 'none',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.2s'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = '#f1f5f9';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'transparent';
+              }}
+            >
+              <X size={18} color="#64748b" />
+            </button>
+          )}
+
+          {/* Icon Container */}
+          <div
+            style={{
+              width: '72px',
+              height: '72px',
+              borderRadius: '50%',
+              background: currentConfig.gradient,
+              border: `3px solid ${currentConfig.border}`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: '20px',
+              boxShadow: `0 8px 24px ${currentConfig.border}40`
+            }}
+          >
+            <IconComponent size={36} color={currentConfig.iconColor} strokeWidth={2.5} />
+          </div>
+
+          {/* Title */}
+          <h3
+            style={{
+              margin: '0 0 12px 0',
+              fontSize: '1.5rem',
+              fontWeight: 700,
+              color: '#1e293b',
+              letterSpacing: '-0.01em'
+            }}
+          >
+            {titles[type]}
+          </h3>
+
+          {/* Message */}
+          <p
+            style={{
+              margin: 0,
+              fontSize: '0.9375rem',
+              color: '#64748b',
+              lineHeight: 1.6,
+              fontWeight: 500
+            }}
+          >
+            {message}
+          </p>
+        </div>
+      </div>
+    </>
   );
 };
 

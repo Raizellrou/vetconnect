@@ -239,15 +239,15 @@ export default function BookAppointmentWithTimeSlot({ isOpen, onClose, clinicId,
         }
       }}
     >
-      <div className={styles.modalContent} style={{ maxWidth: '600px', maxHeight: '90vh', overflow: 'auto' }}>
+      <div className={styles.modalContent} style={{ maxWidth: '680px', maxHeight: '92vh', overflow: 'auto', borderRadius: 'var(--vc-radius-xl, 16px)', padding: 'var(--vc-space-8, 32px)' }}>
         {/* Header */}
         <div style={{
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          marginBottom: '24px',
-          paddingBottom: '16px',
-          borderBottom: '2px solid #e5e7eb'
+          marginBottom: 'var(--vc-space-6, 24px)',
+          paddingBottom: 'var(--vc-space-5, 20px)',
+          borderBottom: '2px solid var(--vc-border-light, #e5e7eb)'
         }}>
           <div>
             <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1e293b', margin: '0 0 4px 0' }}>
@@ -260,34 +260,31 @@ export default function BookAppointmentWithTimeSlot({ isOpen, onClose, clinicId,
           <button
             onClick={handleClose}
             disabled={submitting}
+            className="vc-btn-icon"
             style={{
-              padding: '8px',
-              background: '#f3f4f6',
-              border: 'none',
-              borderRadius: '8px',
+              padding: 'var(--vc-space-2, 8px)',
               cursor: submitting ? 'not-allowed' : 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
+              opacity: submitting ? 0.5 : 1
             }}
           >
-            <X size={20} color="#374151" />
+            <X size={20} />
           </button>
         </div>
 
         {/* Progress Indicator */}
-        <div style={{ display: 'flex', gap: '12px', marginBottom: '32px' }}>
+        <div style={{ display: 'flex', gap: 'var(--vc-space-3, 12px)', marginBottom: 'var(--vc-space-8, 32px)' }}>
           {[1, 2, 3].map(num => (
             <div
               key={num}
               style={{
                 flex: 1,
-                height: '6px',
-                borderRadius: '3px',
+                height: '8px',
+                borderRadius: 'var(--vc-radius-full, 9999px)',
                 background: num <= step 
-                  ? 'linear-gradient(135deg, #818cf8 0%, #6366f1 100%)' 
-                  : '#e5e7eb',
-                transition: 'all 0.3s'
+                  ? 'linear-gradient(135deg, var(--vc-primary) 0%, var(--vc-primary-hover) 100%)' 
+                  : 'var(--vc-border-light)',
+                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                boxShadow: num <= step ? '0 2px 8px rgba(99, 102, 241, 0.3)' : 'none'
               }}
             />
           ))}
@@ -296,15 +293,16 @@ export default function BookAppointmentWithTimeSlot({ isOpen, onClose, clinicId,
         {/* Error Message */}
         {error && (
           <div style={{
-            padding: '12px 16px',
-            background: '#fee2e2',
-            border: '1px solid #f87171',
-            borderRadius: '8px',
-            color: '#991b1b',
-            marginBottom: '20px',
+            padding: 'var(--vc-space-3, 12px) var(--vc-space-4, 16px)',
+            background: 'linear-gradient(135deg, #fee2e2 0%, #fecaca 100%)',
+            border: '2px solid var(--vc-error-light)',
+            borderRadius: 'var(--vc-radius-lg, 12px)',
+            color: 'var(--vc-error)',
+            marginBottom: 'var(--vc-space-5, 20px)',
             display: 'flex',
             alignItems: 'center',
-            gap: '8px'
+            gap: 'var(--vc-space-2, 8px)',
+            fontWeight: 600
           }}>
             <AlertCircle size={18} />
             {error}
@@ -314,8 +312,8 @@ export default function BookAppointmentWithTimeSlot({ isOpen, onClose, clinicId,
         {/* Step 1: Select Pet & Date */}
         {step === 1 && (
           <div>
-            <h3 style={{ fontSize: '1.125rem', fontWeight: 600, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Dog size={20} color="#818cf8" />
+            <h3 style={{ fontSize: '1.125rem', fontWeight: 700, marginBottom: 'var(--vc-space-5, 20px)', display: 'flex', alignItems: 'center', gap: 'var(--vc-space-2, 8px)', color: 'var(--vc-text-primary)' }}>
+              <Dog size={22} color="var(--vc-primary)" />
               Select Pet & Date
             </h3>
 
@@ -753,25 +751,19 @@ export default function BookAppointmentWithTimeSlot({ isOpen, onClose, clinicId,
         <div style={{
           display: 'flex',
           justifyContent: 'space-between',
-          gap: '12px',
-          marginTop: '32px',
-          paddingTop: '20px',
-          borderTop: '2px solid #e5e7eb'
+          gap: 'var(--vc-space-3, 12px)',
+          marginTop: 'var(--vc-space-8, 32px)',
+          paddingTop: 'var(--vc-space-5, 20px)',
+          borderTop: '2px solid var(--vc-border-light)'
         }}>
           {step > 1 && (
             <button
               onClick={handlePrevStep}
               disabled={submitting}
+              className="vc-btn-secondary"
               style={{
-                padding: '12px 24px',
-                background: 'white',
-                border: '2px solid #e5e7eb',
-                borderRadius: '10px',
-                fontSize: '0.9375rem',
-                fontWeight: 600,
-                color: '#374151',
-                cursor: submitting ? 'not-allowed' : 'pointer',
-                opacity: submitting ? 0.5 : 1
+                opacity: submitting ? 0.5 : 1,
+                cursor: submitting ? 'not-allowed' : 'pointer'
               }}
             >
               Previous
@@ -782,18 +774,11 @@ export default function BookAppointmentWithTimeSlot({ isOpen, onClose, clinicId,
             <button
               onClick={handleNextStep}
               disabled={loading || checkingAvailability}
+              className="vc-btn-primary"
               style={{
                 marginLeft: 'auto',
-                padding: '12px 32px',
-                background: 'linear-gradient(135deg, #818cf8 0%, #6366f1 100%)',
-                color: 'white',
-                border: 'none',
-                borderRadius: '10px',
-                fontSize: '0.9375rem',
-                fontWeight: 700,
-                cursor: (loading || checkingAvailability) ? 'not-allowed' : 'pointer',
                 opacity: (loading || checkingAvailability) ? 0.5 : 1,
-                boxShadow: '0 4px 12px rgba(129, 140, 248, 0.4)'
+                cursor: (loading || checkingAvailability) ? 'not-allowed' : 'pointer'
               }}
             >
               Next
@@ -802,20 +787,14 @@ export default function BookAppointmentWithTimeSlot({ isOpen, onClose, clinicId,
             <button
               onClick={handleSubmit}
               disabled={submitting}
+              className="vc-btn-success"
               style={{
                 marginLeft: 'auto',
-                padding: '12px 32px',
-                background: submitting ? '#9ca3af' : 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                color: 'white',
-                border: 'none',
-                borderRadius: '10px',
-                fontSize: '0.9375rem',
-                fontWeight: 700,
-                cursor: submitting ? 'not-allowed' : 'pointer',
-                boxShadow: submitting ? 'none' : '0 4px 12px rgba(16, 185, 129, 0.4)',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '8px'
+                gap: 'var(--vc-space-2, 8px)',
+                opacity: submitting ? 0.5 : 1,
+                cursor: submitting ? 'not-allowed' : 'pointer'
               }}
             >
               {submitting ? (

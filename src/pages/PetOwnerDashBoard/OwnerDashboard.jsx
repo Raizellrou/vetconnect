@@ -9,6 +9,7 @@ import AppointmentCard from '../../components/AppointmentCard';
 import AppointmentDetailsCard from '../../components/AppointmentDetailsCard';
 import RatingCommentForm from '../../components/RatingCommentForm';
 import CancelAppointmentDialog from '../../components/CancelAppointmentDialog';
+import DeleteAppointmentModal from '../../components/modals/DeleteAppointmentModal';
 import AppointmentFilters from '../../components/filters/AppointmentFilters';
 import FilterResultsSummary from '../../components/filters/FilterResultsSummary';
 import EmptyAppointmentsState from '../../components/states/EmptyAppointmentsState';
@@ -437,8 +438,8 @@ export default function OwnerDashboard() {
                     id={appointment.id}
                     clinicName={getClinicName(appointment.clinicId)}
                     petName={getPetName(appointment.petId)}
-                    date={formatShortDate(appointment.dateTime)}
-                    time={formatTime(appointment.dateTime)}
+                    date={appointment.date ? new Date(appointment.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : formatShortDate(appointment.dateTime)}
+                    time={appointment.startTime || formatTime(appointment.dateTime)}
                     status={appointment.status}
                     hasReview={appointment.hasReview}
                     onClick={() => handleCardClick(appointment)}
@@ -520,77 +521,14 @@ export default function OwnerDashboard() {
 
       {/* Delete Confirmation Dialog */}
       {appointmentToDelete && (
-        <div style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          background: 'rgba(0, 0, 0, 0.5)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 9999,
-          padding: '16px'
-        }}
-        onClick={() => !isDeleting && setAppointmentToDelete(null)}>
-          <div style={{
-            background: 'white',
-            borderRadius: '12px',
-            padding: '24px',
-            maxWidth: '460px',
-            width: '100%',
-            boxShadow: '0 10px 30px rgba(0, 0, 0, 0.2)'
-          }}
-          onClick={(e) => e.stopPropagation()}>
-            <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '12px', color: '#1e293b' }}>
-              Delete Rejected Appointment
-            </h3>
-            
-            <p style={{ fontSize: '0.875rem', color: '#64748b', marginBottom: '20px', lineHeight: '1.5' }}>
-              Are you sure you want to permanently delete this rejected appointment for <strong>{getPetName(appointmentToDelete.petId)}</strong> at <strong>{getClinicName(appointmentToDelete.clinicId)}</strong>? This action cannot be undone.
-            </p>
-
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-              <button
-                onClick={() => !isDeleting && setAppointmentToDelete(null)}
-                disabled={isDeleting}
-                style={{
-                  padding: '10px 20px',
-                  background: '#f3f4f6',
-                  color: '#374151',
-                  border: 'none',
-                  borderRadius: '8px',
-                  fontSize: '0.875rem',
-                  fontWeight: 600,
-                  cursor: isDeleting ? 'not-allowed' : 'pointer',
-                  opacity: isDeleting ? 0.5 : 1
-                }}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleConfirmDelete}
-                disabled={isDeleting}
-                style={{
-                  padding: '10px 24px',
-                  background: isDeleting ? '#9ca3af' : '#dc2626',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '8px',
-                  fontSize: '0.875rem',
-                  fontWeight: 700,
-                  cursor: isDeleting ? 'not-allowed' : 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px'
-                }}
-              >
-                {isDeleting ? 'Deleting...' : 'Delete Appointment'}
-              </button>
-            </div>
-          </div>
-        </div>
+        <DeleteAppointmentModal
+          appointment={appointmentToDelete}
+          petName={getPetName(appointmentToDelete.petId)}
+          clinicName={getClinicName(appointmentToDelete.clinicId)}
+          onConfirm={handleConfirmDelete}
+          onCancel={() => setAppointmentToDelete(null)}
+          isLoading={isDeleting}
+        />
       )}
     </div>
   );

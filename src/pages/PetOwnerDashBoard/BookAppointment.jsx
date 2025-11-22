@@ -11,6 +11,9 @@ import { sendNotification } from '../../firebase/firestoreHelpers';
 import TopBar from '../../components/layout/TopBar';
 import Sidebar from '../../components/layout/Sidebar';
 import { formatShortDate, formatTime } from '../../utils/dateUtils';
+import SuccessModal from '../../components/SuccessModal';
+import '../../styles/designSystem.css';
+import styles from './BookAppointment.module.css';
 
 export default function BookAppointment() {
   const navigate = useNavigate();
@@ -252,8 +255,8 @@ export default function BookAppointment() {
       <div style={{ flex: 1, marginLeft: '240px' }}>
         <TopBar username={displayName} />
         
-        <div style={{ minHeight: 'calc(100vh - 64px)', background: 'linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%)', padding: '88px 24px 24px 24px' }}>
-          <div style={{ maxWidth: '700px', margin: '0 auto' }}>
+        <div className={styles.pageContainer}>
+          <div className={styles.formWrapper}>
             {/* Clinic Info Banner with Close Button */}
             <div style={{ background: 'white', borderRadius: '12px', padding: '16px 20px', marginBottom: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)', border: '1px solid #e0e7ff', position: 'relative' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', paddingRight: '44px' }}>
@@ -311,16 +314,13 @@ export default function BookAppointment() {
               </div>
             </div>
 
-            {/* Success Message */}
-            {submitSuccess && (
-              <div style={{ background: 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)', padding: '14px 16px', borderRadius: '10px', border: '1px solid #6ee7b7', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <CheckCircle size={20} color="#059669" />
-                <div>
-                  <p style={{ margin: 0, fontSize: '0.875rem', fontWeight: 700, color: '#065f46' }}>Appointment Booked Successfully!</p>
-                  <p style={{ margin: '2px 0 0 0', fontSize: '0.8125rem', color: '#047857' }}>Redirecting to dashboard...</p>
-                </div>
-              </div>
-            )}
+            {/* Success Modal */}
+            <SuccessModal
+              isOpen={submitSuccess}
+              onClose={() => setSubmitSuccess(false)}
+              title="Appointment Booked!"
+              message="Your appointment has been successfully scheduled. Redirecting..."
+            />
 
             {/* Error Message */}
             {submitError && (
@@ -334,9 +334,9 @@ export default function BookAppointment() {
             )}
 
             {/* Form */}
-            <div style={{ background: 'white', borderRadius: '12px', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
+            <div style={{ background: 'white', borderRadius: 'var(--vc-radius-xl, 16px)', padding: 'var(--vc-space-8, 32px)', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
               <form onSubmit={handleSubmit}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--vc-space-5, 20px)' }}>
                   {/* Pet Selection */}
                   <div>
                     <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 700, color: '#374151', marginBottom: '8px' }}>
@@ -472,19 +472,20 @@ export default function BookAppointment() {
                 </div>
 
                 {/* Action Buttons */}
-                <div style={{ marginTop: '20px', display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                <div style={{ marginTop: 'var(--vc-space-6, 24px)', paddingTop: 'var(--vc-space-5, 20px)', borderTop: '1px solid var(--vc-border-light)', display: 'flex', gap: 'var(--vc-space-3, 12px)', justifyContent: 'flex-end' }}>
                   <button
                     type="button"
                     onClick={handleCancel}
                     disabled={isSubmitting}
-                    style={{ padding: '11px 24px', background: 'white', border: '1px solid #e5e7eb', borderRadius: '8px', fontSize: '0.9375rem', fontWeight: 600, color: '#6b7280', cursor: isSubmitting ? 'not-allowed' : 'pointer', opacity: isSubmitting ? 0.5 : 1 }}
+                    className="vc-btn-secondary"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={isSubmitting || pets.length === 0}
-                    style={{ padding: '11px 28px', background: isSubmitting ? '#9ca3af' : 'linear-gradient(135deg, #10b981 0%, #059669 100%)', color: 'white', border: 'none', borderRadius: '8px', fontSize: '0.9375rem', fontWeight: 700, cursor: (isSubmitting || pets.length === 0) ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: isSubmitting ? 'none' : '0 4px 12px rgba(16, 185, 129, 0.35)' }}
+                    className="vc-btn-success"
+                    style={{ display: 'flex', alignItems: 'center', gap: '8px', opacity: (isSubmitting || pets.length === 0) ? 0.5 : 1, cursor: (isSubmitting || pets.length === 0) ? 'not-allowed' : 'pointer' }}
                   >
                     {isSubmitting ? (
                       <>

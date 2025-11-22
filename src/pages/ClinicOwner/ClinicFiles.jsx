@@ -150,14 +150,55 @@ export default function ClinicFiles() {
         <TopBar username={displayName} />
         
         <main className={`${styles.mainContent} ${styles.pageTopLanding}`}>
-          <header className={styles.noSectionTop}>
-            <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1e293b', margin: '0 0 6px 0' }}>
-              Client Pet Files
-            </h1>
-            <p style={{ fontSize: '0.875rem', color: '#64748b', margin: 0 }}>
-              View medical records and files uploaded by pet owners for their pets
-            </p>
-          </header>
+          {/* Enhanced Header */}
+          <div style={{
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            borderRadius: '16px',
+            padding: '24px 28px',
+            marginBottom: '24px',
+            boxShadow: '0 4px 16px rgba(102, 126, 234, 0.25)',
+            position: 'relative',
+            overflow: 'hidden'
+          }}>
+            <div style={{
+              position: 'absolute',
+              top: '-50%',
+              right: '-10%',
+              width: '300px',
+              height: '300px',
+              background: 'radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%)',
+              borderRadius: '50%'
+            }} />
+            <div style={{ position: 'relative', zIndex: 1, display: 'flex', alignItems: 'center', gap: '16px' }}>
+              <div style={{
+                width: '56px',
+                height: '56px',
+                borderRadius: '14px',
+                background: 'rgba(255, 255, 255, 0.2)',
+                backdropFilter: 'blur(10px)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
+              }}>
+                <FileText size={28} color="white" strokeWidth={2.5} />
+              </div>
+              <div>
+                <h1 style={{ 
+                  fontSize: '1.75rem', 
+                  fontWeight: 700, 
+                  color: 'white', 
+                  margin: '0 0 4px 0',
+                  letterSpacing: '-0.02em'
+                }}>
+                  Client Pet Files
+                </h1>
+                <p style={{ fontSize: '0.9375rem', color: 'rgba(255, 255, 255, 0.9)', margin: 0 }}>
+                  View medical records and files uploaded by pet owners for their pets
+                </p>
+              </div>
+            </div>
+          </div>
 
           {/* Loading State */}
           {loading && (
@@ -182,30 +223,83 @@ export default function ClinicFiles() {
           {!loading && !error && (
             <>
                 {clientsWithPets.length === 0 ? (
-                <div className={`${styles.vcCardLarge} ${styles.centerText}`}>
-                  <FileText size={48} color="#d1d5db" style={{ margin: '0 auto 12px' }} strokeWidth={2.5} />
-                  <h3 className={styles.stepTitle}>No Files Yet</h3>
-                  <p className={styles.stepDescription}>
-                    Files uploaded by your clients will appear here
+                <div style={{
+                  background: 'white',
+                  borderRadius: '16px',
+                  padding: '60px 40px',
+                  textAlign: 'center',
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+                  border: '1px solid #e5e7eb'
+                }}>
+                  <div style={{
+                    width: '96px',
+                    height: '96px',
+                    borderRadius: '20px',
+                    background: 'linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    margin: '0 auto 20px'
+                  }}>
+                    <FileText size={48} color="#a855f7" strokeWidth={2} />
+                  </div>
+                  <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#1e293b', marginBottom: '8px' }}>
+                    No Files Yet
+                  </h3>
+                  <p style={{ fontSize: '0.9375rem', color: '#64748b', margin: 0, maxWidth: '400px', marginLeft: 'auto', marginRight: 'auto' }}>
+                    Files uploaded by your clients will appear here. Encourage pet owners to upload medical records for better care.
                   </p>
                 </div>
               ) : (
                 <div className={styles.stack}>
                   {clientsWithPets.map((client) => (
-                    <div key={client.ownerId} className={styles.vcCard}>
+                    <div key={client.ownerId} style={{
+                      background: 'white',
+                      borderRadius: '16px',
+                      padding: '20px',
+                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.06)',
+                      border: '1px solid #e5e7eb',
+                      transition: 'all 0.2s ease'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.boxShadow = '0 8px 24px rgba(102, 126, 234, 0.15)';
+                      e.currentTarget.style.borderColor = '#667eea';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.06)';
+                      e.currentTarget.style.borderColor = '#e5e7eb';
+                    }}>
                       {/* Client Header */}
-                      <div style={{ marginBottom: '14px', paddingBottom: '12px', borderBottom: '1px solid #e5e7eb' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <User size={18} color="#667eea" strokeWidth={2.5} />
-                          <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600, color: '#1e293b' }}>
+                      <div style={{ 
+                        marginBottom: '16px', 
+                        paddingBottom: '16px', 
+                        borderBottom: '2px solid #f1f5f9',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '12px'
+                      }}>
+                        <div style={{
+                          width: '44px',
+                          height: '44px',
+                          borderRadius: '12px',
+                          background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0
+                        }}>
+                          <User size={22} color="white" strokeWidth={2.5} />
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <h3 style={{ margin: '0 0 4px 0', fontSize: '1.0625rem', fontWeight: 700, color: '#1e293b' }}>
                             {client.ownerName}
                           </h3>
+                          {client.ownerEmail && (
+                            <p style={{ margin: 0, fontSize: '0.8125rem', color: '#64748b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {client.ownerEmail}
+                            </p>
+                          )}
                         </div>
-                        {client.ownerEmail && (
-                          <p style={{ margin: '4px 0 0 28px', fontSize: '0.875rem', color: '#64748b' }}>
-                            {client.ownerEmail}
-                          </p>
-                        )}
                       </div>
 
                       {/* Pets List */}
@@ -216,39 +310,76 @@ export default function ClinicFiles() {
                       ) : (
                         <div className={styles.stack}>
                           {client.pets.map((pet) => (
-                            <div key={pet.id} className={styles.petCard}>
+                            <div key={pet.id} style={{
+                              background: '#f8fafc',
+                              borderRadius: '12px',
+                              border: '1px solid #e2e8f0',
+                              overflow: 'hidden',
+                              transition: 'all 0.2s'
+                            }}>
                               {/* Pet Header - Clickable */}
                               <div
                                 onClick={() => togglePetExpanded(pet.id)}
-                                className={styles.petHeader}
-                                style={{ background: expandedPets[pet.id] ? '#f1f5f9' : undefined }}
+                                style={{
+                                  padding: '14px 16px',
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'space-between',
+                                  background: expandedPets[pet.id] ? 'linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)' : 'transparent',
+                                  transition: 'all 0.2s'
+                                }}
+                                onMouseEnter={(e) => {
+                                  if (!expandedPets[pet.id]) {
+                                    e.currentTarget.style.background = '#f1f5f9';
+                                  }
+                                }}
+                                onMouseLeave={(e) => {
+                                  if (!expandedPets[pet.id]) {
+                                    e.currentTarget.style.background = 'transparent';
+                                  }
+                                }}
                               >
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                  <Dog size={20} color="#3b82f6" />
+                                  <div style={{
+                                    width: '36px',
+                                    height: '36px',
+                                    borderRadius: '10px',
+                                    background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    flexShrink: 0
+                                  }}>
+                                    <Dog size={20} color="white" strokeWidth={2.5} />
+                                  </div>
                                   <div>
-                                    <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 600, color: '#1e293b' }}>
+                                    <h4 style={{ margin: 0, fontSize: '0.9375rem', fontWeight: 700, color: '#1e293b' }}>
                                       {pet.name || pet.pet_name}
                                     </h4>
-                                    <p style={{ margin: '2px 0 0 0', fontSize: '0.75rem', color: '#64748b' }}>
+                                    <p style={{ margin: '2px 0 0 0', fontSize: '0.75rem', color: '#64748b', fontWeight: 500 }}>
                                       {pet.species} • {pet.breed || 'Mixed'} • {pet.gender}
                                     </p>
                                   </div>
                                 </div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                                   <span style={{
-                                    padding: '4px 12px',
-                                    background: pet.files && pet.files.length > 0 ? '#dbeafe' : '#f3f4f6',
+                                    padding: '5px 12px',
+                                    background: pet.files && pet.files.length > 0 
+                                      ? 'linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)' 
+                                      : '#f3f4f6',
                                     color: pet.files && pet.files.length > 0 ? '#1e40af' : '#6b7280',
-                                    borderRadius: '12px',
+                                    borderRadius: '999px',
                                     fontSize: '0.75rem',
-                                    fontWeight: 600
+                                    fontWeight: 700,
+                                    border: pet.files && pet.files.length > 0 ? '1px solid #93c5fd' : '1px solid #e5e7eb'
                                   }}>
                                     {pet.files?.length || 0} {pet.files?.length === 1 ? 'file' : 'files'}
                                   </span>
                                   {expandedPets[pet.id] ? (
-                                    <ChevronUp size={20} color="#6b7280" />
+                                    <ChevronUp size={20} color="#64748b" strokeWidth={2.5} />
                                   ) : (
-                                    <ChevronDown size={20} color="#6b7280" />
+                                    <ChevronDown size={20} color="#64748b" strokeWidth={2.5} />
                                   )}
                                 </div>
                               </div>

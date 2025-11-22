@@ -273,20 +273,20 @@ export default function ClinicRegistration() {
           <div className={styles.formContainer}>
             {/* Progress Header */}
             <div className={styles.vcCardLarge}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '24px' }}>
-                <div style={{ width: '40px', height: '40px', background: 'linear-gradient(135deg, #818cf8 0%, #a78bfa 100%)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <StepIcon size={20} color="white" />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '24px', marginBottom: '28px' }}>
+                <div style={{ width: '64px', height: '64px', background: 'linear-gradient(135deg, var(--vc-primary) 0%, var(--vc-primary-hover) 100%)', borderRadius: 'var(--vc-radius-xl)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 16px rgba(129, 140, 248, 0.3)' }}>
+                  <StepIcon size={32} color="white" strokeWidth={2.5} />
                 </div>
                 <div style={{ flex: 1 }}>
-                  <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1f2937', margin: '0 0 6px 0' }}>{mode === 'edit' ? 'Edit Clinic' : 'Register New Clinic'}</h1>
-                  <p style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: 2 }}>Step {currentStep} of {totalSteps}: {StepTitle}</p>
+                  <h1 style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--vc-text-dark)', margin: '0 0 8px 0', letterSpacing: '-0.02em' }}>{mode === 'edit' ? 'Edit Clinic' : 'Register New Clinic'}</h1>
+                  <p style={{ fontSize: '0.9375rem', color: 'var(--vc-text-muted)', marginTop: 2, fontWeight: 500 }}>Step {currentStep} of {totalSteps}: {StepTitle}</p>
                 </div>
               </div>
 
               {/* Progress Bar */}
-              <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
+              <div style={{ display: 'flex', gap: 'var(--vc-space-xs)', width: '100%' }}>
                 {[1,2,3,4].map(step => (
-                  <div key={step} style={{ flex: 1, height: 6, background: step <= currentStep ? 'linear-gradient(135deg,#818cf8 0%,#6366f1 100%)' : '#e5e7eb', borderRadius: 3 }} />
+                  <div key={step} style={{ flex: 1, height: 10, background: step <= currentStep ? 'linear-gradient(135deg, var(--vc-primary) 0%, var(--vc-primary-hover) 100%)' : 'var(--vc-border)', borderRadius: 'var(--vc-radius-sm)', transition: 'all 0.3s ease', boxShadow: step <= currentStep ? '0 2px 8px rgba(129, 140, 248, 0.25)' : 'none' }} />
                 ))}
               </div>
             </div>

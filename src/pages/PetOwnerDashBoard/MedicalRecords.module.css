@@ -1,0 +1,306 @@
+/* Medical Records Page Styles */
+
+.container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: var(--vc-space-6);
+}
+
+.header {
+  margin-bottom: var(--vc-space-8);
+}
+
+.backButton {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--vc-space-2);
+  padding: var(--vc-space-3) var(--vc-space-4);
+  background: white;
+  color: var(--vc-text-secondary);
+  border: 1px solid var(--vc-border);
+  border-radius: var(--vc-radius-md);
+  font-size: var(--vc-text-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-bottom: var(--vc-space-4);
+}
+
+.backButton:hover {
+  background: var(--vc-primary-bg);
+  color: var(--vc-primary);
+  border-color: var(--vc-primary);
+}
+
+.title {
+  font-size: var(--vc-text-3xl);
+  font-weight: 700;
+  color: var(--vc-text-primary);
+  margin: 0 0 var(--vc-space-2) 0;
+}
+
+.subtitle {
+  font-size: var(--vc-text-base);
+  color: var(--vc-text-muted);
+  margin: 0;
+}
+
+/* Section Styles */
+.section {
+  background: white;
+  border-radius: var(--vc-radius-md);
+  padding: var(--vc-space-6);
+  border: 1px solid var(--vc-border);
+  box-shadow: var(--vc-shadow-sm);
+  margin-bottom: var(--vc-space-6);
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--vc-space-3);
+  margin-bottom: var(--vc-space-6);
+  padding-bottom: var(--vc-space-4);
+  border-bottom: 2px solid var(--vc-border-light);
+}
+
+.sectionTitle {
+  font-size: var(--vc-text-xl);
+  font-weight: 600;
+  color: var(--vc-text-primary);
+  margin: 0;
+}
+
+/* Empty State */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--vc-space-12);
+  text-align: center;
+}
+
+.emptyText {
+  font-size: var(--vc-text-lg);
+  font-weight: 600;
+  color: var(--vc-text-secondary);
+  margin: var(--vc-space-4) 0 var(--vc-space-2) 0;
+}
+
+.emptySubtext {
+  font-size: var(--vc-text-base);
+  color: var(--vc-text-muted);
+  margin: 0;
+}
+
+/* Records Grid */
+.recordsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--vc-space-4);
+}
+
+.recordCard {
+  background: var(--vc-bg-secondary);
+  border: 1px solid var(--vc-border);
+  border-radius: var(--vc-radius-md);
+  padding: var(--vc-space-4);
+  transition: all 0.2s ease;
+}
+
+.recordCard:hover {
+  box-shadow: var(--vc-shadow-md);
+  border-color: var(--vc-primary);
+  transform: translateY(-2px);
+}
+
+.recordHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--vc-space-3);
+  margin-bottom: var(--vc-space-3);
+}
+
+.recordIcon {
+  width: 40px;
+  height: 40px;
+  background: var(--vc-gradient-primary);
+  border-radius: var(--vc-radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
+}
+
+.recordInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.recordTitle {
+  font-size: var(--vc-text-base);
+  font-weight: 600;
+  color: var(--vc-text-primary);
+  margin: 0 0 var(--vc-space-1) 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recordMeta {
+  display: flex;
+  align-items: center;
+  gap: var(--vc-space-1);
+  font-size: var(--vc-text-sm);
+  color: var(--vc-text-muted);
+}
+
+.recordDescription {
+  font-size: var(--vc-text-sm);
+  color: var(--vc-text-secondary);
+  margin: 0 0 var(--vc-space-3) 0;
+  line-height: 1.5;
+}
+
+.recordDetail {
+  font-size: var(--vc-text-sm);
+  color: var(--vc-text-secondary);
+  margin-bottom: var(--vc-space-2);
+}
+
+.recordDetail strong {
+  font-weight: 600;
+  color: var(--vc-text-primary);
+}
+
+.attachmentCount {
+  display: flex;
+  align-items: center;
+  gap: var(--vc-space-2);
+  padding: var(--vc-space-2) var(--vc-space-3);
+  background: var(--vc-primary-bg);
+  border-radius: var(--vc-radius-sm);
+  font-size: var(--vc-text-sm);
+  font-weight: 600;
+  color: var(--vc-primary);
+  margin-top: var(--vc-space-3);
+  width: fit-content;
+}
+
+/* Files Grid */
+.filesGrid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--vc-space-3);
+}
+
+.fileCard {
+  display: flex;
+  align-items: center;
+  gap: var(--vc-space-3);
+  padding: var(--vc-space-4);
+  background: var(--vc-bg-secondary);
+  border: 1px solid var(--vc-border);
+  border-radius: var(--vc-radius-md);
+  transition: all 0.2s ease;
+}
+
+.fileCard:hover {
+  background: white;
+  border-color: var(--vc-primary);
+  box-shadow: var(--vc-shadow-sm);
+}
+
+.fileIcon {
+  width: 48px;
+  height: 48px;
+  background: var(--vc-gradient-primary);
+  border-radius: var(--vc-radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
+}
+
+.fileInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.fileName {
+  font-size: var(--vc-text-base);
+  font-weight: 600;
+  color: var(--vc-text-primary);
+  margin: 0 0 4px 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fileMeta {
+  font-size: var(--vc-text-sm);
+  color: var(--vc-text-muted);
+  margin: 0 0 2px 0;
+  display: flex;
+  align-items: center;
+  gap: var(--vc-space-2);
+}
+
+.bullet {
+  color: var(--vc-border-dark);
+}
+
+.fileSize {
+  font-size: var(--vc-text-xs);
+  color: var(--vc-text-light);
+  margin: 0;
+}
+
+.fileActions {
+  display: flex;
+  gap: var(--vc-space-2);
+  flex-shrink: 0;
+}
+
+.actionButton {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  border: 1px solid var(--vc-border);
+  border-radius: var(--vc-radius-md);
+  color: var(--vc-text-secondary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.actionButton:hover {
+  background: var(--vc-primary);
+  border-color: var(--vc-primary);
+  color: white;
+  transform: scale(1.05);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .container {
+    padding: var(--vc-space-4);
+  }
+
+  .recordsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .section {
+    padding: var(--vc-space-4);
+  }
+
+  .title {
+    font-size: var(--vc-text-2xl);
+  }
+}

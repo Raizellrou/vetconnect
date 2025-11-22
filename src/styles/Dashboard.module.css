@@ -48,6 +48,7 @@
 .statusDot.finished { background-color: #8b5cf6; }
 .statusDot.completed { background-color: #8b5cf6; }
 .statusDot.confirmed { background-color: var(--vc-status-ready); }
+.statusDot.approved { background-color: var(--vc-status-ready); }
 
 /* Card border colors */
 .appointmentCard.ready { border-left: 4px solid var(--vc-status-ready); }
@@ -56,6 +57,7 @@
 .appointmentCard.finished { border-left: 4px solid #8b5cf6; }
 .appointmentCard.completed { border-left: 4px solid #8b5cf6; }
 .appointmentCard.confirmed { border-left: 4px solid var(--vc-status-ready); }
+.appointmentCard.approved { border-left: 4px solid var(--vc-status-ready); }
 
 /* Rating Form Styles */
 .ratingFormContent {
@@ -264,7 +266,7 @@
 
 /* Welcome Banner */
 .welcomeBanner {
-  background: linear-gradient(135deg, var(--vc-primary) 0%, var(--vc-primary-hover) 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border-radius: var(--vc-border-radius);
   padding: 18px 20px;
   color: white;

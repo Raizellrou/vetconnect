@@ -106,7 +106,7 @@ export default function LandingPage() {
                 <div className="kicker">VET CONSULTATIONS</div>
                 <h3>Looking for pet advice from veterinarians?</h3>
                 <p className="muted">Book your Appointments now</p>
-                <Link to="/register" className="btn btn-primary consult-btn">Consult now</Link>
+                <Link to="/register" className="btn btn-primary consult-btn">Register Now</Link>
               </div>
               <div className="consult-illus" aria-hidden="true" />
             </div>

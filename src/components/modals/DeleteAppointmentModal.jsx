@@ -1,7 +1,7 @@
 import React from 'react';
-import { AlertCircle, BookmarkX, X } from 'lucide-react';
+import { AlertCircle, Trash2, X } from 'lucide-react';
 
-export default function UnsaveDialog({ clinic, onConfirm, onCancel, isLoading, error }) {
+export default function DeleteAppointmentModal({ appointment, petName, clinicName, onConfirm, onCancel, isLoading, error }) {
   return (
     <div 
       style={{
@@ -93,7 +93,7 @@ export default function UnsaveDialog({ clinic, onConfirm, onCancel, isLoading, e
         <div style={{
           width: '80px',
           height: '80px',
-          background: 'linear-gradient(135deg, #fed7aa 0%, #fdba74 100%)',
+          background: 'linear-gradient(135deg, #fecaca 0%, #fca5a5 100%)',
           borderRadius: '50%',
           display: 'flex',
           alignItems: 'center',
@@ -109,7 +109,7 @@ export default function UnsaveDialog({ clinic, onConfirm, onCancel, isLoading, e
               }
             `}
           </style>
-          <BookmarkX size={40} color="#ea580c" strokeWidth={2} />
+          <Trash2 size={40} color="#dc2626" strokeWidth={2} />
         </div>
 
         <h3 style={{
@@ -118,7 +118,7 @@ export default function UnsaveDialog({ clinic, onConfirm, onCancel, isLoading, e
           color: '#1f2937',
           margin: '0 0 12px 0'
         }}>
-          Remove from Saved?
+          Delete Rejected Appointment
         </h3>
         
         <p style={{
@@ -130,7 +130,7 @@ export default function UnsaveDialog({ clinic, onConfirm, onCancel, isLoading, e
           marginLeft: 'auto',
           marginRight: 'auto'
         }}>
-          Are you sure you want to remove <span style={{ fontWeight: '700', color: '#1f2937' }}>{clinic.clinicName || clinic.name}</span> from your saved clinics?
+          Are you sure you want to permanently delete this rejected appointment for <span style={{ fontWeight: '700', color: '#1f2937' }}>{petName}</span> at <span style={{ fontWeight: '700', color: '#1f2937' }}>{clinicName}</span>? This action cannot be undone.
         </p>
         
         {error && (
@@ -213,7 +213,7 @@ export default function UnsaveDialog({ clinic, onConfirm, onCancel, isLoading, e
               }
             }}
           >
-            {isLoading ? 'Removing...' : 'Delete Record'}
+            {isLoading ? 'Deleting...' : 'Delete Appointment'}
           </button>
         </div>
       </div>

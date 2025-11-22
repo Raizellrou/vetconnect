@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Upload, X } from 'lucide-react';
 import TopBar from '../../components/layout/TopBar';
 import ClinicSidebar from '../../components/layout/ClinicSidebar';
+import SuccessModal from '../../components/SuccessModal';
 import layoutStyles from '../../styles/ClinicDashboard.module.css';
 import { useAuth } from '../../contexts/AuthContext';
 import styles from '../../styles/EditProfile.module.css';
@@ -88,10 +89,10 @@ export default function ClinicEditProfile() {
       
       setMessage({ type: 'success', text: 'Profile updated successfully!' });
       
-      // Navigate back to profile after a short delay
+      // Navigate back to profile after modal auto-closes
       setTimeout(() => {
         navigate('/clinic/profile');
-      }, 1500);
+      }, 2000);
     } catch (error) {
       console.error('Error updating profile:', error);
       setMessage({ type: 'error', text: 'Failed to update profile. Please try again.' });
@@ -175,7 +176,7 @@ export default function ClinicEditProfile() {
                     name="fullName"
                     value={formData.fullName}
                     onChange={handleInputChange}
-                    className={styles.input}
+                    className="vc-input"
                     required
                   />
                 </div>
@@ -190,7 +191,7 @@ export default function ClinicEditProfile() {
                     name="clinicName"
                     value={formData.clinicName}
                     onChange={handleInputChange}
-                    className={styles.input}
+                    className="vc-input"
                     placeholder="Your Clinic Name"
                   />
                 </div>
@@ -205,7 +206,7 @@ export default function ClinicEditProfile() {
                     name="email"
                     value={formData.email}
                     onChange={handleInputChange}
-                    className={styles.input}
+                    className="vc-input"
                     required
                     disabled
                   />
@@ -222,7 +223,7 @@ export default function ClinicEditProfile() {
                     name="phone"
                     value={formData.phone}
                     onChange={handleInputChange}
-                    className={styles.input}
+                    className="vc-input"
                     placeholder="+63 XXX XXX XXXX"
                   />
                 </div>
@@ -237,7 +238,7 @@ export default function ClinicEditProfile() {
                     name="address"
                     value={formData.address}
                     onChange={handleInputChange}
-                    className={styles.input}
+                    className="vc-input"
                     placeholder="Street, City, Province"
                   />
                 </div>
@@ -252,14 +253,14 @@ export default function ClinicEditProfile() {
                     name="portfolio"
                     value={formData.portfolio}
                     onChange={handleInputChange}
-                    className={styles.input}
+                    className="vc-input"
                     placeholder="https://your-portfolio-website.com"
                   />
                 </div>
               </div>
             </div>
 
-            {message.text && (
+            {message.text && message.type === 'error' && (
               <div className={`${styles.message} ${styles[message.type]}`}>
                 {message.text}
               </div>
@@ -268,7 +269,7 @@ export default function ClinicEditProfile() {
             <div className={styles.actionButtons}>
               <button
                 type="button"
-                className={styles.cancelBtn}
+                className="vc-btn-secondary"
                 onClick={handleCancel}
                 disabled={isLoading}
               >
@@ -276,7 +277,7 @@ export default function ClinicEditProfile() {
               </button>
               <button
                 type="submit"
-                className={styles.saveBtn}
+                className="vc-btn-primary"
                 disabled={isLoading}
               >
                 {isLoading ? 'Saving...' : 'Save Changes'}
@@ -285,6 +286,17 @@ export default function ClinicEditProfile() {
           </form>
         </main>
       </div>
+      
+      {/* Success Modal - Rendered at root level to overlay entire page */}
+      <SuccessModal
+        isOpen={message.type === 'success'}
+        onClose={() => {
+          setMessage({ type: '', text: '' });
+          navigate('/clinic/profile');
+        }}
+        title="Profile Updated!"
+        message="Your profile has been successfully updated."
+      />
     </div>
   );
 }

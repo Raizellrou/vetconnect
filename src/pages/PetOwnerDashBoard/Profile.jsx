@@ -70,8 +70,8 @@ export default function Profile() {
                   )}
                 </div>
                 <div className={styles.profileInfo}>
-                  <h3 className={styles.profileName}>{displayName}</h3>
-                  <p className={styles.profileRole}>Pet Owner</p>
+                  <h3 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1e293b', margin: 0, letterSpacing: '-0.01em' }}>{displayName}</h3>
+                  <p style={{ fontSize: '0.875rem', color: '#64748b', fontWeight: 600, margin: '4px 0 0 0', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Pet Owner</p>
                 </div>
               </div>
               <button 
