@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Upload, X } from 'lucide-react';
 import TopBar from '../../components/layout/TopBar';
 import Sidebar from '../../components/layout/Sidebar';
+import ImageUploader from '../../components/ImageUploader';
 import { useAuth } from '../../contexts/AuthContext';
 import styles from '../../styles/EditProfile.module.css';
 
@@ -21,7 +22,6 @@ export default function EditProfile() {
   });
 
   const [photoURL, setPhotoURL] = useState(userData?.photoURL || '');
-  const [photoFile, setPhotoFile] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState({ type: '', text: '' });
 
@@ -40,39 +40,9 @@ export default function EditProfile() {
     }));
   };
 
-  const handlePhotoClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handlePhotoChange = (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        setMessage({ type: 'error', text: 'File size must be less than 5MB' });
-        return;
-      }
-
-      if (!file.type.startsWith('image/')) {
-        setMessage({ type: 'error', text: 'Please select an image file' });
-        return;
-      }
-
-      setPhotoFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPhotoURL(reader.result);
-      };
-      reader.readAsDataURL(file);
-      setMessage({ type: '', text: '' });
-    }
-  };
-
-  const handleRemovePhoto = () => {
-    setPhotoURL('');
-    setPhotoFile(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
+  const handlePhotoUpload = (cloudinaryUrl) => {
+    setPhotoURL(cloudinaryUrl);
+    setMessage({ type: '', text: '' });
   };
 
   const handleSubmit = async (e) => {
@@ -81,7 +51,8 @@ export default function EditProfile() {
     setMessage({ type: '', text: '' });
 
     try {
-      await updateUserProfile(formData, photoFile);
+      // Pass photoURL directly (already uploaded to Cloudinary)
+      await updateUserProfile({ ...formData, photoURL });
       
       setMessage({ type: 'success', text: 'Profile updated successfully!' });
       
@@ -119,41 +90,14 @@ export default function EditProfile() {
 
           <form onSubmit={handleSubmit} className={styles.profileCard}>
             <div className={styles.photoSection}>
-              <div className={styles.photoWrapper}>
-                <div className={styles.avatarLarge}>
-                  {photoURL ? (
-                    <>
-                      <img src={photoURL} alt="Profile" className={styles.avatarImg} />
-                      <button
-                        type="button"
-                        className={styles.removePhotoBtn}
-                        onClick={handleRemovePhoto}
-                        title="Remove photo"
-                      >
-                        <X size={16} />
-                      </button>
-                    </>
-                  ) : (
-                    <span className={styles.avatarInitials}>{getInitials(formData.fullName)}</span>
-                  )}
-                </div>
-                <button
-                  type="button"
-                  className={styles.uploadBtn}
-                  onClick={handlePhotoClick}
-                >
-                  <Upload size={18} />
-                  Upload Photo
-                </button>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handlePhotoChange}
-                  style={{ display: 'none' }}
+              <div style={{ maxWidth: '300px', margin: '0 auto' }}>
+                <ImageUploader
+                  onUpload={handlePhotoUpload}
+                  currentImage={photoURL}
+                  label="Upload Profile Photo"
+                  aspectRatio="1/1"
                 />
               </div>
-              <p className={styles.photoHint}>Recommended: Square image, at least 400x400px (Max 5MB)</p>
             </div>
 
             <div className={styles.divider}></div>

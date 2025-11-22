@@ -1,5 +1,104 @@
-// ...existing rules...
-
-match /users/{uid}/pets/{petId} {
-  allow create: if request.auth.uid == uid;
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(uid) {
+      return isAuthenticated() && request.auth.uid == uid;
+    }
+    
+    // Users collection
+    match /users/{uid} {
+      allow read: if isAuthenticated();
+      allow create: if isOwner(uid);
+      allow update: if isOwner(uid);
+      
+      // User's pets subcollection
+      match /pets/{petId} {
+        allow read: if isAuthenticated();
+        allow create: if isOwner(uid);
+        allow update, delete: if isOwner(uid);
+      }
+      
+      // User's bookmarks subcollection
+      match /bookmarks/{bookmarkId} {
+        allow read, write: if isOwner(uid);
+      }
+      
+      // User's notifications subcollection
+      match /notifications/{notificationId} {
+        allow read: if isOwner(uid);
+        allow write: if isAuthenticated(); // Anyone can send notifications
+      }
+    }
+    
+    // Clinics collection
+    match /clinics/{clinicId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update, delete: if isAuthenticated() && 
+        resource.data.ownerId == request.auth.uid;
+      
+      // Clinic settings subcollection
+      match /settings/{settingId} {
+        allow read: if isAuthenticated();
+        allow write: if isAuthenticated() && 
+          get(/databases/$(database)/documents/clinics/$(clinicId)).data.ownerId == request.auth.uid;
+      }
+      
+      // Clinic reviews subcollection
+      match /reviews/{reviewId} {
+        allow read: if isAuthenticated();
+        allow create: if isAuthenticated();
+        allow update, delete: if isAuthenticated() && 
+          resource.data.userId == request.auth.uid;
+      }
+    }
+    
+    // Appointments collection
+    match /appointments/{appointmentId} {
+      allow read: if isAuthenticated() && (
+        request.auth.uid == resource.data.ownerUid ||
+        get(/databases/$(database)/documents/clinics/$(resource.data.clinicId)).data.ownerId == request.auth.uid
+      );
+      
+      // Pet owners can create appointments
+      allow create: if isAuthenticated() && 
+        request.auth.uid == request.resource.data.ownerUid &&
+        request.resource.data.status == 'pending' &&
+        request.resource.data.keys().hasAll(['clinicId', 'ownerUid', 'petId', 'date', 'startTime', 'endTime']);
+      
+      // Pet owners can update their own appointments (cancel)
+      allow update: if isAuthenticated() && 
+        request.auth.uid == resource.data.ownerUid &&
+        request.resource.data.status == 'cancelled';
+      
+      // Clinic owners can update appointments at their clinics
+      allow update: if isAuthenticated() && 
+        get(/databases/$(database)/documents/clinics/$(resource.data.clinicId)).data.ownerId == request.auth.uid;
+      
+      // Clinic owners can delete appointments at their clinics
+      allow delete: if isAuthenticated() && 
+        get(/databases/$(database)/documents/clinics/$(resource.data.clinicId)).data.ownerId == request.auth.uid;
+    }
+    
+    // Medical records collection
+    match /medicalRecords/{recordId} {
+      allow read: if isAuthenticated() && (
+        request.auth.uid == resource.data.ownerId ||
+        get(/databases/$(database)/documents/clinics/$(resource.data.clinicId)).data.ownerId == request.auth.uid
+      );
+      
+      // Only clinic owners can create/update medical records
+      allow create, update: if isAuthenticated() && 
+        get(/databases/$(database)/documents/clinics/$(request.resource.data.clinicId)).data.ownerId == request.auth.uid;
+      
+      allow delete: if isAuthenticated() && 
+        get(/databases/$(database)/documents/clinics/$(resource.data.clinicId)).data.ownerId == request.auth.uid;
+    }
+  }
 }

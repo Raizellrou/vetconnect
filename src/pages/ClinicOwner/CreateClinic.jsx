@@ -2,13 +2,14 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import TopBar from '../../components/layout/TopBar';
 import ClinicSidebar from '../../components/layout/ClinicSidebar';
+import ImageUploader from '../../components/ImageUploader';
 import { useAuth } from '../../contexts/AuthContext';
 import { Building2, MapPin, Phone, Clock, Upload, X, Plus, Trash2, Check, Camera, Map } from 'lucide-react';
 import MapPicker from '../../components/MapPicker';
 import styles from '../../styles/ClinicDashboard.module.css';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { db, storage } from '../../firebase/firebase';
+import { db } from '../../firebase/firebase';
+import { uploadMultipleImagesToCloudinary } from '../../utils/uploadImage';
 import LoadingSpinner from '../../components/LoadingSpinner';
 
 export default function CreateClinic() {
@@ -68,16 +69,9 @@ export default function CreateClinic() {
     }));
   };
 
-  const handleProfilePictureChange = (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        setError('Profile picture must be less than 5MB');
-        return;
-      }
-      setProfilePicture(file);
-      setProfilePicturePreview(URL.createObjectURL(file));
-    }
+  const handleProfilePictureUpload = (cloudinaryUrl) => {
+    setProfilePicturePreview(cloudinaryUrl);
+    setError('');
   };
 
   const handleGalleryPhotosChange = (e) => {
@@ -174,12 +168,6 @@ export default function CreateClinic() {
     setError('');
   };
 
-  const uploadImage = async (file, path) => {
-    const storageRef = ref(storage, path);
-    await uploadBytes(storageRef, file);
-    return await getDownloadURL(storageRef);
-  };
-
   const handleSubmit = async () => {
     if (!validateStep(currentStep)) return;
 
@@ -187,24 +175,13 @@ export default function CreateClinic() {
     setError('');
 
     try {
-      let profilePictureURL = '';
+      // profilePicturePreview is already uploaded to Cloudinary
+      let profilePictureURL = profilePicturePreview || '';
       let galleryPhotoURLs = [];
 
-      // Upload profile picture
-      if (profilePicture) {
-        profilePictureURL = await uploadImage(
-          profilePicture,
-          `clinics/${currentUser.uid}/${Date.now()}_profile.jpg`
-        );
-      }
-
-      // Upload gallery photos
-      for (let i = 0; i < galleryPhotos.length; i++) {
-        const url = await uploadImage(
-          galleryPhotos[i],
-          `clinics/${currentUser.uid}/${Date.now()}_gallery_${i}.jpg`
-        );
-        galleryPhotoURLs.push(url);
+      // Upload gallery photos to Cloudinary
+      if (galleryPhotos.length > 0) {
+        galleryPhotoURLs = await uploadMultipleImagesToCloudinary(galleryPhotos);
       }
 
       // Create clinic document
@@ -846,71 +823,12 @@ export default function CreateClinic() {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
                     {/* Profile Picture */}
                     <div>
-                      <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '12px' }}>
-                        Profile Picture
-                      </h3>
-                      <p style={{ fontSize: '0.875rem', color: '#64748b', marginBottom: '16px' }}>
-                        This will be the main image for your clinic
-                      </p>
-                      
-                      {profilePicturePreview ? (
-                        <div style={{ position: 'relative', width: 'fit-content' }}>
-                          <img
-                            src={profilePicturePreview}
-                            alt="Profile preview"
-                            style={{
-                              width: '200px',
-                              height: '200px',
-                              objectFit: 'cover',
-                              borderRadius: '12px',
-                              border: '2px solid #e5e7eb'
-                            }}
-                          />
-                          <button
-                            onClick={() => {
-                              setProfilePicture(null);
-                              setProfilePicturePreview(null);
-                            }}
-                            style={{
-                              position: 'absolute',
-                              top: '8px',
-                              right: '8px',
-                              padding: '8px',
-                              background: '#ef4444',
-                              border: 'none',
-                              borderRadius: '8px',
-                              cursor: 'pointer',
-                              color: 'white'
-                            }}
-                          >
-                            <X size={18} />
-                          </button>
-                        </div>
-                      ) : (
-                        <label style={{
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          width: '200px',
-                          height: '200px',
-                          border: '2px dashed #cbd5e1',
-                          borderRadius: '12px',
-                          cursor: 'pointer',
-                          background: '#f8fafc'
-                        }}>
-                          <Upload size={32} color="#94a3b8" />
-                          <span style={{ marginTop: '8px', fontSize: '0.875rem', color: '#64748b' }}>
-                            Click to upload
-                          </span>
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleProfilePictureChange}
-                            style={{ display: 'none' }}
-                          />
-                        </label>
-                      )}
+                      <ImageUploader
+                        onUpload={handleProfilePictureUpload}
+                        currentImage={profilePicturePreview}
+                        label="Upload Clinic Profile Picture"
+                        aspectRatio="1/1"
+                      />
                     </div>
 
                     {/* Gallery Photos */}

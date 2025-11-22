@@ -2,7 +2,7 @@
 import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 import { auth, db } from "../firebase/firebase";
 import { doc, setDoc } from "firebase/firestore";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { uploadImageToCloudinary } from "../utils/uploadImage";
 import { useNavigate } from "react-router-dom";
 import "../styles/Auth.css";
 import eye from "../assets/eyeOn.png";
@@ -55,10 +55,10 @@ export default function Register() {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Validate file type (PDF, images, or documents)
-      const validTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+      // Validate file type (images only for Cloudinary)
+      const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
       if (!validTypes.includes(file.type)) {
-        setError("Please upload a valid file (PDF, JPG, PNG, or DOC)");
+        setError("Please upload a valid image file (JPG, PNG, or WebP)");
         return;
       }
       
@@ -74,13 +74,10 @@ export default function Register() {
     }
   };
 
-  const uploadPortfolio = async (userId) => {
+  const uploadPortfolio = async () => {
     try {
-      const storage = getStorage();
-      const portfolioRef = ref(storage, `portfolios/${userId}/${portfolioFile.name}`);
-      await uploadBytes(portfolioRef, portfolioFile);
-      const downloadURL = await getDownloadURL(portfolioRef);
-      return downloadURL;
+      const cloudinaryUrl = await uploadImageToCloudinary(portfolioFile);
+      return cloudinaryUrl;
     } catch (error) {
       console.error("Error uploading portfolio:", error);
       throw error;
@@ -130,7 +127,7 @@ export default function Register() {
         contactNo: formData.contactNo,
         email: formData.email,
         role: role === "Pet Owner" ? "petOwner" : "clinicOwner",
-          portfolioURL: role === "Veterinarian" && portfolioFile ? await uploadPortfolio(userCredential.user.uid) : null,
+        portfolioURL: role === "Veterinarian" && portfolioFile ? await uploadPortfolio() : null,
         createdAt: new Date().toISOString()
       });      navigate(role === "Pet Owner" ? "/owner-dashboard" : "/clinic-dashboard");
     } catch (err) {
@@ -168,7 +165,7 @@ export default function Register() {
       // Upload portfolio for Veterinarian
       let portfolioURL = null;
       if (role === "Veterinarian" && portfolioFile) {
-        portfolioURL = await uploadPortfolio(result.user.uid);
+        portfolioURL = await uploadPortfolio();
       }
       
       await setDoc(doc(db, "users", result.user.uid), {
@@ -320,7 +317,7 @@ export default function Register() {
                 <input
                   type="file"
                   id="portfolio"
-                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                  accept=".jpg,.jpeg,.png,.webp"
                   onChange={handleFileChange}
                   style={{ display: 'none' }}
                 />
@@ -349,7 +346,7 @@ export default function Register() {
                         Click to upload or drag and drop
                       </p>
                       <p style={{ margin: '4px 0', color: '#64748b', fontSize: '0.8125rem' }}>
-                        PDF, DOC, JPG, PNG (Max 5MB)
+                        JPG, PNG, WebP (Max 5MB)
                       </p>
                     </div>
                   )}

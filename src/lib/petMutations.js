@@ -1,6 +1,6 @@
 import { collection, addDoc, deleteDoc, doc, serverTimestamp } from "firebase/firestore";
-import { db, storage } from "../firebase/firebase";
-import { ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
+import { db } from "../firebase/firebase";
+import { uploadImageToCloudinary } from "../utils/uploadImage";
 
 export const addPet = (uid, data) =>
   addDoc(collection(db, "users", uid, "pets"), {
@@ -9,24 +9,21 @@ export const addPet = (uid, data) =>
     updatedAt: serverTimestamp(),
   });
 
-// PET FILES - Upload file for a specific pet
+// PET FILES - Upload file for a specific pet (Cloudinary)
 export const uploadPetFile = async (uid, petId, file) => {
   try {
     if (!uid) throw new Error('User ID is required');
     if (!petId) throw new Error('Pet ID is required');
     if (!file) throw new Error('File is required');
 
-    const name = `${Date.now()}_${file.name}`;
-    const sRef = storageRef(storage, `users/${uid}/pets/${petId}/files/${name}`);
+    // Upload to Cloudinary
+    const url = await uploadImageToCloudinary(file);
     
-    await uploadBytes(sRef, file);
-    const url = await getDownloadURL(sRef);
-    
+    // Save metadata to Firestore
     await addDoc(collection(db, "users", uid, "pets", petId, "files"), {
       name: file.name,
       size: file.size,
       type: file.type,
-      storagePath: sRef.fullPath,
       downloadURL: url,
       uploadedAt: serverTimestamp(),
     });

@@ -464,9 +464,26 @@ export default function OwnerDashboard() {
                   ...selected,
                   clinicName: getClinicName(selected.clinicId),
                   petName: getPetName(selected.petId),
-                  date: formatShortDate(selected.dateTime),
-                  time: formatTime(selected.dateTime),
-                  symptoms: selected.meta?.reason || 'N/A',
+                  date: selected.date 
+                    ? new Date(selected.date).toLocaleDateString('en-US', { 
+                        weekday: 'long',
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric' 
+                      })
+                    : formatShortDate(selected.dateTime),
+                  time: selected.startTime && selected.endTime
+                    ? (() => {
+                        const formatTimeStr = (timeStr) => {
+                          const [hour, minute] = timeStr.split(':').map(Number);
+                          const period = hour >= 12 ? 'PM' : 'AM';
+                          const displayHour = hour > 12 ? hour - 12 : (hour === 0 ? 12 : hour);
+                          return `${displayHour}:${String(minute).padStart(2, '0')} ${period}`;
+                        };
+                        return `${formatTimeStr(selected.startTime)} - ${formatTimeStr(selected.endTime)}`;
+                      })()
+                    : formatTime(selected.dateTime),
+                  symptoms: selected.reason || selected.meta?.reason || 'No reason provided',
                   hasReview: selected.hasReview
                 }}
                 onBack={() => setViewState(VIEW_STATES.APPOINTMENT_LIST)}

@@ -6,11 +6,13 @@ import { useCollection } from '../../hooks/useCollection';
 import { markNotificationAsRead, clearNotifications } from '../../firebase/firestoreHelpers';
 import { orderBy } from 'firebase/firestore';
 import { handleNotificationClick } from '../../utils/notificationHandlers';
+import ConfirmDialog from '../ConfirmDialog';
 import styles from '../../styles/TopBar.module.css';
 
 export default function TopBar({ username }) {
   const [showDropdown, setShowDropdown] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
   const dropdownRef = useRef(null);
   const notificationRef = useRef(null);
   const { logout, userData, currentUser } = useAuth();
@@ -100,19 +102,20 @@ export default function TopBar({ username }) {
     }
   };
 
-  const handleClearAll = async () => {
+  const handleClearAll = () => {
+    setShowClearConfirm(true);
+  };
+
+  const confirmClearAll = async () => {
     if (!currentUser?.uid) return;
-    
-    if (!window.confirm('Are you sure you want to clear all notifications?')) {
-      return;
-    }
     
     try {
       await clearNotifications(currentUser.uid);
       console.log('All notifications cleared');
+      setShowClearConfirm(false);
     } catch (error) {
       console.error('Error clearing notifications:', error);
-      alert('Failed to clear notifications. Please try again.');
+      setShowClearConfirm(false);
     }
   };
 
@@ -162,7 +165,7 @@ export default function TopBar({ username }) {
     // Close notification panel
     setShowNotifications(false);
 
-    // Handle navigation based on notification type
+    // Use original notification handler - navigates to home/dashboard
     handleNotificationClick(notif, navigate, userData);
   };
 
@@ -313,6 +316,18 @@ export default function TopBar({ username }) {
           </div>
         </div>
       </div>
+
+      {/* Confirm Clear All Dialog */}
+      <ConfirmDialog
+        isOpen={showClearConfirm}
+        onClose={() => setShowClearConfirm(false)}
+        onConfirm={confirmClearAll}
+        title="Clear All Notifications?"
+        message={`Are you sure you want to permanently delete all ${notifications.length} notification${notifications.length !== 1 ? 's' : ''}? This action cannot be undone.`}
+        confirmText="Clear All"
+        cancelText="Cancel"
+        variant="danger"
+      />
     </header>
   );
 }

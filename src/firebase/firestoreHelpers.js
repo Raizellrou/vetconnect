@@ -124,7 +124,459 @@ export const addClinicStaff = async (clinicId, staffData) => {
   });
 };
 
-/* -------------------- 📅 APPOINTMENTS - Enhanced Flow -------------------- */
+/* -------------------- 📅 APPOINTMENTS - Enhanced Flow with Time Slot Management -------------------- */
+
+/**
+ * Fetch working hours for a clinic
+ * @param {string} clinicId - Clinic ID
+ * @returns {Promise<Object>} Working hours object { start, end } or null
+ */
+export const fetchWorkingHours = async (clinicId) => {
+  if (!clinicId) {
+    throw new Error('Clinic ID is required');
+  }
+
+  try {
+    const workingHoursRef = doc(db, 'clinics', clinicId, 'settings', 'workingHours');
+    const workingHoursSnap = await getDoc(workingHoursRef);
+    
+    if (workingHoursSnap.exists()) {
+      return workingHoursSnap.data();
+    }
+    
+    // Default working hours if not set
+    return { start: '08:00', end: '17:00' };
+  } catch (error) {
+    console.error('Error fetching working hours:', error);
+    // Return default on error
+    return { start: '08:00', end: '17:00' };
+  }
+};
+
+/**
+ * Generate 1-hour interval time slots based on working hours
+ * @param {Object} workingHours - Object with start and end time strings
+ * @param {Date} date - The date for which to generate slots
+ * @returns {Array<Object>} Array of time slot objects { startTime, endTime, display }
+ */
+export const generateTimeSlots = (workingHours, date = new Date()) => {
+  if (!workingHours || !workingHours.start || !workingHours.end) {
+    console.warn('Invalid working hours provided');
+    return [];
+  }
+
+  const slots = [];
+  const [startHour, startMinute] = workingHours.start.split(':').map(Number);
+  const [endHour, endMinute] = workingHours.end.split(':').map(Number);
+  
+  const startTime = startHour * 60 + startMinute;
+  const endTime = endHour * 60 + endMinute;
+  
+  // Generate hourly slots
+  for (let time = startTime; time < endTime; time += 60) {
+    const slotStartHour = Math.floor(time / 60);
+    const slotStartMinute = time % 60;
+    const slotEndHour = Math.floor((time + 60) / 60);
+    const slotEndMinute = (time + 60) % 60;
+    
+    const startTimeStr = `${String(slotStartHour).padStart(2, '0')}:${String(slotStartMinute).padStart(2, '0')}`;
+    const endTimeStr = `${String(slotEndHour).padStart(2, '0')}:${String(slotEndMinute).padStart(2, '0')}`;
+    
+    slots.push({
+      startTime: startTimeStr,
+      endTime: endTimeStr,
+      display: `${formatTimeDisplay(startTimeStr)} - ${formatTimeDisplay(endTimeStr)}`
+    });
+  }
+  
+  return slots;
+};
+
+/**
+ * Format time for display (e.g., "08:00" -> "8:00 AM")
+ * @param {string} timeStr - Time string in HH:mm format
+ * @returns {string} Formatted time string
+ */
+const formatTimeDisplay = (timeStr) => {
+  const [hour, minute] = timeStr.split(':').map(Number);
+  const period = hour >= 12 ? 'PM' : 'AM';
+  const displayHour = hour > 12 ? hour - 12 : (hour === 0 ? 12 : hour);
+  return `${displayHour}:${String(minute).padStart(2, '0')} ${period}`;
+};
+
+/**
+ * Check if a time slot is available (no overlapping appointments)
+ * @param {string} clinicId - Clinic ID
+ * @param {string} date - Date string (YYYY-MM-DD)
+ * @param {string} startTime - Start time (HH:mm)
+ * @param {string} endTime - End time (HH:mm)
+ * @returns {Promise<boolean>} True if slot is available
+ */
+export const checkSlotAvailability = async (clinicId, date, startTime, endTime) => {
+  if (!clinicId || !date || !startTime || !endTime) {
+    throw new Error('All parameters are required');
+  }
+
+  try {
+    // Parse the date and times
+    const requestedDate = new Date(date);
+    const [reqStartHour, reqStartMin] = startTime.split(':').map(Number);
+    const [reqEndHour, reqEndMin] = endTime.split(':').map(Number);
+    
+    const requestedStart = new Date(requestedDate);
+    requestedStart.setHours(reqStartHour, reqStartMin, 0, 0);
+    
+    const requestedEnd = new Date(requestedDate);
+    requestedEnd.setHours(reqEndHour, reqEndMin, 0, 0);
+
+    // Query appointments for this clinic on this date
+    // Only check approved and confirmed appointments - pending ones don't block slots
+    const appointmentsRef = collection(db, 'appointments');
+    const appointmentsQuery = query(
+      appointmentsRef,
+      where('clinicId', '==', clinicId),
+      where('status', 'in', ['approved', 'confirmed']) // Only approved/confirmed block slots
+    );
+    
+    const appointmentsSnap = await getDocs(appointmentsQuery);
+    
+    console.log(`Checking slot availability for ${date} from ${startTime} to ${endTime}`);
+    console.log(`Found ${appointmentsSnap.docs.length} APPROVED/CONFIRMED appointments for clinic (pending appointments don't block slots)`);
+    
+    // Debug: Log all appointments that are blocking slots
+    appointmentsSnap.docs.forEach(doc => {
+      const apt = doc.data();
+      console.log('Blocking appointment:', {
+        id: doc.id,
+        date: apt.date,
+        startTime: apt.startTime,
+        endTime: apt.endTime,
+        status: apt.status
+      });
+    });
+    
+    // Check for overlaps
+    for (const appointmentDoc of appointmentsSnap.docs) {
+      const apt = appointmentDoc.data();
+      
+      // Skip if appointment is not on the same date
+      if (apt.date !== date) {
+        console.log(`Skipping appointment ${appointmentDoc.id} - different date: ${apt.date} vs ${date}`);
+        continue;
+      }
+      
+      console.log(`Checking appointment ${appointmentDoc.id} on same date ${date}`);
+      
+      
+      // Skip if appointment doesn't have startTime/endTime (old format)
+      if (!apt.startTime || !apt.endTime) {
+        console.log('Skipping appointment without time slots:', appointmentDoc.id);
+        continue;
+      }
+      
+      // Parse existing appointment times
+      const [existingStartHour, existingStartMin] = apt.startTime.split(':').map(Number);
+      const [existingEndHour, existingEndMin] = apt.endTime.split(':').map(Number);
+      
+      const existingStart = new Date(requestedDate);
+      existingStart.setHours(existingStartHour, existingStartMin, 0, 0);
+      
+      const existingEnd = new Date(requestedDate);
+      existingEnd.setHours(existingEndHour, existingEndMin, 0, 0);
+      
+      // Check for overlap: requestedStart < existingEnd && requestedEnd > existingStart
+      if (requestedStart < existingEnd && requestedEnd > existingStart) {
+        console.log('Time slot conflict detected:', {
+          requested: { start: startTime, end: endTime },
+          existing: { start: apt.startTime, end: apt.endTime }
+        });
+        return false;
+      }
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Error checking slot availability:', error);
+    throw new Error(`Failed to check availability: ${error.message}`);
+  }
+};
+
+/**
+ * Book a new appointment with time slot
+ * @param {Object} appointmentData - Appointment data
+ * @returns {Promise<string>} Appointment ID
+ */
+export const bookAppointmentWithTimeSlot = async (appointmentData) => {
+  const {
+    clinicId,
+    ownerUid,
+    petId,
+    date,
+    startTime,
+    endTime,
+    reason,
+    service,
+    notes
+  } = appointmentData;
+
+  if (!clinicId || !ownerUid || !petId || !date || !startTime || !endTime) {
+    throw new Error('Required appointment fields are missing');
+  }
+
+  try {
+    // Check if slot is still available
+    const isAvailable = await checkSlotAvailability(clinicId, date, startTime, endTime);
+    
+    if (!isAvailable) {
+      throw new Error('This time slot is no longer available. Please select another time.');
+    }
+
+    // Create appointment document
+    const appointmentsRef = collection(db, 'appointments');
+    const appointmentDoc = await addDoc(appointmentsRef, {
+      clinicId,
+      ownerId: ownerUid, // Store as ownerId to match clinic dashboard expectations
+      petId,
+      date,
+      startTime,
+      endTime,
+      status: 'pending',
+      reason: reason || '',
+      service: service || '',
+      notes: notes || '',
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    });
+
+    console.log('Appointment booked:', appointmentDoc.id);
+    
+    // Fetch clinic owner ID and clinic name to send notification
+    try {
+      const clinicRef = doc(db, 'clinics', clinicId);
+      const clinicSnap = await getDoc(clinicRef);
+      
+      if (clinicSnap.exists()) {
+        const clinicData = clinicSnap.data();
+        const clinicOwnerId = clinicData.ownerId;
+        const clinicName = clinicData.clinicName || clinicData.name || 'Your Clinic';
+        
+        if (clinicOwnerId) {
+          // Fetch pet and owner names for the notification
+          let petName = 'a pet';
+          let ownerName = 'A pet owner';
+          
+          try {
+            const petRef = doc(db, 'users', ownerUid, 'pets', petId);
+            const petSnap = await getDoc(petRef);
+            if (petSnap.exists()) {
+              petName = petSnap.data().name || 'a pet';
+            }
+            
+            const ownerRef = doc(db, 'users', ownerUid);
+            const ownerSnap = await getDoc(ownerRef);
+            if (ownerSnap.exists()) {
+              const ownerData = ownerSnap.data();
+              ownerName = ownerData.fullName || ownerData.displayName || ownerData.email || 'A pet owner';
+            }
+          } catch (err) {
+            console.warn('Failed to fetch pet/owner details for notification:', err);
+          }
+          
+          // Format the time display
+          const formatTime = (timeStr) => {
+            const [hour, minute] = timeStr.split(':').map(Number);
+            const period = hour >= 12 ? 'PM' : 'AM';
+            const displayHour = hour > 12 ? hour - 12 : (hour === 0 ? 12 : hour);
+            return `${displayHour}:${String(minute).padStart(2, '0')} ${period}`;
+          };
+          
+          const timeSlot = `${formatTime(startTime)} - ${formatTime(endTime)}`;
+          const formattedDate = new Date(date).toLocaleDateString('en-US', { 
+            weekday: 'short', 
+            month: 'short', 
+            day: 'numeric',
+            year: 'numeric'
+          });
+          
+          // Send notification to clinic owner
+          await sendNotification({
+            toUserId: clinicOwnerId,
+            title: '🔔 New Appointment Request',
+            body: `${ownerName} requested an appointment for ${petName} on ${formattedDate} at ${timeSlot}`,
+            appointmentId: appointmentDoc.id,
+            data: {
+              type: 'new_appointment',
+              clinicId,
+              clinicName,
+              appointmentId: appointmentDoc.id,
+              date,
+              timeSlot,
+              petName,
+              ownerName,
+              action: 'view_appointments'
+            }
+          });
+          
+          console.log('Notification sent to clinic owner:', clinicOwnerId);
+        }
+      }
+    } catch (notifError) {
+      console.error('Error sending notification to clinic owner:', notifError);
+      // Don't fail the appointment booking if notification fails
+    }
+    
+    return appointmentDoc.id;
+  } catch (error) {
+    console.error('Error booking appointment:', error);
+    throw error;
+  }
+};
+
+/**
+ * Approve an appointment (clinic owner action)
+ * Checks availability before approving
+ * @param {string} appointmentId - Appointment ID
+ * @returns {Promise<void>}
+ */
+export const approveAppointment = async (appointmentId) => {
+  if (!appointmentId) {
+    throw new Error('Appointment ID is required');
+  }
+
+  try {
+    // Fetch the appointment
+    const appointmentRef = doc(db, 'appointments', appointmentId);
+    const appointmentSnap = await getDoc(appointmentRef);
+    
+    if (!appointmentSnap.exists()) {
+      throw new Error('Appointment not found');
+    }
+
+    const appointment = appointmentSnap.data();
+    
+    // Check if time slot is still available
+    const isAvailable = await checkSlotAvailability(
+      appointment.clinicId,
+      appointment.date,
+      appointment.startTime,
+      appointment.endTime
+    );
+    
+    if (!isAvailable) {
+      throw new Error('This time slot is no longer available. Another appointment may have been approved.');
+    }
+
+    // Update status to approved
+    await updateDoc(appointmentRef, {
+      status: 'approved',
+      approvedAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    });
+
+    console.log('Appointment approved:', appointmentId);
+  } catch (error) {
+    console.error('Error approving appointment:', error);
+    throw error;
+  }
+};
+
+/**
+ * Extend appointment duration (clinic owner action)
+ * @param {string} appointmentId - Appointment ID
+ * @param {string} newEndTime - New end time (HH:mm)
+ * @returns {Promise<void>}
+ */
+export const extendAppointment = async (appointmentId, newEndTime) => {
+  if (!appointmentId || !newEndTime) {
+    throw new Error('Appointment ID and new end time are required');
+  }
+
+  try {
+    // Fetch the appointment
+    const appointmentRef = doc(db, 'appointments', appointmentId);
+    const appointmentSnap = await getDoc(appointmentRef);
+    
+    if (!appointmentSnap.exists()) {
+      throw new Error('Appointment not found');
+    }
+
+    const appointment = appointmentSnap.data();
+    
+    // Validate that new end time is after start time
+    const [startHour, startMin] = appointment.startTime.split(':').map(Number);
+    const [newEndHour, newEndMin] = newEndTime.split(':').map(Number);
+    
+    if (newEndHour < startHour || (newEndHour === startHour && newEndMin <= startMin)) {
+      throw new Error('End time must be after start time');
+    }
+
+    // Check if extended time slot is available
+    const isAvailable = await checkSlotAvailability(
+      appointment.clinicId,
+      appointment.date,
+      appointment.startTime,
+      newEndTime
+    );
+    
+    if (!isAvailable) {
+      throw new Error('Cannot extend appointment. The extended time slot conflicts with another appointment.');
+    }
+
+    // Update appointment with new end time
+    await updateDoc(appointmentRef, {
+      endTime: newEndTime,
+      extendedAt: serverTimestamp(),
+      updatedAt: serverTimestamp()
+    });
+
+    console.log('Appointment extended:', appointmentId, 'New end time:', newEndTime);
+  } catch (error) {
+    console.error('Error extending appointment:', error);
+    throw error;
+  }
+};
+
+/**
+ * Update clinic working hours
+ * @param {string} clinicId - Clinic ID
+ * @param {string} start - Start time (HH:mm)
+ * @param {string} end - End time (HH:mm)
+ * @returns {Promise<void>}
+ */
+export const updateWorkingHours = async (clinicId, start, end) => {
+  if (!clinicId || !start || !end) {
+    throw new Error('Clinic ID, start time, and end time are required');
+  }
+
+  // Validate time format
+  const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
+  if (!timeRegex.test(start) || !timeRegex.test(end)) {
+    throw new Error('Invalid time format. Use HH:mm format (e.g., 08:00)');
+  }
+
+  // Validate that end time is after start time
+  const [startHour, startMin] = start.split(':').map(Number);
+  const [endHour, endMin] = end.split(':').map(Number);
+  
+  if (endHour < startHour || (endHour === startHour && endMin <= startMin)) {
+    throw new Error('End time must be after start time');
+  }
+
+  try {
+    // Create or update working hours document
+    const workingHoursRef = doc(db, 'clinics', clinicId, 'settings', 'workingHours');
+    await setDoc(workingHoursRef, {
+      start,
+      end,
+      updatedAt: serverTimestamp()
+    });
+
+    console.log('Working hours updated for clinic:', clinicId);
+  } catch (error) {
+    console.error('Error updating working hours:', error);
+    throw new Error(`Failed to update working hours: ${error.message}`);
+  }
+};
 
 /**
  * Cancel an appointment (pet owner action)

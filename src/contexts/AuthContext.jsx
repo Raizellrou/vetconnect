@@ -2,8 +2,6 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { onAuthStateChanged, signOut, updateProfile } from "firebase/auth";
 import { auth, db } from "../firebase/firebase";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { storage } from "../firebase/firebase";
 
 const AuthContext = createContext();
 
@@ -54,23 +52,17 @@ export function AuthProvider({ children }) {
 
   const logout = () => signOut(auth);
 
-  const updateUserProfile = async (updates, photoFile = null) => {
+  const updateUserProfile = async (updates) => {
     if (!currentUser) throw new Error("No user logged in");
 
     try {
-      let photoURL = updates.photoURL;
-
-      // Upload photo if provided
-      if (photoFile) {
-        const storageRef = ref(storage, `profile-photos/${currentUser.uid}`);
-        await uploadBytes(storageRef, photoFile);
-        photoURL = await getDownloadURL(storageRef);
-      }
+      // photoURL is already uploaded to Cloudinary by ImageUploader component
+      const photoURL = updates.photoURL || currentUser.photoURL;
 
       // Update Firebase Auth profile
       await updateProfile(currentUser, {
         displayName: updates.fullName,
-        photoURL: photoURL || currentUser.photoURL,
+        photoURL,
       });
 
       // Update Firestore document
@@ -79,7 +71,7 @@ export function AuthProvider({ children }) {
         fullName: updates.fullName,
         phone: updates.phone || "",
         address: updates.address || "",
-        photoURL: photoURL || currentUser.photoURL,
+        photoURL,
       });
 
       // Update local state
@@ -88,7 +80,7 @@ export function AuthProvider({ children }) {
         fullName: updates.fullName,
         phone: updates.phone || "",
         address: updates.address || "",
-        photoURL: photoURL || prev.photoURL,
+        photoURL,
       }));
 
       return { success: true };

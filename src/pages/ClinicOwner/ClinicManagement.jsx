@@ -5,8 +5,8 @@ import TopBar from '../../components/layout/TopBar';
 import ClinicSidebar from '../../components/layout/ClinicSidebar';
 import { useAuth } from '../../contexts/AuthContext';
 import { collection, query, where, getDocs, doc, deleteDoc, updateDoc } from 'firebase/firestore';
-import { db, storage } from '../../firebase/firebase';
-import { ref as storageRef, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { db } from '../../firebase/firebase';
+import { uploadImageToCloudinary } from '../../utils/uploadImage';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import Toast from '../../components/Toast';
 import styles from '../../styles/ClinicDashboard.module.css';
@@ -80,29 +80,22 @@ export default function ClinicManagement() {
     }
 
     try {
-      const path = `clinicPhotos/${clinic.id}/${Date.now()}_${file.name}`;
-      const storageReference = storageRef(storage, path);
-      const uploadTask = uploadBytesResumable(storageReference, file);
-
-      uploadTask.on('state_changed', (snapshot) => {
-        const percent = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
-        setUploadProgress(prev => ({ ...prev, [clinic.id]: percent }));
-      }, (err) => {
-        console.error('Upload error', err);
-        setToast({ message: 'Upload failed. Please try again.', type: 'error' });
-        setUploadProgress(prev => ({ ...prev, [clinic.id]: 0 }));
-      }, async () => {
-        const url = await getDownloadURL(uploadTask.snapshot.ref);
-        // update clinic document (store both legacy `profilePicture` and `photoURL` fields)
-        await updateDoc(doc(db, 'clinics', clinic.id), { photoURL: url, profilePicture: url });
-        // update local state
-        setClinics(prev => prev.map(c => c.id === clinic.id ? { ...c, photoURL: url } : c));
-        setToast({ message: 'Photo uploaded successfully', type: 'success' });
-        setUploadProgress(prev => ({ ...prev, [clinic.id]: 0 }));
-      });
+      setUploadProgress(prev => ({ ...prev, [clinic.id]: 50 })); // Show progress
+      
+      // Upload to Cloudinary
+      const url = await uploadImageToCloudinary(file);
+      
+      // Update clinic document
+      await updateDoc(doc(db, 'clinics', clinic.id), { photoURL: url, profilePicture: url });
+      
+      // Update local state
+      setClinics(prev => prev.map(c => c.id === clinic.id ? { ...c, photoURL: url, profilePicture: url } : c));
+      setToast({ message: 'Photo uploaded successfully', type: 'success' });
+      setUploadProgress(prev => ({ ...prev, [clinic.id]: 0 }));
     } catch (err) {
       console.error(err);
       setToast({ message: 'Upload failed. Please try again.', type: 'error' });
+      setUploadProgress(prev => ({ ...prev, [clinic.id]: 0 }));
     }
   };
 

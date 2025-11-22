@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import TopBar from '../../components/layout/TopBar';
 import ClinicSidebar from '../../components/layout/ClinicSidebar';
+import WorkingHoursModal from '../../components/modals/WorkingHoursModal';
+import ExtendAppointmentModal from '../../components/modals/ExtendAppointmentModal';
 import { useAuth } from '../../contexts/AuthContext';
-import { Calendar, Clock, User, Dog, CheckCircle, XCircle, AlertCircle, ArrowLeft, Building2, Filter, Search, ChevronRight, FileText, Plus } from 'lucide-react';
+import { Calendar, Clock, User, Dog, CheckCircle, XCircle, AlertCircle, ArrowLeft, Building2, Filter, Search, ChevronRight, FileText, Plus, Settings, ArrowRightLeft } from 'lucide-react';
 import LoadingSpinner from '../../components/LoadingSpinner';
 import styles from '../../styles/ClinicDashboard.module.css';
 import { useCollection } from '../../hooks/useCollection';
@@ -12,7 +14,7 @@ import { updateAppointment, completeAppointment, addAppointmentNotes } from '../
 import { collection, getDocs, query as firestoreQuery, doc, getDoc } from 'firebase/firestore';
 import { db } from '../../firebase/firebase';
 import { formatShortDate, formatTime } from '../../utils/dateUtils';
-import { sendNotification } from '../../firebase/firestoreHelpers';
+import { sendNotification, approveAppointment } from '../../firebase/firestoreHelpers';
 
 export default function ClinicAppointments() {
   const { userData, currentUser } = useAuth();
@@ -40,6 +42,11 @@ export default function ClinicAppointments() {
   const [showNotesDialog, setShowNotesDialog] = useState(null);
   const [clinicNotes, setClinicNotes] = useState('');
   const [isSavingNotes, setIsSavingNotes] = useState(false);
+  
+  // New modals
+  const [showWorkingHoursModal, setShowWorkingHoursModal] = useState(false);
+  const [showExtendModal, setShowExtendModal] = useState(false);
+  const [extendingAppointment, setExtendingAppointment] = useState(null);
 
   // Real-time listener for appointments of selected clinic
   const {
@@ -219,9 +226,15 @@ export default function ClinicAppointments() {
 
   const handleUpdateStatus = async (aptId, newStatus, appointment) => {
     try {
-      // Update appointment status
-      await updateAppointment(aptId, { status: newStatus });
-      console.log(`Appointment ${aptId} updated to ${newStatus}`);
+      // Use the new approveAppointment function if approving
+      if (newStatus === 'confirmed' || newStatus === 'approved') {
+        await approveAppointment(aptId);
+        console.log(`Appointment ${aptId} approved with availability check`);
+      } else {
+        // Update appointment status for rejection
+        await updateAppointment(aptId, { status: newStatus });
+        console.log(`Appointment ${aptId} updated to ${newStatus}`);
+      }
       
       // Send notification to pet owner
       const notificationTitle = newStatus === 'confirmed' 
@@ -301,6 +314,17 @@ export default function ClinicAppointments() {
   const handleCreateMedicalRecord = (apt) => {
     // Navigate to medical record creation page
     window.location.href = `/clinic/medical-records/create?appointmentId=${apt.id}&petId=${apt.petId}&ownerId=${apt.ownerId}`;
+  };
+
+  const handleExtendAppointment = (apt) => {
+    setExtendingAppointment(apt);
+    setShowExtendModal(true);
+  };
+
+  const handleManageWorkingHours = () => {
+    if (selectedClinic) {
+      setShowWorkingHoursModal(true);
+    }
   };
 
   const handleSelectClinic = (clinic) => {
@@ -635,26 +659,57 @@ export default function ClinicAppointments() {
                   Back to Clinics
                 </button>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-                  <div style={{
-                    width: '48px',
-                    height: '48px',
-                    borderRadius: '12px',
-                    background: 'linear-gradient(135deg, #818cf8 0%, #a78bfa 100%)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }}>
-                    <Building2 size={24} color="white" />
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', marginBottom: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{
+                      width: '48px',
+                      height: '48px',
+                      borderRadius: '12px',
+                      background: 'linear-gradient(135deg, #818cf8 0%, #a78bfa 100%)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}>
+                      <Building2 size={24} color="white" />
+                    </div>
+                    <div>
+                      <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1e293b', margin: '0 0 6px 0' }}>
+                        {selectedClinic.clinicName || selectedClinic.name}
+                      </h1>
+                      <p style={{ fontSize: '0.875rem', color: '#64748b', margin: 0 }}>
+                        Appointment Management
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1e293b', margin: '0 0 6px 0' }}>
-                      {selectedClinic.clinicName || selectedClinic.name}
-                    </h1>
-                    <p style={{ fontSize: '0.875rem', color: '#64748b', margin: 0 }}>
-                      Appointment Management
-                    </p>
-                  </div>
+                  <button
+                    onClick={handleManageWorkingHours}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      padding: '10px 20px',
+                      background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '10px',
+                      cursor: 'pointer',
+                      fontSize: '0.875rem',
+                      fontWeight: 600,
+                      boxShadow: '0 4px 12px rgba(245, 158, 11, 0.3)',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                      e.currentTarget.style.boxShadow = '0 6px 16px rgba(245, 158, 11, 0.4)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(245, 158, 11, 0.3)';
+                    }}
+                  >
+                    <Settings size={18} />
+                    Manage Working Hours
+                  </button>
                 </div>
               </div>
 
@@ -1033,6 +1088,28 @@ export default function ClinicAppointments() {
                                 </button>
                                 <button style={{
                                   padding: '10px 20px',
+                                  background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                                  color: 'white',
+                                  border: 'none',
+                                  borderRadius: '8px',
+                                  cursor: 'pointer',
+                                  fontWeight: 600,
+                                  fontSize: '0.875rem',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  gap: '6px',
+                                  transition: 'all 0.2s'
+                                }} 
+                                onClick={() => handleExtendAppointment(apt)}
+                                onMouseEnter={(e) => e.currentTarget.style.background = 'linear-gradient(135deg, #d97706 0%, #b45309 100%)'}
+                                onMouseLeave={(e) => e.currentTarget.style.background = 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)'}
+                                >
+                                  <ArrowRightLeft size={16} />
+                                  Extend
+                                </button>
+                                <button style={{
+                                  padding: '10px 20px',
                                   background: 'white',
                                   color: '#6b7280',
                                   border: '2px solid #e5e7eb',
@@ -1232,6 +1309,24 @@ export default function ClinicAppointments() {
           </div>
         </div>
       )}
+
+      {/* Working Hours Modal */}
+      <WorkingHoursModal
+        isOpen={showWorkingHoursModal}
+        onClose={() => setShowWorkingHoursModal(false)}
+        clinicId={selectedClinic?.id}
+        clinicName={selectedClinic?.clinicName || selectedClinic?.name}
+      />
+
+      {/* Extend Appointment Modal */}
+      <ExtendAppointmentModal
+        isOpen={showExtendModal}
+        onClose={() => {
+          setShowExtendModal(false);
+          setExtendingAppointment(null);
+        }}
+        appointment={extendingAppointment}
+      />
     </div>
   );
 }

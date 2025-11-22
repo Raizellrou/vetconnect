@@ -4,6 +4,7 @@ import { MapPin, Phone, Clock, Star, Bookmark, BookmarkCheck, ArrowLeft, Loader,
 import TopBar from '../../components/layout/TopBar';
 import Sidebar from '../../components/layout/Sidebar';
 import Toast from '../../components/Toast';
+import BookAppointmentWithTimeSlot from '../../components/modals/BookAppointmentWithTimeSlot';
 import { useAuth } from '../../contexts/AuthContext';
 import { useCollection } from '../../hooks/useCollection';
 import { addBookmark, removeBookmark, isClinicBookmarked } from '../../firebase/firestoreHelpers';
@@ -25,6 +26,7 @@ export default function ClinicDetails() {
   const [showFullImage, setShowFullImage] = useState(false);
   const [fullImageUrl, setFullImageUrl] = useState('');
   const [toast, setToast] = useState(null);
+  const [showBookingModal, setShowBookingModal] = useState(false);
 
   const displayName = userData?.fullName || userData?.displayName || userData?.email;
 
@@ -127,7 +129,7 @@ export default function ClinicDetails() {
       setTimeout(() => navigate('/login'), 2000);
       return;
     }
-    navigate(`/clinics/${clinicId}/appointment`);
+    setShowBookingModal(true);
   };
 
   const nextGalleryImage = () => {
@@ -890,6 +892,14 @@ export default function ClinicDetails() {
           />
         </div>
       )}
+
+      {/* Booking Modal */}
+      <BookAppointmentWithTimeSlot
+        isOpen={showBookingModal}
+        onClose={() => setShowBookingModal(false)}
+        clinicId={clinicId}
+        clinicName={clinic?.clinicName || clinic?.name}
+      />
 
       {/* Toast Notification */}
       {toast && (

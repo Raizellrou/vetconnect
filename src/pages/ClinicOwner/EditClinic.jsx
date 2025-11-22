@@ -2,13 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import TopBar from '../../components/layout/TopBar';
 import ClinicSidebar from '../../components/layout/ClinicSidebar';
+import WorkingHoursModal from '../../components/modals/WorkingHoursModal';
+import ImageUploader from '../../components/ImageUploader';
 import { useAuth } from '../../contexts/AuthContext';
-import { Building2, MapPin, Phone, Clock, Upload, X, Plus, Trash2, Check, Camera, Save, Map } from 'lucide-react';
+import { Building2, MapPin, Phone, Clock, Upload, X, Plus, Trash2, Check, Camera, Save, Map, Settings } from 'lucide-react';
 import MapPicker from '../../components/MapPicker';
 import styles from '../../styles/ClinicDashboard.module.css';
 import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-import { db, storage } from '../../firebase/firebase';
+import { db } from '../../firebase/firebase';
+import { fetchWorkingHours } from '../../firebase/firestoreHelpers';
+import { uploadMultipleImagesToCloudinary } from '../../utils/uploadImage';
 import LoadingSpinner from '../../components/LoadingSpinner';
 
 export default function EditClinic() {
@@ -22,6 +25,8 @@ export default function EditClinic() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showMapPicker, setShowMapPicker] = useState(false);
+  const [showWorkingHoursModal, setShowWorkingHoursModal] = useState(false);
+  const [workingHours, setWorkingHours] = useState(null);
 
   // Form data
   const [formData, setFormData] = useState({
@@ -103,6 +108,14 @@ export default function EditClinic() {
         setExistingGalleryPhotos(data.galleryPhotos || []);
         setGalleryPreviews(data.galleryPhotos || []);
         setVeterinarians(data.veterinarians || []);
+        
+        // Fetch working hours
+        try {
+          const hours = await fetchWorkingHours(clinicId);
+          setWorkingHours(hours);
+        } catch (err) {
+          console.error('Error fetching working hours:', err);
+        }
       } catch (err) {
         console.error('Error fetching clinic:', err);
         setError('Failed to load clinic data');
@@ -129,16 +142,9 @@ export default function EditClinic() {
     }));
   };
 
-  const handleProfilePictureChange = (e) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        setError('Profile picture must be less than 5MB');
-        return;
-      }
-      setProfilePicture(file);
-      setProfilePicturePreview(URL.createObjectURL(file));
-    }
+  const handleProfilePictureUpload = (cloudinaryUrl) => {
+    setProfilePicturePreview(cloudinaryUrl);
+    setError('');
   };
 
   const handleGalleryPhotosChange = (e) => {
@@ -238,12 +244,6 @@ export default function EditClinic() {
     setError('');
   };
 
-  const uploadImage = async (file, path) => {
-    const storageRef = ref(storage, path);
-    await uploadBytes(storageRef, file);
-    return await getDownloadURL(storageRef);
-  };
-
   const handleSubmit = async () => {
     if (!validateStep(currentStep)) return;
 
@@ -251,24 +251,14 @@ export default function EditClinic() {
     setError('');
 
     try {
-      let profilePictureURL = existingProfilePicture;
+      // profilePicturePreview is already uploaded to Cloudinary by ImageUploader
+      let profilePictureURL = profilePicturePreview || existingProfilePicture;
       let galleryPhotoURLs = [...existingGalleryPhotos];
 
-      // Upload new profile picture if changed
-      if (profilePicture) {
-        profilePictureURL = await uploadImage(
-          profilePicture,
-          `clinics/${currentUser.uid}/${Date.now()}_profile.jpg`
-        );
-      }
-
-      // Upload new gallery photos
-      for (let i = 0; i < galleryPhotos.length; i++) {
-        const url = await uploadImage(
-          galleryPhotos[i],
-          `clinics/${currentUser.uid}/${Date.now()}_gallery_${i}.jpg`
-        );
-        galleryPhotoURLs.push(url);
+      // Upload new gallery photos to Cloudinary
+      if (galleryPhotos.length > 0) {
+        const newGalleryURLs = await uploadMultipleImagesToCloudinary(galleryPhotos);
+        galleryPhotoURLs.push(...newGalleryURLs);
       }
 
       // Update clinic document
@@ -353,18 +343,49 @@ export default function EditClinic() {
           <div className={styles.formContainer}>
             {/* Header */}
             <div className={styles.vcCardLarge}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '8px' }}>
-                <div className={styles.iconBadge} style={{ background: 'linear-gradient(135deg, #818cf8 0%, #a78bfa 100%)' }}>
-                  <Building2 size={28} color="white" />
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', marginBottom: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                  <div className={styles.iconBadge} style={{ background: 'linear-gradient(135deg, #818cf8 0%, #a78bfa 100%)' }}>
+                    <Building2 size={28} color="white" />
+                  </div>
+                  <div>
+                    <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1e293b', margin: '0 0 6px 0' }}>
+                      Edit Clinic
+                    </h1>
+                    <p style={{ fontSize: '0.875rem', color: '#64748b', margin: 0 }}>
+                      Step {currentStep} of 4: {steps[currentStep - 1].title}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1e293b', margin: '0 0 6px 0' }}>
-                    Edit Clinic
-                  </h1>
-                  <p style={{ fontSize: '0.875rem', color: '#64748b', margin: 0 }}>
-                    Step {currentStep} of 4: {steps[currentStep - 1].title}
-                  </p>
-                </div>
+                <button
+                  onClick={() => setShowWorkingHoursModal(true)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '10px 20px',
+                    background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '10px',
+                    cursor: 'pointer',
+                    fontSize: '0.875rem',
+                    fontWeight: 600,
+                    boxShadow: '0 4px 12px rgba(245, 158, 11, 0.3)',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 6px 16px rgba(245, 158, 11, 0.4)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(245, 158, 11, 0.3)';
+                  }}
+                >
+                  <Settings size={18} />
+                  Working Hours {workingHours && `(${workingHours.start} - ${workingHours.end})`}
+                </button>
               </div>
 
               {/* Progress Bar */}
@@ -769,96 +790,12 @@ export default function EditClinic() {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
                     {/* Profile Picture */}
                     <div>
-                      <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '12px' }}>
-                        Profile Picture
-                      </h3>
-                      <p style={{ fontSize: '0.875rem', color: '#64748b', marginBottom: '16px' }}>
-                        Main image for your clinic
-                      </p>
-                      
-                      {profilePicturePreview ? (
-                        <div style={{ position: 'relative', width: 'fit-content' }}>
-                          <img
-                            src={profilePicturePreview}
-                            alt="Profile preview"
-                            style={{
-                              width: '200px',
-                              height: '200px',
-                              objectFit: 'cover',
-                              borderRadius: '12px',
-                              border: '2px solid #e5e7eb'
-                            }}
-                          />
-                          <button
-                            onClick={() => {
-                              setProfilePicture(null);
-                              setProfilePicturePreview(null);
-                            }}
-                            style={{
-                              position: 'absolute',
-                              top: '8px',
-                              right: '8px',
-                              padding: '8px',
-                              background: '#ef4444',
-                              border: 'none',
-                              borderRadius: '8px',
-                              cursor: 'pointer',
-                              color: 'white'
-                            }}
-                          >
-                            <X size={18} />
-                          </button>
-                          <label style={{
-                            position: 'absolute',
-                            bottom: '8px',
-                            left: '8px',
-                            padding: '8px 12px',
-                            background: 'rgba(0,0,0,0.7)',
-                            border: 'none',
-                            borderRadius: '8px',
-                            cursor: 'pointer',
-                            color: 'white',
-                            fontSize: '0.75rem',
-                            fontWeight: 600,
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '4px'
-                          }}>
-                            <Upload size={14} />
-                            Change
-                            <input
-                              type="file"
-                              accept="image/*"
-                              onChange={handleProfilePictureChange}
-                              style={{ display: 'none' }}
-                            />
-                          </label>
-                        </div>
-                      ) : (
-                        <label style={{
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          width: '200px',
-                          height: '200px',
-                          border: '2px dashed #cbd5e1',
-                          borderRadius: '12px',
-                          cursor: 'pointer',
-                          background: '#f8fafc'
-                        }}>
-                          <Upload size={32} color="#94a3b8" />
-                          <span style={{ marginTop: '8px', fontSize: '0.875rem', color: '#64748b' }}>
-                            Click to upload
-                          </span>
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleProfilePictureChange}
-                            style={{ display: 'none' }}
-                          />
-                        </label>
-                      )}
+                      <ImageUploader
+                        onUpload={handleProfilePictureUpload}
+                        currentImage={profilePicturePreview || existingProfilePicture}
+                        label="Upload Clinic Profile Picture"
+                        aspectRatio="1/1"
+                      />
                     </div>
 
                     {/* Gallery Photos */}
@@ -1036,6 +973,20 @@ export default function EditClinic() {
             ? { lat: parseFloat(formData.latitude), lng: parseFloat(formData.longitude) }
             : null
         }
+      />
+
+      {/* Working Hours Modal */}
+      <WorkingHoursModal
+        isOpen={showWorkingHoursModal}
+        onClose={() => {
+          setShowWorkingHoursModal(false);
+          // Refresh working hours after closing
+          if (clinicId) {
+            fetchWorkingHours(clinicId).then(hours => setWorkingHours(hours));
+          }
+        }}
+        clinicId={clinicId}
+        clinicName={formData.clinicName}
       />
     </div>
   );
