@@ -4,6 +4,7 @@ import TopBar from '../../components/layout/TopBar';
 import ClinicSidebar from '../../components/layout/ClinicSidebar';
 import WorkingHoursModal from '../../components/modals/WorkingHoursModal';
 import ExtendAppointmentModal from '../../components/modals/ExtendAppointmentModal';
+import AppointmentDetailsCard from '../../components/AppointmentDetailsCard';
 import { useAuth } from '../../contexts/AuthContext';
 import { Calendar, Clock, User, Dog, CheckCircle, XCircle, AlertCircle, ArrowLeft, Building2, Filter, Search, ChevronRight, FileText, Plus, Settings, ArrowRightLeft, MapPin } from 'lucide-react';
 import LoadingSpinner from '../../components/LoadingSpinner';
@@ -15,6 +16,7 @@ import { collection, getDocs, query as firestoreQuery, doc, getDoc } from 'fireb
 import { db } from '../../firebase/firebase';
 import { formatShortDate, formatTime } from '../../utils/dateUtils';
 import { sendNotification, approveAppointment } from '../../firebase/firestoreHelpers';
+import { uploadMultipleImagesToCloudinary } from '../../utils/uploadImage';
 
 export default function ClinicAppointments() {
   const { userData, currentUser } = useAuth();
@@ -60,6 +62,9 @@ export default function ClinicAppointments() {
     files: []
   });
   const [isSavingRecord, setIsSavingRecord] = useState(false);
+
+  // Appointment details view state
+  const [viewingAppointmentDetails, setViewingAppointmentDetails] = useState(null);
 
   // Helper function to get appointment date/time
   const getAppointmentDateTime = (apt) => {
@@ -209,7 +214,7 @@ export default function ClinicAppointments() {
               }
 
               // Fetch owner details
-              let ownerData = { fullName: 'Unknown Owner', displayName: 'Unknown' };
+              let ownerData = { fullName: 'Unknown Owner', displayName: 'Unknown', photoURL: null };
               if (apt.ownerId) {
                 try {
                   const ownerRef = doc(db, 'users', apt.ownerId);
@@ -227,7 +232,9 @@ export default function ClinicAppointments() {
                 petName: petData.name || 'Unknown Pet',
                 petSpecies: petData.species || 'Unknown',
                 petBreed: petData.breed || 'Unknown',
+                petImage: petData.imageUrl || petData.photoURL || null,
                 ownerName: ownerData.fullName || ownerData.displayName || ownerData.email || 'Unknown Owner',
+                ownerPhoto: ownerData.photoURL || null,
                 symptoms: apt.meta?.reason || apt.reason || 'No reason provided',
                 service: apt.meta?.service || apt.service || '',
                 additionalNotes: apt.meta?.notes || apt.notes || ''
@@ -362,14 +369,37 @@ export default function ClinicAppointments() {
   };
 
   const handleMarkAsCompleted = async (apt) => {
-    if (!window.confirm('Mark this appointment as completed?')) return;
-    
     try {
       await completeAppointment(apt.id);
       console.log(`Appointment ${apt.id} marked as completed`);
     } catch (err) {
       console.error('Failed to complete appointment:', err);
       alert(err.message || 'Failed to complete appointment. Please try again.');
+    }
+  };
+
+  const handleViewDetails = (apt) => {
+    setViewingAppointmentDetails(apt);
+  };
+
+  const handleBackFromDetails = () => {
+    setViewingAppointmentDetails(null);
+  };
+
+  const handleMarkDoneFromDetails = async (apt) => {
+    await completeAppointment(apt.id);
+    // Refresh the appointment in the details view
+    const updatedApt = enrichedAppointments.find(a => a.id === apt.id);
+    if (updatedApt) {
+      setViewingAppointmentDetails({ ...updatedApt, status: 'completed' });
+    }
+  };
+
+  const handleMedicalRecordCreated = (appointmentId) => {
+    // Update the appointment to reflect that a medical record was created
+    const updatedApt = enrichedAppointments.find(a => a.id === appointmentId);
+    if (updatedApt) {
+      setViewingAppointmentDetails({ ...updatedApt, hasMedicalRecord: true });
     }
   };
 
@@ -426,6 +456,19 @@ export default function ClinicAppointments() {
         notes: medicalRecordData.notes
       };
 
+      // If files were attached, upload them and include URLs in the record
+      if (medicalRecordData.files && medicalRecordData.files.length > 0) {
+        try {
+          const uploaded = await uploadMultipleImagesToCloudinary(medicalRecordData.files);
+          recordData.files = uploaded;
+        } catch (uploadErr) {
+          console.error('Failed to upload attached files:', uploadErr);
+          alert('Failed to upload attachments. Please try again.');
+          setIsSavingRecord(false);
+          return;
+        }
+      }
+
       await createMedicalRecord(selectedAppointmentForRecord.id, recordData);
       
       // Mark appointment as completed if not already
@@ -478,7 +521,8 @@ export default function ClinicAppointments() {
   const canMarkAsCompleted = (apt) => {
     const appointmentDate = getAppointmentDateTime(apt);
     const now = new Date();
-    return appointmentDate < now && apt.status === 'confirmed';
+    // Allow clinics to mark both confirmed and approved appointments as completed once date has passed
+    return appointmentDate < now && (apt.status === 'confirmed' || apt.status === 'approved');
   };
 
   // Filter appointments based on criteria
@@ -1149,6 +1193,7 @@ export default function ClinicAppointments() {
                         <div 
                           key={apt.id} 
                           id={`appointment-${apt.id}`}
+                          onClick={() => handleViewDetails(apt)}
                           style={{
                             background: 'white',
                             padding: '24px',
@@ -1159,7 +1204,16 @@ export default function ClinicAppointments() {
                             justifyContent: 'space-between',
                             alignItems: 'flex-start',
                             gap: '20px',
-                            transition: 'box-shadow 0.3s ease'
+                            transition: 'all 0.2s ease',
+                            cursor: 'pointer'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.1)';
+                            e.currentTarget.style.transform = 'translateY(-2px)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.boxShadow = '0 2px 8px rgba(0,0,0,0.04)';
+                            e.currentTarget.style.transform = 'translateY(0)';
                           }}
                         >
                           <div style={{ display: 'flex', gap: '16px', flex: 1 }}>
@@ -1167,13 +1221,19 @@ export default function ClinicAppointments() {
                               width: '56px',
                               height: '56px',
                               borderRadius: '12px',
-                              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                              background: apt.ownerPhoto ? 'transparent' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
-                              flexShrink: 0
+                              flexShrink: 0,
+                              overflow: 'hidden',
+                              border: apt.ownerPhoto ? '2px solid #e5e7eb' : 'none'
                             }}>
-                              <Dog size={28} color="white" />
+                              {apt.ownerPhoto ? (
+                                <img src={apt.ownerPhoto} alt={apt.ownerName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                              ) : (
+                                <Dog size={28} color="white" />
+                              )}
                             </div>
                             <div style={{ flex: 1 }}>
                               <h4 style={{ margin: '0 0 8px 0', fontSize: '1.125rem', fontWeight: 600, color: '#1e293b' }}>
@@ -1230,7 +1290,7 @@ export default function ClinicAppointments() {
                           </div>
                           
                           {/* Action Buttons */}
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', minWidth: '140px' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', minWidth: '140px' }} onClick={(e) => e.stopPropagation()}>
                             {apt.status === 'pending' && (
                               <>
                                 <button style={{
@@ -1546,6 +1606,40 @@ export default function ClinicAppointments() {
         appointment={extendingAppointment}
       />
 
+      {/* Appointment Details Modal */}
+      {viewingAppointmentDetails && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'rgba(0, 0, 0, 0.5)',
+          backdropFilter: 'blur(4px)',
+          zIndex: 99999,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '20px',
+          overflowY: 'auto'
+        }} onClick={handleBackFromDetails}>
+          <div onClick={(e) => e.stopPropagation()}>
+            <AppointmentDetailsCard
+              appointment={{
+                ...viewingAppointmentDetails,
+                date: viewingAppointmentDetails.date || formatShortDate(getAppointmentDateTime(viewingAppointmentDetails)),
+                time: viewingAppointmentDetails.startTime && viewingAppointmentDetails.endTime 
+                  ? `${viewingAppointmentDetails.startTime} - ${viewingAppointmentDetails.endTime}`
+                  : formatTime(getAppointmentDateTime(viewingAppointmentDetails)),
+                symptoms: viewingAppointmentDetails.symptoms || 'No reason provided',
+                ownerPhoto: viewingAppointmentDetails.ownerPhoto || null,
+                ownerName: viewingAppointmentDetails.ownerName
+              }}
+              onBack={handleBackFromDetails}
+              onMarkDone={handleMarkDoneFromDetails}
+              onMedicalRecordCreated={handleMedicalRecordCreated}
+            />
+          </div>
+        </div>
+      )}
+
       {/* Medical Record Creation Modal */}
       {showMedicalRecordModal && selectedAppointmentForRecord && (
         <div style={{
@@ -1729,6 +1823,54 @@ export default function ClinicAppointments() {
                   }}
                   disabled={isSavingRecord}
                 />
+              </div>
+
+              {/* Attach Files */}
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.875rem', fontWeight: 600, color: '#374151' }}>
+                  Attach Files (images/PDFs)
+                </label>
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*,application/pdf"
+                  onChange={(e) => {
+                    const files = e.target.files ? Array.from(e.target.files) : [];
+                    setMedicalRecordData({ ...medicalRecordData, files });
+                  }}
+                  disabled={isSavingRecord}
+                  style={{ display: 'block' }}
+                />
+
+                {medicalRecordData.files && medicalRecordData.files.length > 0 && (
+                  <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {medicalRecordData.files.map((f, idx) => (
+                      <div key={idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', padding: '8px 12px', border: '1px solid #e5e7eb', borderRadius: '8px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <div style={{ width: 40, height: 40, borderRadius: 8, background: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            {f.type && f.type.startsWith('image') ? (
+                              <img src={URL.createObjectURL(f)} alt={f.name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 6 }} />
+                            ) : (
+                              <div style={{ fontSize: 12, color: '#6b7280' }}>PDF</div>
+                            )}
+                          </div>
+                          <div style={{ fontSize: '0.875rem', color: '#374151' }}>{f.name}</div>
+                        </div>
+                        <div>
+                          <button
+                            onClick={() => {
+                              const newFiles = medicalRecordData.files.filter((_, i) => i !== idx);
+                              setMedicalRecordData({ ...medicalRecordData, files: newFiles });
+                            }}
+                            style={{ padding: '6px 10px', background: '#ef4444', color: 'white', border: 'none', borderRadius: 6, cursor: 'pointer' }}
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Action Buttons */}

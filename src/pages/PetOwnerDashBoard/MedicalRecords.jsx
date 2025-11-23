@@ -1,84 +1,76 @@
 import React, { useEffect, useState } from "react";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "../../firebase/firebase";
-import { ArrowLeft, FileText, Download, Eye, Calendar, Paperclip } from 'lucide-react';
+import { ArrowLeft, FileText, Download, Eye, Calendar, Paperclip, AlertCircle } from 'lucide-react';
 import styles from './MedicalRecords.module.css';
+import Toast from '../../components/Toast';
 
 export default function MedicalRecords({ userData, petId, onBack }) {
   const [records, setRecords] = useState([]);
   const [files, setFiles] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [toast, setToast] = useState(null);
 
   const fetchRecords = async () => {
-    const recordsRef = collection(
-      db,
-      "users",
-      userData.uid,
-      "pets",
-      petId,
-      "medical_records"
-    );
-    const snapshot = await getDocs(recordsRef);
-    let recordsData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-    
-    // Add dummy records if empty for demo purposes
-    if (recordsData.length === 0) {
-      recordsData = [
-        {
-          id: 'dummy-1',
-          title: 'Annual Checkup',
-          description: 'Routine health examination and vaccination update',
-          diagnosis: 'Healthy, no issues found',
-          treatment: 'Updated vaccination records',
-          date: new Date('2024-11-15'),
-          createdAt: new Date('2024-11-15'),
-          attachments: [
-            {
-              fileName: 'vaccination-certificate.pdf',
-              fileUrl: '#',
-              uploadedAt: new Date('2024-11-15')
-            },
-            {
-              fileName: 'lab-results.pdf',
-              fileUrl: '#',
-              uploadedAt: new Date('2024-11-15')
-            }
-          ]
-        },
-        {
-          id: 'dummy-2',
-          title: 'Dental Cleaning',
-          description: 'Professional teeth cleaning and oral examination',
-          diagnosis: 'Minor tartar buildup',
-          treatment: 'Dental scaling and polishing completed',
-          date: new Date('2024-10-22'),
-          createdAt: new Date('2024-10-22'),
-          attachments: [
-            {
-              fileName: 'dental-xray.jpg',
-              fileUrl: '#',
-              uploadedAt: new Date('2024-10-22')
-            }
-          ]
-        }
-      ];
-    }
-    
-    setRecords(recordsData);
-    
-    // Gather all files from records
-    const allFiles = [];
-    recordsData.forEach(record => {
-      if (record.attachments && Array.isArray(record.attachments)) {
-        record.attachments.forEach(file => {
-          allFiles.push({
-            ...file,
-            recordTitle: record.title,
-            recordDate: record.date || record.createdAt
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // Query global medicalRecords collection by petId
+      const recordsQuery = query(
+        collection(db, "medicalRecords"),
+        where("petId", "==", petId)
+      );
+      
+      const snapshot = await getDocs(recordsQuery);
+      const recordsData = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+        title: doc.data().diagnosis || 'Medical Record' // Use diagnosis as title if no title field
+      }));
+      
+      setRecords(recordsData);
+      
+      // Gather all files from records (from 'files' array in new format)
+      const allFiles = [];
+      recordsData.forEach(record => {
+        // Check for files array (new format from clinic uploads)
+        if (record.files && Array.isArray(record.files)) {
+          record.files.forEach(fileUrl => {
+            // Extract filename from URL
+            const urlParts = fileUrl.split('/');
+            const fileName = urlParts[urlParts.length - 1].split('?')[0];
+            
+            allFiles.push({
+              url: fileUrl,
+              name: decodeURIComponent(fileName),
+              recordTitle: record.diagnosis || 'Medical Record',
+              recordDate: record.createdAt
+            });
           });
-        });
-      }
-    });
-    setFiles(allFiles);
+        }
+        
+        // Also check for attachments array (legacy format)
+        if (record.attachments && Array.isArray(record.attachments)) {
+          record.attachments.forEach(file => {
+            allFiles.push({
+              ...file,
+              recordTitle: record.diagnosis || record.title,
+              recordDate: record.date || record.createdAt
+            });
+          });
+        }
+      });
+      
+      setFiles(allFiles);
+    } catch (err) {
+      console.error('Error fetching medical records:', err);
+      setError('Failed to load medical records. Please try again.');
+      setToast({ type: 'error', message: 'Failed to load medical records. Please try again.' });
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -111,6 +103,15 @@ export default function MedicalRecords({ userData, petId, onBack }) {
 
   return (
     <div className={styles.container}>
+      {/* Toast Notification */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
+
       {/* Header */}
       <div className={styles.header}>
         <button onClick={onBack} className={styles.backButton}>
@@ -121,8 +122,48 @@ export default function MedicalRecords({ userData, petId, onBack }) {
         <p className={styles.subtitle}>View medical history and attachments for this pet</p>
       </div>
 
+      {/* Loading State */}
+      {loading && (
+        <div className={styles.section}>
+          <div className={styles.emptyState}>
+            <div style={{ animation: 'spin 1s linear infinite' }}>
+              <FileText size={48} color="#818cf8" />
+            </div>
+            <p className={styles.emptyText}>Loading medical records...</p>
+          </div>
+        </div>
+      )}
+
+      {/* Error State */}
+      {error && !loading && (
+        <div className={styles.section}>
+          <div className={styles.emptyState}>
+            <AlertCircle size={48} color="#ef4444" />
+            <p className={styles.emptyText} style={{ color: '#ef4444' }}>Error Loading Records</p>
+            <p className={styles.emptySubtext}>{error}</p>
+            <button
+              onClick={fetchRecords}
+              style={{
+                marginTop: '16px',
+                padding: '10px 20px',
+                background: 'linear-gradient(135deg, #818cf8 0%, #6366f1 100%)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                fontSize: '0.875rem',
+                fontWeight: 600,
+                cursor: 'pointer'
+              }}
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Medical Records Section */}
-      <div className={styles.section}>
+      {!loading && !error && (
+        <div className={styles.section}>
         <div className={styles.sectionHeader}>
           <FileText size={20} color="var(--vc-primary)" />
           <h3 className={styles.sectionTitle}>Medical Records ({records.length})</h3>
@@ -167,10 +208,10 @@ export default function MedicalRecords({ userData, petId, onBack }) {
                   </div>
                 )}
 
-                {record.attachments && record.attachments.length > 0 && (
+                {((record.files && record.files.length > 0) || (record.attachments && record.attachments.length > 0)) && (
                   <div className={styles.attachmentCount}>
                     <Paperclip size={14} />
-                    <span>{record.attachments.length} attachment(s)</span>
+                    <span>{(record.files?.length || 0) + (record.attachments?.length || 0)} attachment(s)</span>
                   </div>
                 )}
               </div>
@@ -237,6 +278,7 @@ export default function MedicalRecords({ userData, petId, onBack }) {
           </div>
         )}
       </div>
+      )}
     </div>
   );
 }

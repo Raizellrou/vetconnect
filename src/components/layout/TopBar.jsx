@@ -293,7 +293,22 @@ export default function TopBar({ username }) {
               onClick={() => setShowDropdown(!showDropdown)}
               onKeyDown={(e) => e.key === 'Enter' && setShowDropdown(!showDropdown)}
             >
-              <div className={styles.avatar}>{initials}</div>
+              <div className={styles.avatar}>
+                {userData?.photoURL ? (
+                  <img 
+                    src={userData.photoURL} 
+                    alt={username} 
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                      borderRadius: '50%'
+                    }}
+                  />
+                ) : (
+                  initials
+                )}
+              </div>
             </div>
 
             {showDropdown && (

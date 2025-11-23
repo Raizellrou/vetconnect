@@ -620,7 +620,23 @@ export const completeAppointment = async (appointmentId) => {
     }
 
     const appointmentData = appointmentSnap.data();
-    const appointmentDate = appointmentData.dateTime?.toDate ? appointmentData.dateTime.toDate() : new Date(appointmentData.dateTime);
+    // Support both legacy `dateTime` and separate `date` + `startTime` formats
+    let appointmentDate = null;
+    if (appointmentData.dateTime) {
+      appointmentDate = appointmentData.dateTime?.toDate ? appointmentData.dateTime.toDate() : new Date(appointmentData.dateTime);
+    } else if (appointmentData.date && appointmentData.startTime) {
+      try {
+        const [hours, minutes] = appointmentData.startTime.split(':').map(Number);
+        const d = new Date(appointmentData.date);
+        d.setHours(hours || 0, minutes || 0, 0, 0);
+        appointmentDate = d;
+      } catch (e) {
+        appointmentDate = new Date(appointmentData.date);
+      }
+    } else {
+      // Fallback to now (prevents accidental completion before the stored date)
+      appointmentDate = appointmentData.dateTime ? new Date(appointmentData.dateTime) : new Date();
+    }
     const now = new Date();
 
     // Check if appointment date has passed
@@ -679,7 +695,8 @@ export const createMedicalRecord = async (appointmentId, recordData) => {
 
   try {
     const medicalRecordsRef = collection(db, 'medicalRecords');
-    const recordRef = await addDoc(medicalRecordsRef, {
+    // Allow optional `files` (array of urls) to be attached to the record
+    const recordPayload = {
       appointmentId,
       petId: recordData.petId,
       ownerId: recordData.ownerId,
@@ -690,10 +707,13 @@ export const createMedicalRecord = async (appointmentId, recordData) => {
       prescriptions: recordData.prescriptions || [],
       labResults: recordData.labResults || '',
       notes: recordData.notes || '',
+      files: recordData.files || [],
       followUpDate: recordData.followUpDate || null,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp()
-    });
+    };
+
+    const recordRef = await addDoc(medicalRecordsRef, recordPayload);
 
     // Link medical record to appointment
     const appointmentRef = doc(db, 'appointments', appointmentId);

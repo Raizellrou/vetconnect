@@ -55,6 +55,10 @@ export default function MapPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [bookmarkLoading, setBookmarkLoading] = useState({});
   const [toast, setToast] = useState(null);
+  const [findingNearest, setFindingNearest] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const searchInputRef = React.useRef(null);
+  const dropdownRef = React.useRef(null);
 
   // Real-time bookmarks listener
   const {
@@ -110,6 +114,186 @@ export default function MapPage() {
     );
   }, []);
 
+  // Click outside handler for dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        dropdownRef.current && 
+        !dropdownRef.current.contains(event.target) &&
+        searchInputRef.current &&
+        !searchInputRef.current.contains(event.target)
+      ) {
+        setShowDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Handle selecting a clinic from dropdown
+  const handleSelectClinic = (clinic) => {
+    setSelectedClinicId(clinic.id);
+    setSearchQuery(clinic.name || clinic.clinicName || '');
+    setShowDropdown(false);
+    setToast({ 
+      type: 'success', 
+      message: `Selected: ${clinic.name || clinic.clinicName}` 
+    });
+  };
+
+  // Handle Find Nearest Clinic
+  const handleFindNearest = () => {
+    if (!navigator.geolocation) {
+      setToast({ type: 'error', message: 'Geolocation is not supported by your browser' });
+      return;
+    }
+
+    setFindingNearest(true);
+    setToast({ 
+      type: 'info', 
+      message: 'Getting your location...' 
+    });
+    
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const userLat = position.coords.latitude;
+        const userLng = position.coords.longitude;
+        
+        setUserLocation({ lat: userLat, lng: userLng });
+        
+        // Helper function to parse coordinates
+        const tryNum = (v) => {
+          if (v === undefined || v === null) return NaN;
+          const n = typeof v === 'number' ? v : Number(v);
+          return Number.isFinite(n) ? n : NaN;
+        };
+
+        const inLat = (v) => !Number.isNaN(v) && v >= -90 && v <= 90;
+        const inLng = (v) => !Number.isNaN(v) && v >= -180 && v <= 180;
+        
+        // Calculate distances and sort clinics
+        const clinicsWithDistance = clinics
+          .map(clinic => {
+            // Try multiple coordinate formats
+            let lat = tryNum(clinic.latitude ?? clinic.lat);
+            let lng = tryNum(clinic.longitude ?? clinic.lng);
+
+            // Check nested 'location' object
+            if ((Number.isNaN(lat) || Number.isNaN(lng)) && clinic.location) {
+              lat = tryNum(clinic.location.lat ?? clinic.location.latitude ?? clinic.location._lat);
+              lng = tryNum(clinic.location.lng ?? clinic.location.longitude ?? clinic.location._long);
+            }
+
+            // Check 'coords' array [lat, lng]
+            if ((Number.isNaN(lat) || Number.isNaN(lng)) && Array.isArray(clinic.coords)) {
+              lat = tryNum(clinic.coords[0]);
+              lng = tryNum(clinic.coords[1]);
+            }
+
+            // Check 'coordinates' field
+            if ((Number.isNaN(lat) || Number.isNaN(lng)) && clinic.coordinates) {
+              if (Array.isArray(clinic.coordinates)) {
+                lat = tryNum(clinic.coordinates[0]);
+                lng = tryNum(clinic.coordinates[1]);
+              } else {
+                lat = tryNum(clinic.coordinates.latitude ?? clinic.coordinates.lat ?? clinic.coordinates._lat);
+                lng = tryNum(clinic.coordinates.longitude ?? clinic.coordinates.lng ?? clinic.coordinates._long);
+              }
+            }
+
+            // Detect and fix swapped lat/lng values
+            if (!inLat(lat) && inLat(lng) && inLng(lat)) {
+              const tmp = lat;
+              lat = lng;
+              lng = tmp;
+            }
+
+            // Validate coordinates
+            if (!inLat(lat) || !inLng(lng)) {
+              return null;
+            }
+            
+            // Calculate distance using Haversine formula
+            const R = 6371; // Earth's radius in km
+            const dLat = (lat - userLat) * Math.PI / 180;
+            const dLng = (lng - userLng) * Math.PI / 180;
+            const a = 
+              Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(userLat * Math.PI / 180) * Math.cos(lat * Math.PI / 180) *
+              Math.sin(dLng/2) * Math.sin(dLng/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            const distance = R * c;
+            
+            return { 
+              ...clinic, 
+              distance,
+              parsedLat: lat,
+              parsedLng: lng
+            };
+          })
+          .filter(Boolean)
+          .sort((a, b) => a.distance - b.distance);
+        
+        // Comprehensive debug logging
+        console.log('=== FIND NEAREST CLINIC DEBUG ===');
+        console.log('Your location:', { lat: userLat, lng: userLng });
+        console.log('Total clinics in database:', clinics.length);
+        console.log('Clinics with valid coordinates:', clinicsWithDistance.length);
+        
+        if (clinicsWithDistance.length > 0) {
+          console.log('Top 5 nearest clinics:', clinicsWithDistance.slice(0, 5).map(c => ({
+            name: c.name || c.clinicName,
+            distance: c.distance.toFixed(2) + ' km',
+            location: { lat: c.parsedLat, lng: c.parsedLng },
+            address: c.address
+          })));
+          
+          const nearest = clinicsWithDistance[0];
+          
+          setSelectedClinicId(nearest.id);
+          setSearchQuery(''); // Clear search to show all markers
+          setToast({ 
+            type: 'success', 
+            message: `Nearest: ${nearest.name || nearest.clinicName} - ${nearest.distance.toFixed(1)} km away` 
+          });
+        } else {
+          console.error('No clinics with valid coordinates found!');
+          console.log('Sample clinic data:', clinics.slice(0, 2));
+          setToast({ type: 'error', message: 'No clinics with valid locations found. Please try again.' });
+        }
+        
+        setFindingNearest(false);
+      },
+      (error) => {
+        console.error('Geolocation error:', error);
+        let errorMessage = 'Unable to get your location. ';
+        
+        switch(error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage += 'Please enable location permissions.';
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMessage += 'Location information unavailable.';
+            break;
+          case error.TIMEOUT:
+            errorMessage += 'Location request timed out.';
+            break;
+          default:
+            errorMessage += 'An unknown error occurred.';
+        }
+        
+        setToast({ type: 'error', message: errorMessage });
+        setFindingNearest(false);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
+      }
+    );
+  };
+
   // Handle bookmark toggle
   const handleBookmarkToggle = async (clinic, e) => {
     if (e) {
@@ -139,11 +323,31 @@ export default function MapPage() {
       }
     } catch (error) {
       console.error('Error toggling bookmark:', error);
-      alert(`Failed to ${isBookmarked ? 'remove' : 'add'} bookmark. Please try again.`);
+      setToast({ 
+        type: 'error', 
+        message: `Failed to ${isBookmarked ? 'remove' : 'add'} bookmark. Please try again.` 
+      });
     } finally {
       setBookmarkLoading(prev => ({ ...prev, [clinicId]: false }));
     }
   };
+
+  // Filter clinics for dropdown suggestions
+  const filteredClinicsForDropdown = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    
+    const query = searchQuery.toLowerCase();
+    return clinics
+      .filter(c => {
+        const name = (c.name || c.clinicName || '').toLowerCase();
+        const address = (c.address || '').toLowerCase();
+        const services = Array.isArray(c.services) 
+          ? c.services.join(' ').toLowerCase() 
+          : '';
+        return name.includes(query) || address.includes(query) || services.includes(query);
+      })
+      .slice(0, 5); // Limit to 5 suggestions
+  }, [clinics, searchQuery]);
 
   // prepare markers (only those with numeric lat & lng)
   const clinicMarkers = useMemo(() => {
@@ -271,33 +475,35 @@ export default function MapPage() {
                   }}
                 />
                 <input
+                  ref={searchInputRef}
                   type="text"
                   placeholder="Search clinics by name, location, or services..."
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setShowDropdown(true);
+                  }}
+                  onFocus={() => {
+                    if (searchQuery.trim()) setShowDropdown(true);
+                  }}
                   style={{
                     width: '100%',
                     padding: '14px 16px 14px 48px',
                     border: '2px solid #e5e7eb',
-                    borderRadius: '12px',
+                    borderRadius: showDropdown && filteredClinicsForDropdown.length > 0 ? '12px 12px 0 0' : '12px',
                     fontSize: '1rem',
                     outline: 'none',
                     transition: 'all 0.2s',
                     background: 'white',
                     boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)'
                   }}
-                  onFocus={(e) => {
-                    e.target.style.borderColor = '#3b82f6';
-                    e.target.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.1), 0 1px 3px rgba(0, 0, 0, 0.05)';
-                  }}
-                  onBlur={(e) => {
-                    e.target.style.borderColor = '#e5e7eb';
-                    e.target.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.05)';
-                  }}
                 />
                 {searchQuery && (
                   <button
-                    onClick={() => setSearchQuery('')}
+                    onClick={() => {
+                      setSearchQuery('');
+                      setShowDropdown(false);
+                    }}
                     style={{
                       position: 'absolute',
                       right: '12px',
@@ -312,7 +518,8 @@ export default function MapPage() {
                       transition: 'all 0.2s',
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'center'
+                      justifyContent: 'center',
+                      zIndex: 2
                     }}
                     onMouseEnter={(e) => {
                       e.currentTarget.style.background = '#f3f4f6';
@@ -326,6 +533,105 @@ export default function MapPage() {
                     ✕
                   </button>
                 )}
+
+                {/* Dropdown Menu */}
+                {showDropdown && filteredClinicsForDropdown.length > 0 && (
+                  <div
+                    ref={dropdownRef}
+                    style={{
+                      position: 'absolute',
+                      top: '100%',
+                      left: 0,
+                      right: 0,
+                      background: 'white',
+                      border: '2px solid #e5e7eb',
+                      borderTop: 'none',
+                      borderRadius: '0 0 12px 12px',
+                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                      maxHeight: '300px',
+                      overflowY: 'auto',
+                      zIndex: 1000
+                    }}
+                  >
+                    {filteredClinicsForDropdown.map((clinic, index) => (
+                      <div
+                        key={clinic.id || index}
+                        onClick={() => handleSelectClinic(clinic)}
+                        style={{
+                          padding: '12px 16px',
+                          cursor: 'pointer',
+                          borderBottom: index < filteredClinicsForDropdown.length - 1 ? '1px solid #f3f4f6' : 'none',
+                          transition: 'background 0.2s'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = '#f9fafb';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = 'white';
+                        }}
+                      >
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'flex-start',
+                          gap: '12px'
+                        }}>
+                          <div style={{
+                            width: '40px',
+                            height: '40px',
+                            borderRadius: '8px',
+                            background: 'linear-gradient(135deg, #818cf8 0%, #6366f1 100%)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexShrink: 0
+                          }}>
+                            <MapPin size={20} color="white" />
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{
+                              fontSize: '0.9375rem',
+                              fontWeight: 600,
+                              color: '#1f2937',
+                              marginBottom: '2px',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap'
+                            }}>
+                              {clinic.name || clinic.clinicName || 'Unnamed Clinic'}
+                            </div>
+                            {clinic.address && (
+                              <div style={{
+                                fontSize: '0.8125rem',
+                                color: '#6b7280',
+                                marginBottom: '4px',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap'
+                              }}>
+                                📍 {clinic.address}
+                              </div>
+                            )}
+                            {clinic.services && clinic.services.length > 0 && (
+                              <div style={{
+                                fontSize: '0.75rem',
+                                color: '#9ca3af',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap'
+                              }}>
+                                {Array.isArray(clinic.services) 
+                                  ? clinic.services.slice(0, 3).join(', ') 
+                                  : clinic.services}
+                                {clinic.services.length > 3 && '...'}
+                              </div>
+                            )}
+                          </div>
+                          <ChevronRight size={20} color="#9ca3af" style={{ flexShrink: 0 }} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
               {searchQuery && (
                 <div style={{
@@ -337,6 +643,47 @@ export default function MapPage() {
                   Found {clinicMarkers.length} clinic{clinicMarkers.length !== 1 ? 's' : ''}
                 </div>
               )}
+            </div>
+
+            {/* Find Nearest Clinic Button */}
+            <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+              <button
+                onClick={handleFindNearest}
+                disabled={findingNearest}
+                style={{
+                  padding: '12px 24px',
+                  background: findingNearest 
+                    ? 'linear-gradient(135deg, #9ca3af 0%, #6b7280 100%)'
+                    : 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '12px',
+                  fontSize: '1rem',
+                  fontWeight: 600,
+                  cursor: findingNearest ? 'not-allowed' : 'pointer',
+                  boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
+                  transition: 'all 0.2s ease',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  opacity: findingNearest ? 0.6 : 1
+                }}
+                onMouseEnter={(e) => {
+                  if (!findingNearest) {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 6px 20px rgba(16, 185, 129, 0.4)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!findingNearest) {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.3)';
+                  }
+                }}
+              >
+                <MapPin size={20} />
+                {findingNearest ? 'Finding Nearest Clinic...' : '📍 Find Nearest Clinic'}
+              </button>
             </div>
 
             <div style={{ width: '100%', height: 500, borderRadius: 12, overflow: 'hidden' }}>
