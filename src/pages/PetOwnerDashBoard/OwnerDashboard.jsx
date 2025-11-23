@@ -331,7 +331,7 @@ export default function OwnerDashboard() {
       <div className={styles.mainWrapper}>
         <TopBar username={displayName} />
         <main className={styles.mainContent}>
-          <SuccessMessage message={successMessage} />
+          <SuccessMessage message={successMessage} onClose={() => setSuccessMessage('')} />
 
           <div className={styles.welcomeBanner}>
             <div className={styles.bannerMeta}>

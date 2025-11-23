@@ -6,6 +6,7 @@ import TopBar from '../../components/layout/TopBar';
 import { useAuth } from '../../contexts/AuthContext';
 import AddPetModal from '../../components/AddPetModal';
 import PetCard from '../../components/PetCard';
+import SuccessModal from '../../components/SuccessModal';
 import { useCollection } from '../../hooks/useCollection';
 import styles from '../../styles/Dashboard.module.css';
 
@@ -15,6 +16,8 @@ export default function AddPetPage() {
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingPet, setEditingPet] = useState(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
 
   // Real-time pets listener
   const { docs: pets = [], loading: petsLoading } = useCollection(
@@ -22,6 +25,26 @@ export default function AddPetPage() {
   );
 
   const displayName = userData?.fullName || userData?.displayName || userData?.email;
+
+  const handleAddModalClose = () => {
+    setShowAddModal(false);
+  };
+
+  const handleAddSuccess = () => {
+    setShowAddModal(false);
+    setSuccessMessage('Pet added successfully');
+    setShowSuccessModal(true);
+  };
+
+  const handleEditModalClose = () => {
+    setEditingPet(null);
+  };
+
+  const handleEditSuccess = () => {
+    setEditingPet(null);
+    setSuccessMessage('Pet updated successfully');
+    setShowSuccessModal(true);
+  };
 
   return (
     <div className={styles.dashboard}>
@@ -48,26 +71,31 @@ export default function AddPetPage() {
                 onClick={() => setShowAddModal(true)}
                 style={{
                   padding: '12px 24px',
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  background: 'rgba(255, 255, 255, 0.25)',
+                  backdropFilter: 'blur(10px)',
                   color: 'white',
-                  border: 'none',
+                  border: '2px solid rgba(255, 255, 255, 0.3)',
                   borderRadius: '8px',
                   fontSize: '1rem',
-                  fontWeight: 700,
+                  fontWeight: 600,
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '8px',
-                  boxShadow: '0 4px 12px rgba(102, 126, 234, 0.35)',
-                  transition: 'all 0.2s ease'
+                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+                  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                  position: 'relative',
+                  zIndex: 1
                 }}
                 onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.35)';
                   e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = '0 6px 16px rgba(102, 126, 234, 0.4)';
+                  e.currentTarget.style.boxShadow = '0 6px 16px rgba(0, 0, 0, 0.2)';
                 }}
                 onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.25)';
                   e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.35)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
                 }}
               >
                 <Plus size={20} strokeWidth={2.5} />
@@ -122,27 +150,29 @@ export default function AddPetPage() {
               <button
                 onClick={() => setShowAddModal(true)}
                 style={{
-                  padding: '12px 24px',
+                  padding: '14px 28px',
                   background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                   color: 'white',
                   border: 'none',
-                  borderRadius: '8px',
+                  borderRadius: '10px',
                   fontSize: '1rem',
-                  fontWeight: 700,
+                  fontWeight: 600,
                   cursor: 'pointer',
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: '8px',
                   boxShadow: '0 4px 12px rgba(102, 126, 234, 0.35)',
-                  transition: 'all 0.2s ease'
+                  transition: 'all 0.2s ease',
+                  position: 'relative',
+                  zIndex: 1
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.transform = 'translateY(-2px)';
-                  e.currentTarget.style.boxShadow = '0 6px 16px rgba(59, 130, 246, 0.4)';
+                  e.currentTarget.style.boxShadow = '0 6px 16px rgba(102, 126, 234, 0.45)';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.transform = 'translateY(0)';
-                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(59, 130, 246, 0.35)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.35)';
                 }}
               >
                 <Plus size={20} strokeWidth={2.5} />
@@ -173,17 +203,30 @@ export default function AddPetPage() {
       </div>
 
       {/* Add Pet Modal */}
-      <AddPetModal open={showAddModal} onClose={() => setShowAddModal(false)} />
+      <AddPetModal 
+        open={showAddModal} 
+        onClose={handleAddModalClose}
+        onSuccess={handleAddSuccess}
+      />
 
       {/* Edit Pet Modal */}
       {editingPet && (
         <AddPetModal
           open={!!editingPet}
-          onClose={() => setEditingPet(null)}
+          onClose={handleEditModalClose}
+          onSuccess={handleEditSuccess}
           petId={editingPet.id}
           initialData={editingPet}
         />
       )}
+
+      {/* Success Modal */}
+      <SuccessModal
+        isOpen={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+        title="Success!"
+        message={successMessage}
+      />
     </div>
   );
 }

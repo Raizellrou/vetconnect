@@ -231,83 +231,127 @@ export default function BookAppointmentWithTimeSlot({ isOpen, onClose, clinicId,
   const maxDate = new Date(today.setMonth(today.getMonth() + 3)).toISOString().split('T')[0];
 
   return (
-    <div 
-      className={styles.modalOverlay}
-      onClick={(e) => {
-        if (e.target === e.currentTarget && !submitting) {
-          handleClose();
-        }
-      }}
-    >
-      <div className={styles.modalContent} style={{ maxWidth: '680px', maxHeight: '92vh', overflow: 'auto', borderRadius: 'var(--vc-radius-xl, 16px)', padding: 'var(--vc-space-8, 32px)' }}>
-        {/* Header */}
-        <div style={{
+    <>
+      <style>
+        {`
+          .book-appt-modal-content::-webkit-scrollbar,
+          .book-appt-modal-content div[style*="overflow"]::-webkit-scrollbar {
+            display: none;
+          }
+        `}
+      </style>
+      <div 
+        className={styles.modalOverlay}
+        onClick={(e) => {
+          if (e.target === e.currentTarget && !submitting) {
+            handleClose();
+          }
+        }}
+        style={{
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none'
+        }}
+      >
+        <div className="book-appt-modal-content" style={{ 
+          background: 'white',
+          borderRadius: '20px',
+          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+          maxWidth: '680px',
+          width: '100%',
+          maxHeight: '90vh',
+          overflow: 'hidden',
           display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: 'var(--vc-space-6, 24px)',
-          paddingBottom: 'var(--vc-space-5, 20px)',
-          borderBottom: '2px solid var(--vc-border-light, #e5e7eb)'
+          flexDirection: 'column'
         }}>
-          <div>
-            <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1e293b', margin: '0 0 4px 0' }}>
-              Book Appointment
-            </h2>
-            <p style={{ fontSize: '0.875rem', color: '#64748b', margin: 0 }}>
-              {clinicName}
-            </p>
-          </div>
-          <button
-            onClick={handleClose}
-            disabled={submitting}
-            className="vc-btn-icon"
-            style={{
-              padding: 'var(--vc-space-2, 8px)',
-              cursor: submitting ? 'not-allowed' : 'pointer',
-              opacity: submitting ? 0.5 : 1
-            }}
-          >
-            <X size={20} />
-          </button>
-        </div>
-
-        {/* Progress Indicator */}
-        <div style={{ display: 'flex', gap: 'var(--vc-space-3, 12px)', marginBottom: 'var(--vc-space-8, 32px)' }}>
-          {[1, 2, 3].map(num => (
-            <div
-              key={num}
-              style={{
-                flex: 1,
-                height: '8px',
-                borderRadius: 'var(--vc-radius-full, 9999px)',
-                background: num <= step 
-                  ? 'linear-gradient(135deg, var(--vc-primary) 0%, var(--vc-primary-hover) 100%)' 
-                  : 'var(--vc-border-light)',
-                transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                boxShadow: num <= step ? '0 2px 8px rgba(99, 102, 241, 0.3)' : 'none'
-              }}
-            />
-          ))}
-        </div>
-
-        {/* Error Message */}
-        {error && (
+          {/* Enhanced Header */}
           <div style={{
-            padding: 'var(--vc-space-3, 12px) var(--vc-space-4, 16px)',
-            background: 'linear-gradient(135deg, #fee2e2 0%, #fecaca 100%)',
-            border: '2px solid var(--vc-error-light)',
-            borderRadius: 'var(--vc-radius-lg, 12px)',
-            color: 'var(--vc-error)',
-            marginBottom: 'var(--vc-space-5, 20px)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 'var(--vc-space-2, 8px)',
-            fontWeight: 600
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            padding: '24px 28px',
+            borderRadius: '20px 20px 0 0',
+            color: 'white',
+            boxShadow: '0 4px 12px rgba(102, 126, 234, 0.25)',
+            flexShrink: 0
           }}>
-            <AlertCircle size={18} />
-            {error}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+              <div style={{ flex: 1 }}>
+                <h2 style={{ fontSize: '1.75rem', fontWeight: 700, margin: '0 0 6px 0', textShadow: '0 2px 4px rgba(0, 0, 0, 0.1)' }}>
+                  Book Appointment
+                </h2>
+                <p style={{ fontSize: '0.9375rem', margin: 0, opacity: 0.95, fontWeight: 500 }}>
+                  {clinicName}
+                </p>
+              </div>
+              <button
+                onClick={handleClose}
+                disabled={submitting}
+                style={{
+                  width: '36px',
+                  height: '36px',
+                  background: 'rgba(255, 255, 255, 0.2)',
+                  backdropFilter: 'blur(10px)',
+                  border: '2px solid rgba(255, 255, 255, 0.3)',
+                  borderRadius: '8px',
+                  cursor: submitting ? 'not-allowed' : 'pointer',
+                  opacity: submitting ? 0.5 : 1,
+                  transition: 'all 0.2s ease',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: 0
+                }}
+                onMouseEnter={(e) => {
+                  if (!submitting) e.currentTarget.style.background = 'rgba(255, 255, 255, 0.3)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
+                }}
+              >
+                <X size={18} color="white" strokeWidth={2.5} />
+              </button>
+            </div>
+
+            {/* Progress Indicator */}
+            <div style={{ display: 'flex', gap: '10px' }}>
+              {[1, 2, 3].map(num => (
+                <div
+                  key={num}
+                  style={{
+                    flex: 1,
+                    height: '6px',
+                    borderRadius: '9999px',
+                    background: num <= step 
+                      ? 'rgba(255, 255, 255, 0.9)' 
+                      : 'rgba(255, 255, 255, 0.3)',
+                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                    boxShadow: num <= step ? '0 2px 6px rgba(255, 255, 255, 0.3)' : 'none'
+                  }}
+                />
+              ))}
+            </div>
           </div>
-        )}
+
+          {/* Content Container */}
+          <div style={{ padding: '28px', flex: 1, overflow: 'auto', scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+
+            {/* Error Message */}
+            {error && (
+              <div style={{
+                padding: '12px 16px',
+                background: 'linear-gradient(135deg, #fee2e2 0%, #fecaca 100%)',
+                border: '2px solid #f87171',
+                borderRadius: '10px',
+                color: '#991b1b',
+                marginBottom: '20px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                fontSize: '0.875rem',
+                fontWeight: 600
+              }}>
+                <AlertCircle size={18} />
+                {error}
+              </div>
+            )}
 
         {/* Step 1: Select Pet & Date */}
         {step === 1 && (
@@ -808,6 +852,8 @@ export default function BookAppointmentWithTimeSlot({ isOpen, onClose, clinicId,
             </button>
           )}
         </div>
+          </div>
+        </div>
       </div>
 
       {/* Toast */}
@@ -818,6 +864,6 @@ export default function BookAppointmentWithTimeSlot({ isOpen, onClose, clinicId,
           onClose={() => setToast(null)}
         />
       )}
-    </div>
+    </>
   );
 }

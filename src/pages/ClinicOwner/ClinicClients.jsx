@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import TopBar from '../../components/layout/TopBar';
 import ClinicSidebar from '../../components/layout/ClinicSidebar';
 import { useAuth } from '../../contexts/AuthContext';
-import { Users, Search, Phone, Mail, Calendar, Dog, FileText, Eye, Loader, MapPin, User } from 'lucide-react';
+import { Users, Search, Phone, Mail, Calendar, Dog, FileText, Eye, Loader, MapPin, User, X } from 'lucide-react';
 import styles from '../../styles/ClinicDashboard.module.css';
 import { collection, getDocs, query as firestoreQuery, where, doc, getDoc } from 'firebase/firestore';
 import { db } from '../../firebase/firebase';
@@ -603,187 +603,389 @@ export default function ClinicClients() {
             </div>
           )}
 
-          {/* Client Details Modal */}
+          {/* Client Details Modal - Enhanced */}
           {selectedClient && (
-            <div className={styles.modalOverlay} onClick={() => setSelectedClient(null)}>
-              <div className={`${styles.modalContent} ${styles.clientModal}`} onClick={(e) => e.stopPropagation()}>
-                {/* Client Header */}
-                <div style={{
+            <div 
+              style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                zIndex: 9999,
+                backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                backdropFilter: 'blur(4px)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '20px',
+                animation: 'fadeIn 0.2s ease'
+              }}
+              onClick={() => setSelectedClient(null)}
+            >
+              <style>
+                {`
+                  @keyframes fadeIn {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
+                  }
+                  @keyframes slideUp {
+                    from { 
+                      opacity: 0;
+                      transform: translateY(20px) scale(0.95);
+                    }
+                    to { 
+                      opacity: 1;
+                      transform: translateY(0) scale(1);
+                    }
+                  }
+                  /* Hide scrollbar for webkit browsers */
+                  div::-webkit-scrollbar {
+                    display: none;
+                  }
+                `}
+              </style>
+              <div 
+                style={{
+                  background: 'white',
+                  borderRadius: '20px',
+                  boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+                  maxWidth: '560px',
+                  width: '100%',
+                  maxHeight: '85vh',
+                  animation: 'slideUp 0.3s ease',
+                  position: 'relative',
                   display: 'flex',
-                  alignItems: 'center',
-                  gap: '12px',
-                  marginBottom: '16px',
-                  paddingBottom: '12px',
-                  borderBottom: '1px solid var(--vc-border)'
+                  flexDirection: 'column',
+                  overflow: 'hidden'
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Client Header - Enhanced (Sticky) */}
+                <div style={{
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  padding: '24px 24px 20px 24px',
+                  borderRadius: '20px 20px 0 0',
+                  color: 'white',
+                  position: 'sticky',
+                  top: 0,
+                  zIndex: 10,
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
                 }}>
-                  <div style={{
-                    width: '48px',
-                    height: '48px',
-                    borderRadius: '50%',
-                    background: 'linear-gradient(135deg, var(--vc-primary) 0%, var(--vc-primary-hover) 100%)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: 'white',
-                    fontSize: '1.25rem',
-                    fontWeight: 700
-                  }}>
-                    <User size={24} />
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <h2 style={{ margin: '0 0 2px 0', fontSize: '1.25rem', fontWeight: 700, color: '#1e293b' }}>
-                      {selectedClient.ownerName}
-                    </h2>
-                    <p style={{ margin: '0 0 4px 0', fontSize: '0.8125rem', color: '#64748b', fontWeight: 600 }}>
-                      Owner
-                    </p>
-                    <p style={{ margin: 0, fontSize: '0.8125rem', color: '#64748b' }}>
-                      Client since {selectedClient.joinDate ? new Date(selectedClient.joinDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'Recently'}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Contact & Stats Row */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
-                  {/* Contact Information */}
-                  <div>
-                    <h3 style={{
-                      fontSize: '0.875rem',
-                      fontWeight: 600,
-                      color: 'var(--vc-text-dark)',
-                      marginBottom: '8px',
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+                    <div style={{
+                      width: '56px',
+                      height: '56px',
+                      borderRadius: '12px',
+                      background: 'rgba(255, 255, 255, 0.2)',
+                      backdropFilter: 'blur(10px)',
+                      border: '2px solid rgba(255, 255, 255, 0.3)',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '6px'
+                      justifyContent: 'center',
+                      fontSize: '1.25rem',
+                      fontWeight: 700,
+                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
                     }}>
-                      <Mail size={16} color="var(--vc-primary)" />
-                      Contact
-                    </h3>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                      <div style={{ fontSize: '0.8125rem', color: 'var(--vc-text-muted)' }}>
-                        <strong style={{ color: 'var(--vc-text-dark)' }}>Email:</strong> {selectedClient.email}
-                      </div>
-                      <div style={{ fontSize: '0.8125rem', color: 'var(--vc-text-muted)' }}>
-                        <strong style={{ color: 'var(--vc-text-dark)' }}>Phone:</strong> {selectedClient.phone}
-                      </div>
-                      <div style={{ fontSize: '0.8125rem', color: 'var(--vc-text-muted)' }}>
-                        <strong style={{ color: 'var(--vc-text-dark)' }}>Address:</strong> {selectedClient.address}
-                      </div>
+                      {selectedClient.ownerName.split(' ').map(n => n[0]).join('')}
                     </div>
-                  </div>
-
-                  {/* Client Stats */}
-                  <div>
-                    <h3 style={{
-                      fontSize: '0.875rem',
-                      fontWeight: 600,
-                      color: 'var(--vc-text-dark)',
-                      marginBottom: '8px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px'
-                    }}>
-                      <Calendar size={16} color="var(--vc-primary)" />
-                      Summary
-                    </h3>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                      <div style={{
-                        background: 'var(--vc-bg-card)',
-                        padding: '8px 12px',
-                        borderRadius: 'var(--vc-card-radius)',
-                        border: '1px solid var(--vc-border)',
-                        textAlign: 'center'
-                      }}>
-                        <p style={{ margin: '0 0 2px 0', fontSize: '1.25rem', fontWeight: 700, color: 'var(--vc-primary)' }}>
-                          {selectedClient.totalVisits}
-                        </p>
-                        <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--vc-text-muted)' }}>
-                          Total Visits
-                        </p>
-                      </div>
-                      <div style={{
-                        background: 'var(--vc-bg-card)',
-                        padding: '8px 12px',
-                        borderRadius: 'var(--vc-card-radius)',
-                        border: '1px solid var(--vc-border)',
-                        textAlign: 'center'
-                      }}>
-                        <p style={{ margin: '0 0 2px 0', fontSize: '0.875rem', fontWeight: 600, color: 'var(--vc-text-dark)' }}>
-                          {selectedClient.lastVisit ? new Date(selectedClient.lastVisit).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'None'}
-                        </p>
-                        <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--vc-text-muted)' }}>
-                          Last Visit
-                        </p>
-                      </div>
+                    <div style={{ flex: 1 }}>
+                      <h2 style={{ margin: '0 0 4px 0', fontSize: '1.375rem', fontWeight: 700 }}>
+                        {selectedClient.ownerName}
+                      </h2>
+                      <p style={{ margin: 0, fontSize: '0.8125rem', opacity: 0.9, fontWeight: 500 }}>
+                        Client since {selectedClient.joinDate ? new Date(selectedClient.joinDate).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'Recently'}
+                      </p>
                     </div>
-                  </div>
-                </div>
-
-                {/* Pets Section */}
-                <div>
-                  <h3 style={{
-                    fontSize: '0.875rem',
-                    fontWeight: 600,
-                    color: 'var(--vc-text-dark)',
-                    marginBottom: '8px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px'
-                  }}>
-                    <Dog size={16} color="var(--vc-primary)" />
-                    Pets ({selectedClient.pets.length})
-                  </h3>
-                  <div style={{ display: 'grid', gap: '8px' }}>
-                    {selectedClient.pets.map((pet, index) => (
-                      <div key={index} style={{
-                        background: 'var(--vc-bg-card)',
-                        padding: '12px',
-                        borderRadius: 'var(--vc-card-radius)',
-                        border: '1px solid var(--vc-border)',
+                    {/* Close button */}
+                    <button
+                      onClick={() => setSelectedClient(null)}
+                      style={{
+                        background: 'rgba(255, 255, 255, 0.2)',
+                        backdropFilter: 'blur(10px)',
+                        border: '2px solid rgba(255, 255, 255, 0.3)',
+                        cursor: 'pointer',
+                        padding: '8px',
+                        borderRadius: '8px',
                         display: 'flex',
                         alignItems: 'center',
-                        justifyContent: 'space-between'
+                        justifyContent: 'center',
+                        transition: 'all 0.2s ease',
+                        width: '36px',
+                        height: '36px',
+                        flexShrink: 0
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.3)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
+                      }}
+                    >
+                      <X size={20} color="white" strokeWidth={2.5} />
+                    </button>
+                  </div>
+
+                  {/* Stats Row in Header */}
+                  <div style={{ 
+                    display: 'grid', 
+                    gridTemplateColumns: '1fr 1fr',
+                    gap: '10px'
+                  }}>
+                    <div style={{
+                      background: 'rgba(255, 255, 255, 0.15)',
+                      backdropFilter: 'blur(10px)',
+                      padding: '12px',
+                      borderRadius: '10px',
+                      textAlign: 'center',
+                      border: '1px solid rgba(255, 255, 255, 0.2)'
+                    }}>
+                      <p style={{ 
+                        margin: '0 0 2px 0', 
+                        fontSize: '1.5rem', 
+                        fontWeight: 700,
+                        lineHeight: 1
                       }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                          <div style={{
-                            width: '32px',
-                            height: '32px',
-                            borderRadius: '50%',
-                            background: 'linear-gradient(135deg, var(--vc-primary) 0%, var(--vc-primary-hover) 100%)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: 'white'
-                          }}>
-                            <Dog size={16} />
-                          </div>
-                          <div>
-                            <p style={{ margin: '0 0 2px 0', fontSize: '0.875rem', fontWeight: 600, color: 'var(--vc-text-dark)' }}>
-                              {pet.name}
-                            </p>
-                            <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--vc-text-muted)' }}>
-                              {pet.species} • {pet.breed} • {pet.age}
-                            </p>
-                          </div>
-                        </div>
+                        {selectedClient.totalVisits}
+                      </p>
+                      <p style={{ margin: 0, fontSize: '0.75rem', opacity: 0.9, fontWeight: 600 }}>
+                        Total Visits
+                      </p>
+                    </div>
+                    <div style={{
+                      background: 'rgba(255, 255, 255, 0.15)',
+                      backdropFilter: 'blur(10px)',
+                      padding: '12px',
+                      borderRadius: '10px',
+                      textAlign: 'center',
+                      border: '1px solid rgba(255, 255, 255, 0.2)'
+                    }}>
+                      <p style={{ 
+                        margin: '0 0 2px 0', 
+                        fontSize: '0.875rem', 
+                        fontWeight: 700,
+                        lineHeight: 1
+                      }}>
+                        {selectedClient.lastVisit ? new Date(selectedClient.lastVisit).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'No visits yet'}
+                      </p>
+                      <p style={{ margin: 0, fontSize: '0.75rem', opacity: 0.9, fontWeight: 600 }}>
+                        Last Visit
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Modal Body (Scrollable) */}
+                <div style={{ 
+                  padding: '24px',
+                  overflowY: 'auto',
+                  flex: 1,
+                  scrollbarWidth: 'none',
+                  msOverflowStyle: 'none'
+                }}>
+
+                  {/* Contact Information Section */}
+                  <div style={{ marginBottom: '20px' }}>
+                    <h3 style={{
+                      fontSize: '0.875rem',
+                      fontWeight: 700,
+                      color: '#1e293b',
+                      marginBottom: '12px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}>
+                      <div style={{
+                        width: '28px',
+                        height: '28px',
+                        borderRadius: '6px',
+                        background: 'linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}>
+                        <Mail size={14} color="#3b82f6" strokeWidth={2.5} />
+                      </div>
+                      Contact Information
+                    </h3>
+                    <div style={{ 
+                      display: 'flex', 
+                      flexDirection: 'column', 
+                      gap: '10px',
+                      background: '#f8fafc',
+                      padding: '12px',
+                      borderRadius: '10px',
+                      border: '1px solid #e2e8f0'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <div style={{
-                          fontSize: '0.75rem',
-                          color: 'var(--vc-text-muted)',
-                          textAlign: 'right'
+                          width: '36px',
+                          height: '36px',
+                          borderRadius: '8px',
+                          background: 'linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0
                         }}>
-                          <p style={{ margin: 0, fontWeight: 500 }}>
-                            Last: {pet.lastVisit ? new Date(pet.lastVisit).toLocaleDateString() : 'None'}
+                          <Mail size={16} color="#7c3aed" strokeWidth={2.5} />
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <p style={{ margin: '0 0 2px 0', fontSize: '0.6875rem', color: '#64748b', fontWeight: 600 }}>Email</p>
+                          <p style={{ margin: 0, fontSize: '0.8125rem', color: '#1e293b', fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {selectedClient.email}
                           </p>
                         </div>
                       </div>
-                    ))}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div style={{
+                          width: '36px',
+                          height: '36px',
+                          borderRadius: '8px',
+                          background: 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0
+                        }}>
+                          <Phone size={16} color="#059669" strokeWidth={2.5} />
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <p style={{ margin: '0 0 2px 0', fontSize: '0.6875rem', color: '#64748b', fontWeight: 600 }}>Phone</p>
+                          <p style={{ margin: 0, fontSize: '0.8125rem', color: '#1e293b', fontWeight: 500 }}>
+                            {selectedClient.phone || 'No phone'}
+                          </p>
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div style={{
+                          width: '36px',
+                          height: '36px',
+                          borderRadius: '8px',
+                          background: 'linear-gradient(135deg, #fed7aa 0%, #fdba74 100%)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0
+                        }}>
+                          <MapPin size={16} color="#ea580c" strokeWidth={2.5} />
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <p style={{ margin: '0 0 2px 0', fontSize: '0.6875rem', color: '#64748b', fontWeight: 600 }}>Address</p>
+                          <p style={{ margin: 0, fontSize: '0.8125rem', color: '#1e293b', fontWeight: 500 }}>
+                            {selectedClient.address}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                </div>
 
-                <div style={{ display: 'flex', justifyContent: 'center', marginTop: '16px' }}>
-                  <button onClick={() => setSelectedClient(null)} className={`${styles.vcPrimarySmall} ${styles.vcSmallBtn}`}>
-                    Close
-                  </button>
+                  {/* Pets Section */}
+                  <div>
+                    <h3 style={{
+                      fontSize: '0.875rem',
+                      fontWeight: 700,
+                      color: '#1e293b',
+                      marginBottom: '12px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}>
+                      <div style={{
+                        width: '28px',
+                        height: '28px',
+                        borderRadius: '6px',
+                        background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}>
+                        <Dog size={14} color="#d97706" strokeWidth={2.5} />
+                      </div>
+                      Registered Pets ({selectedClient.pets.length})
+                    </h3>
+                    <div style={{ display: 'grid', gap: '10px' }}>
+                      {selectedClient.pets.map((pet, index) => (
+                        <div key={index} style={{
+                          background: '#f8fafc',
+                          padding: '12px',
+                          borderRadius: '10px',
+                          border: '1px solid #e2e8f0'
+                        }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                            <div style={{
+                              width: '44px',
+                              height: '44px',
+                              borderRadius: '10px',
+                              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              flexShrink: 0,
+                              boxShadow: '0 2px 8px rgba(102, 126, 234, 0.25)'
+                            }}>
+                              <Dog size={22} color="white" strokeWidth={2.5} />
+                            </div>
+                            <div style={{ flex: 1 }}>
+                              <p style={{ 
+                                margin: '0 0 4px 0', 
+                                fontSize: '0.875rem', 
+                                fontWeight: 700, 
+                                color: '#1e293b' 
+                              }}>
+                                {pet.name}
+                              </p>
+                              <div style={{ 
+                                display: 'flex', 
+                                flexWrap: 'wrap', 
+                                gap: '4px',
+                                marginBottom: '4px'
+                              }}>
+                                <span style={{
+                                  padding: '2px 8px',
+                                  background: 'linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%)',
+                                  borderRadius: '4px',
+                                  fontSize: '0.6875rem',
+                                  fontWeight: 600,
+                                  color: '#1e40af'
+                                }}>
+                                  {pet.species}
+                                </span>
+                                <span style={{
+                                  padding: '2px 8px',
+                                  background: 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)',
+                                  borderRadius: '4px',
+                                  fontSize: '0.6875rem',
+                                  fontWeight: 600,
+                                  color: '#065f46'
+                                }}>
+                                  {pet.breed}
+                                </span>
+                                <span style={{
+                                  padding: '2px 8px',
+                                  background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
+                                  borderRadius: '4px',
+                                  fontSize: '0.6875rem',
+                                  fontWeight: 600,
+                                  color: '#78350f'
+                                }}>
+                                  {pet.age}
+                                </span>
+                              </div>
+                              <p style={{ 
+                                margin: 0, 
+                                fontSize: '0.6875rem', 
+                                color: '#64748b',
+                                fontWeight: 500
+                              }}>
+                                Last visit: {pet.lastVisit ? new Date(pet.lastVisit).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'No visits yet'}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

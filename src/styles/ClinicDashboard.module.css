@@ -292,6 +292,12 @@
   overflow-y: auto;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2), 0 8px 16px rgba(0, 0, 0, 0.12);
   animation: slideUp 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.modalContent::-webkit-scrollbar {
+  display: none;
 }
 
 @keyframes slideUp {
@@ -475,6 +481,12 @@
   overflow-y: auto;
   border-radius: var(--vc-border-radius);
   padding: 20px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.clientModal::-webkit-scrollbar {
+  display: none;
 }
 
 /* Primary button (light) used on hero banners */

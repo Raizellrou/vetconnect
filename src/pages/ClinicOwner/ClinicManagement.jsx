@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Plus, Edit, Trash2, MapPin, Phone, Clock, Briefcase } from 'lucide-react';
+import { Plus, Edit, Trash2, MapPin, Phone, Clock, Briefcase, X } from 'lucide-react';
 import TopBar from '../../components/layout/TopBar';
 import ClinicSidebar from '../../components/layout/ClinicSidebar';
 import { useAuth } from '../../contexts/AuthContext';
@@ -536,48 +536,143 @@ export default function ClinicManagement() {
 
       {/* Delete Confirmation Modal */}
       {deleteConfirm && (
-        <div className={styles.modalOverlay} onClick={(e) => { if (e.target === e.currentTarget) handleCancelDelete(); }}>
-          <div className={styles.modalContent} style={{ maxWidth: '520px', padding: 0, overflow: 'hidden' }}>
-            {/* Modal Header */}
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.6)',
+            backdropFilter: 'blur(4px)',
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px',
+            animation: 'fadeIn 0.2s ease'
+          }}
+          onClick={(e) => { if (e.target === e.currentTarget) handleCancelDelete(); }}
+        >
+          <style>
+            {`
+              @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+              }
+              @keyframes slideUp {
+                from {
+                  opacity: 0;
+                  transform: translateY(20px);
+                }
+                to {
+                  opacity: 1;
+                  transform: translateY(0);
+                }
+              }
+            `}
+          </style>
+          <div 
+            style={{ 
+              background: 'white',
+              borderRadius: '16px',
+              maxWidth: '520px',
+              width: '100%',
+              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+              overflow: 'hidden',
+              animation: 'slideUp 0.3s ease'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Gradient Header */}
             <div style={{
-              background: 'linear-gradient(135deg, #fee2e2 0%, #fecaca 100%)',
-              padding: '24px',
-              borderBottom: '1px solid #fca5a5'
+              background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+              padding: '24px 28px',
+              color: 'white',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
             }}>
-              <div style={{
-                width: '64px',
-                height: '64px',
-                borderRadius: '16px',
-                background: 'white',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                margin: '0 auto 16px',
-                boxShadow: '0 4px 12px rgba(239, 68, 68, 0.2)'
-              }}>
-                <Trash2 size={32} color="#ef4444" strokeWidth={2.5} />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flex: 1 }}>
+                <div style={{
+                  width: '48px',
+                  height: '48px',
+                  background: 'rgba(255, 255, 255, 0.2)',
+                  backdropFilter: 'blur(10px)',
+                  borderRadius: '12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  border: '2px solid rgba(255, 255, 255, 0.3)',
+                  flexShrink: 0
+                }}>
+                  <Trash2 size={24} color="white" strokeWidth={2.5} />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <h3 style={{ 
+                    fontSize: '1.25rem', 
+                    fontWeight: 700, 
+                    margin: 0,
+                    textShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
+                  }}>
+                    Delete Clinic?
+                  </h3>
+                  <p style={{ 
+                    margin: '4px 0 0 0', 
+                    fontSize: '0.875rem', 
+                    opacity: 0.9,
+                    fontWeight: 500
+                  }}>
+                    This action cannot be undone
+                  </p>
+                </div>
               </div>
-              <h3 style={{ 
-                fontSize: '1.5rem', 
-                fontWeight: 700, 
-                color: '#991b1b', 
-                margin: 0,
-                textAlign: 'center'
-              }}>
-                Delete Clinic?
-              </h3>
+              <button
+                onClick={handleCancelDelete}
+                style={{
+                  width: '36px',
+                  height: '36px',
+                  background: 'rgba(255, 255, 255, 0.2)',
+                  backdropFilter: 'blur(10px)',
+                  border: '2px solid rgba(255, 255, 255, 0.3)',
+                  borderRadius: '8px',
+                  color: 'white',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.3)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
+                }}
+              >
+                <X size={20} strokeWidth={2.5} />
+              </button>
             </div>
 
             {/* Modal Body */}
-            <div style={{ padding: '24px' }}>
+            <div style={{ padding: '28px' }}>
               {/* Warning Message */}
               <div style={{
-                background: '#fef2f2',
-                border: '1px solid #fecaca',
+                background: 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)',
+                border: '2px solid #fca5a5',
                 borderRadius: '12px',
-                padding: '16px',
-                marginBottom: '20px'
+                padding: '16px 20px',
+                marginBottom: '24px',
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: '12px'
               }}>
+                <div style={{
+                  fontSize: '1.25rem',
+                  lineHeight: 1,
+                  flexShrink: 0
+                }}>⚠️</div>
                 <p style={{ 
                   color: '#991b1b', 
                   margin: 0, 
@@ -585,7 +680,7 @@ export default function ClinicManagement() {
                   fontSize: '0.875rem',
                   fontWeight: 500
                 }}>
-                  ⚠️ This action cannot be undone. All clinic data, appointments, and records will be permanently deleted.
+                  This action cannot be undone. All clinic data, appointments, and records will be permanently deleted.
                 </p>
               </div>
 
@@ -653,28 +748,28 @@ export default function ClinicManagement() {
               </div>
 
               {/* Action Buttons */}
-              <div style={{ display: 'flex', gap: '12px' }}>
+              <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
                 <button 
                   onClick={handleCancelDelete} 
                   style={{
                     flex: 1,
-                    padding: '12px 20px',
+                    padding: '12px 24px',
                     background: 'white',
-                    border: '2px solid #e5e7eb',
+                    border: '2px solid #d1d5db',
                     borderRadius: '10px',
                     fontSize: '0.9375rem',
                     fontWeight: 600,
-                    color: '#64748b',
+                    color: '#374151',
                     cursor: 'pointer',
-                    transition: 'all 0.2s'
+                    transition: 'all 0.2s ease'
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.background = '#f8fafc';
-                    e.currentTarget.style.borderColor = '#cbd5e1';
+                    e.currentTarget.style.background = '#f3f4f6';
+                    e.currentTarget.style.borderColor = '#9ca3af';
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.background = 'white';
-                    e.currentTarget.style.borderColor = '#e5e7eb';
+                    e.currentTarget.style.borderColor = '#d1d5db';
                   }}
                 >
                   Cancel
@@ -683,7 +778,7 @@ export default function ClinicManagement() {
                   onClick={handleConfirmDelete}
                   style={{
                     flex: 1,
-                    padding: '12px 20px',
+                    padding: '12px 24px',
                     background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
                     border: 'none',
                     borderRadius: '10px',
@@ -691,7 +786,7 @@ export default function ClinicManagement() {
                     fontWeight: 600,
                     color: 'white',
                     cursor: 'pointer',
-                    transition: 'all 0.2s',
+                    transition: 'all 0.2s ease',
                     boxShadow: '0 4px 12px rgba(239, 68, 68, 0.3)',
                     display: 'flex',
                     alignItems: 'center',
@@ -699,7 +794,7 @@ export default function ClinicManagement() {
                     gap: '8px'
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-1px)';
+                    e.currentTarget.style.transform = 'translateY(-2px)';
                     e.currentTarget.style.boxShadow = '0 6px 16px rgba(239, 68, 68, 0.4)';
                   }}
                   onMouseLeave={(e) => {

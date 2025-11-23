@@ -163,7 +163,8 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -191,6 +192,12 @@
   overflow-y: auto;
   animation: scaleIn 0.2s ease-out;
   padding: var(--vc-space-8);
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.modalContent::-webkit-scrollbar {
+  display: none;
 }
 
 @keyframes scaleIn {
@@ -214,6 +221,12 @@
   overflow-y: auto;
   animation: scaleIn 0.2s ease-out;
   padding: var(--vc-space-8);
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.clientModal::-webkit-scrollbar {
+  display: none;
 }
 
 /* === FILE ITEM === */

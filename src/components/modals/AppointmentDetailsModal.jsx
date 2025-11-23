@@ -102,15 +102,38 @@ export default function AppointmentDetailsModal({ isOpen, onClose, appointmentId
   if (!isOpen) return null;
 
   return (
-    <div 
-      className={styles.modalOverlay}
-      onClick={(e) => {
-        if (e.target === e.currentTarget) {
-          onClose();
-        }
-      }}
-    >
-      <div className={styles.modalContent} style={{ maxWidth: '700px', maxHeight: '90vh', overflow: 'auto' }}>
+    <>
+      <style>
+        {`
+          .appt-details-modal::-webkit-scrollbar {
+            display: none;
+          }
+        `}
+      </style>
+      <div 
+        className={styles.modalOverlay}
+        onClick={(e) => {
+          if (e.target === e.currentTarget) {
+            onClose();
+          }
+        }}
+        style={{
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none'
+        }}
+      >
+        <div className="appt-details-modal" style={{ 
+          background: 'white',
+          borderRadius: 'var(--vc-radius-xl, 16px)',
+          boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+          maxWidth: '700px', 
+          width: '100%',
+          maxHeight: '90vh', 
+          overflow: 'auto',
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none',
+          padding: 'var(--vc-space-8, 32px)'
+        }}>
         {/* Header */}
         <div style={{
           display: 'flex',
@@ -357,5 +380,6 @@ export default function AppointmentDetailsModal({ isOpen, onClose, appointmentId
         )}
       </div>
     </div>
+    </>
   );
 }

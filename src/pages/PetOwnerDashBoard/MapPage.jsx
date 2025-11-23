@@ -57,6 +57,7 @@ export default function MapPage() {
   const [toast, setToast] = useState(null);
   const [findingNearest, setFindingNearest] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(false);
   const searchInputRef = React.useRef(null);
   const dropdownRef = React.useRef(null);
 
@@ -446,30 +447,106 @@ export default function MapPage() {
         <TopBar username={displayName} />
 
         <main className={styles.content}>
-          <header className={styles.headerRow}>
-            <h2 className={styles.title}>Map</h2>
-            <div className={styles.subtitle}>Nearby Clinics</div>
-          </header>
+          {/* Enhanced Header */}
+          <div style={{
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            borderRadius: '16px',
+            padding: '24px 28px',
+            marginBottom: '24px',
+            color: 'white',
+            boxShadow: '0 4px 16px rgba(102, 126, 234, 0.25)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{
+                  width: '48px',
+                  height: '48px',
+                  background: 'rgba(255, 255, 255, 0.2)',
+                  backdropFilter: 'blur(10px)',
+                  borderRadius: '12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  border: '2px solid rgba(255, 255, 255, 0.3)'
+                }}>
+                  <MapPin size={24} color="white" strokeWidth={2.5} />
+                </div>
+                <div>
+                  <h1 style={{ 
+                    fontSize: '1.375rem', 
+                    fontWeight: 700, 
+                    margin: '0 0 4px 0',
+                    textShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
+                  }}>
+                    Find Veterinary Clinics
+                  </h1>
+                  <p style={{ 
+                    margin: 0, 
+                    fontSize: '0.875rem', 
+                    opacity: 0.95,
+                    fontWeight: 500
+                  }}>
+                    Discover nearby clinics and book appointments
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowInstructions(true)}
+                style={{
+                  padding: '8px 16px',
+                  background: 'rgba(255, 255, 255, 0.15)',
+                  backdropFilter: 'blur(10px)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  borderRadius: '8px',
+                  color: 'white',
+                  fontSize: '0.9rem',
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  whiteSpace: 'nowrap'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.25)';
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = 'none';
+                }}
+              >
+                How to Use Map
+              </button>
+            </div>
+          </div>
 
           <section className={styles.mapCard}>
-            {/* Search Bar */}
+            {/* Search Bar and Find Button Container */}
             <div style={{
-              marginBottom: '16px',
-              position: 'relative'
+              marginBottom: '20px',
+              display: 'flex',
+              gap: '12px',
+              alignItems: 'flex-start',
+              justifyContent: 'center'
             }}>
+              {/* Search Bar */}
               <div style={{
                 position: 'relative',
-                maxWidth: '600px',
-                margin: '0 auto'
+                flex: '1',
+                maxWidth: '600px'
               }}>
                 <Search 
-                  size={20} 
+                  size={22} 
                   style={{
                     position: 'absolute',
-                    left: '16px',
+                    left: '18px',
                     top: '50%',
                     transform: 'translateY(-50%)',
-                    color: '#9ca3af',
+                    color: '#667eea',
                     pointerEvents: 'none',
                     zIndex: 1
                   }}
@@ -488,14 +565,23 @@ export default function MapPage() {
                   }}
                   style={{
                     width: '100%',
-                    padding: '14px 16px 14px 48px',
-                    border: '2px solid #e5e7eb',
-                    borderRadius: showDropdown && filteredClinicsForDropdown.length > 0 ? '12px 12px 0 0' : '12px',
+                    padding: '16px 52px 16px 52px',
+                    border: '2px solid #e0e7ff',
+                    borderRadius: showDropdown && filteredClinicsForDropdown.length > 0 ? '14px 14px 0 0' : '14px',
                     fontSize: '1rem',
                     outline: 'none',
                     transition: 'all 0.2s',
                     background: 'white',
-                    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)'
+                    boxShadow: '0 2px 8px rgba(102, 126, 234, 0.1)',
+                    fontWeight: 500
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = '#c7d2fe';
+                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.15)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = '#e0e7ff';
+                    e.currentTarget.style.boxShadow = '0 2px 8px rgba(102, 126, 234, 0.1)';
                   }}
                 />
                 {searchQuery && (
@@ -503,31 +589,35 @@ export default function MapPage() {
                     onClick={() => {
                       setSearchQuery('');
                       setShowDropdown(false);
+                      setSelectedClinicId(null);
                     }}
                     style={{
                       position: 'absolute',
-                      right: '12px',
+                      right: '14px',
                       top: '50%',
                       transform: 'translateY(-50%)',
-                      padding: '6px',
-                      background: 'transparent',
+                      width: '32px',
+                      height: '32px',
+                      background: '#f1f5f9',
                       border: 'none',
                       cursor: 'pointer',
-                      color: '#6b7280',
-                      borderRadius: '6px',
+                      color: '#64748b',
+                      borderRadius: '8px',
                       transition: 'all 0.2s',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      zIndex: 2
+                      zIndex: 2,
+                      fontSize: '1.125rem',
+                      fontWeight: 600
                     }}
                     onMouseEnter={(e) => {
-                      e.currentTarget.style.background = '#f3f4f6';
-                      e.currentTarget.style.color = '#1f2937';
+                      e.currentTarget.style.background = '#667eea';
+                      e.currentTarget.style.color = 'white';
                     }}
                     onMouseLeave={(e) => {
-                      e.currentTarget.style.background = 'transparent';
-                      e.currentTarget.style.color = '#6b7280';
+                      e.currentTarget.style.background = '#f1f5f9';
+                      e.currentTarget.style.color = '#64748b';
                     }}
                   >
                     ✕
@@ -544,13 +634,15 @@ export default function MapPage() {
                       left: 0,
                       right: 0,
                       background: 'white',
-                      border: '2px solid #e5e7eb',
+                      border: '2px solid #e0e7ff',
                       borderTop: 'none',
-                      borderRadius: '0 0 12px 12px',
-                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                      maxHeight: '300px',
+                      borderRadius: '0 0 14px 14px',
+                      boxShadow: '0 8px 24px rgba(102, 126, 234, 0.15)',
+                      maxHeight: '320px',
                       overflowY: 'auto',
-                      zIndex: 1000
+                      zIndex: 1000,
+                      scrollbarWidth: 'thin',
+                      scrollbarColor: '#cbd5e1 #f1f5f9'
                     }}
                   >
                     {filteredClinicsForDropdown.map((clinic, index) => (
@@ -579,19 +671,19 @@ export default function MapPage() {
                             width: '40px',
                             height: '40px',
                             borderRadius: '8px',
-                            background: 'linear-gradient(135deg, #818cf8 0%, #6366f1 100%)',
+                            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             flexShrink: 0
                           }}>
-                            <MapPin size={20} color="white" />
+                            <MapPin size={20} color="white" strokeWidth={2.5} />
                           </div>
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <div style={{
                               fontSize: '0.9375rem',
-                              fontWeight: 600,
-                              color: '#1f2937',
+                              fontWeight: 700,
+                              color: '#1e293b',
                               marginBottom: '2px',
                               overflow: 'hidden',
                               textOverflow: 'ellipsis',
@@ -633,60 +725,86 @@ export default function MapPage() {
                   </div>
                 )}
               </div>
-              {searchQuery && (
-                <div style={{
-                  textAlign: 'center',
-                  marginTop: '8px',
-                  fontSize: '0.875rem',
-                  color: '#6b7280'
-                }}>
-                  Found {clinicMarkers.length} clinic{clinicMarkers.length !== 1 ? 's' : ''}
-                </div>
-              )}
-            </div>
 
-            {/* Find Nearest Clinic Button */}
-            <div style={{ textAlign: 'center', marginBottom: '16px' }}>
+              {/* Find Nearest Clinic Button */}
               <button
                 onClick={handleFindNearest}
                 disabled={findingNearest}
                 style={{
-                  padding: '12px 24px',
+                  padding: '16px 24px',
                   background: findingNearest 
                     ? 'linear-gradient(135deg, #9ca3af 0%, #6b7280 100%)'
                     : 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
                   color: 'white',
                   border: 'none',
-                  borderRadius: '12px',
+                  borderRadius: '14px',
                   fontSize: '1rem',
-                  fontWeight: 600,
+                  fontWeight: 700,
                   cursor: findingNearest ? 'not-allowed' : 'pointer',
-                  boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
+                  boxShadow: findingNearest 
+                    ? '0 2px 8px rgba(0, 0, 0, 0.1)' 
+                    : '0 4px 16px rgba(16, 185, 129, 0.35)',
                   transition: 'all 0.2s ease',
-                  display: 'inline-flex',
+                  display: 'flex',
                   alignItems: 'center',
-                  gap: '8px',
-                  opacity: findingNearest ? 0.6 : 1
+                  gap: '10px',
+                  opacity: findingNearest ? 0.7 : 1,
+                  whiteSpace: 'nowrap',
+                  height: '56px',
+                  flexShrink: 0
                 }}
                 onMouseEnter={(e) => {
                   if (!findingNearest) {
                     e.currentTarget.style.transform = 'translateY(-2px)';
-                    e.currentTarget.style.boxShadow = '0 6px 20px rgba(16, 185, 129, 0.4)';
+                    e.currentTarget.style.boxShadow = '0 6px 20px rgba(16, 185, 129, 0.45)';
                   }
                 }}
                 onMouseLeave={(e) => {
                   if (!findingNearest) {
                     e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.3)';
+                    e.currentTarget.style.boxShadow = '0 4px 16px rgba(16, 185, 129, 0.35)';
                   }
                 }}
               >
-                <MapPin size={20} />
-                {findingNearest ? 'Finding Nearest Clinic...' : '📍 Find Nearest Clinic'}
+                <MapPin size={20} strokeWidth={2.5} />
+                {findingNearest ? 'Locating...' : 'Find Nearest'}
               </button>
             </div>
 
-            <div style={{ width: '100%', height: 500, borderRadius: 12, overflow: 'hidden' }}>
+            {/* Results Counter */}
+            {searchQuery && (
+              <div style={{
+                display: 'flex',
+                justifyContent: 'center',
+                marginBottom: '16px'
+              }}>
+                <div style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '8px 16px',
+                  background: 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)',
+                  borderRadius: '20px',
+                  fontSize: '0.875rem',
+                  fontWeight: 600,
+                  color: '#1e40af',
+                  border: '2px solid #bfdbfe'
+                }}>
+                  <Search size={16} />
+                  <span>Found {clinicMarkers.length} clinic{clinicMarkers.length !== 1 ? 's' : ''}</span>
+                </div>
+              </div>
+            )}
+
+            {/* Map Container */}
+            <div style={{ 
+              width: '100%', 
+              height: 550, 
+              borderRadius: 16, 
+              overflow: 'hidden',
+              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.12)',
+              border: '3px solid #e0e7ff'
+            }}>
               <MapContainer center={[mapCenter.lat, mapCenter.lng]} zoom={13} style={{ height: '100%', width: '100%' }}>
                 <TileLayer
                   attribution='&copy; OpenStreetMap contributors'
@@ -950,6 +1068,300 @@ export default function MapPage() {
           type={toast.type}
           onClose={() => setToast(null)}
         />
+      )}
+
+      {/* Instructions Modal */}
+      {showInstructions && (
+        <>
+          <style>
+            {`
+              .instructions-modal-content::-webkit-scrollbar {
+                display: none;
+              }
+            `}
+          </style>
+          <div
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'rgba(0, 0, 0, 0.5)',
+              backdropFilter: 'blur(4px)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 9999,
+              padding: '20px',
+              animation: 'fadeIn 0.2s ease-out'
+            }}
+            onClick={() => setShowInstructions(false)}
+          >
+            <div
+              style={{
+                background: 'white',
+                borderRadius: '16px',
+                maxWidth: '600px',
+                width: '100%',
+                boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
+                overflow: 'hidden',
+                animation: 'slideUp 0.3s ease-out'
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+            {/* Modal Header */}
+            <div style={{
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              padding: '24px 28px',
+              color: 'white',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{
+                  width: '40px',
+                  height: '40px',
+                  background: 'rgba(255, 255, 255, 0.2)',
+                  backdropFilter: 'blur(10px)',
+                  borderRadius: '10px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  border: '2px solid rgba(255, 255, 255, 0.3)'
+                }}>
+                  <span style={{ fontSize: '1.25rem' }}>💡</span>
+                </div>
+                <h2 style={{
+                  fontSize: '1.25rem',
+                  fontWeight: 700,
+                  margin: 0,
+                  textShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
+                }}>
+                  How to Use the Map
+                </h2>
+              </div>
+              <button
+                onClick={() => setShowInstructions(false)}
+                style={{
+                  width: '36px',
+                  height: '36px',
+                  background: 'rgba(255, 255, 255, 0.2)',
+                  backdropFilter: 'blur(10px)',
+                  border: '2px solid rgba(255, 255, 255, 0.3)',
+                  borderRadius: '8px',
+                  color: 'white',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '1.25rem',
+                  fontWeight: 600
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.3)';
+                  e.currentTarget.style.transform = 'rotate(90deg)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
+                  e.currentTarget.style.transform = 'rotate(0deg)';
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div 
+              className="instructions-modal-content"
+              style={{
+                padding: '28px 32px 32px',
+                maxHeight: '400px',
+                overflowY: 'auto',
+                scrollbarWidth: 'none',
+                msOverflowStyle: 'none'
+              }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                {/* Instruction 1 */}
+                <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
+                  <div style={{
+                    width: '48px',
+                    height: '48px',
+                    borderRadius: '12px',
+                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                    fontSize: '1.5rem'
+                  }}>
+                    🔍
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <h3 style={{
+                      fontSize: '1rem',
+                      fontWeight: 700,
+                      color: '#1e293b',
+                      margin: '0 0 8px 0'
+                    }}>
+                      Search for Clinics
+                    </h3>
+                    <p style={{
+                      fontSize: '0.875rem',
+                      color: '#64748b',
+                      lineHeight: 1.6,
+                      margin: 0
+                    }}>
+                      Use the search bar to find clinics by name, location, or services offered. As you type, matching clinics will appear in the dropdown menu below the search field.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Instruction 2 */}
+                <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
+                  <div style={{
+                    width: '48px',
+                    height: '48px',
+                    borderRadius: '12px',
+                    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                    fontSize: '1.5rem'
+                  }}>
+                    📍
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <h3 style={{
+                      fontSize: '1rem',
+                      fontWeight: 700,
+                      color: '#1e293b',
+                      margin: '0 0 8px 0'
+                    }}>
+                      Find Nearest Clinic
+                    </h3>
+                    <p style={{
+                      fontSize: '0.875rem',
+                      color: '#64748b',
+                      lineHeight: 1.6,
+                      margin: 0
+                    }}>
+                      Click the "Find Nearest" button beside the search bar to automatically locate the veterinary clinic closest to your current location.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Instruction 3 */}
+                <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
+                  <div style={{
+                    width: '48px',
+                    height: '48px',
+                    borderRadius: '12px',
+                    background: 'linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                    fontSize: '1.5rem'
+                  }}>
+                    🗺️
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <h3 style={{
+                      fontSize: '1rem',
+                      fontWeight: 700,
+                      color: '#1e293b',
+                      margin: '0 0 8px 0'
+                    }}>
+                      Explore the Map
+                    </h3>
+                    <p style={{
+                      fontSize: '0.875rem',
+                      color: '#64748b',
+                      lineHeight: 1.6,
+                      margin: 0
+                    }}>
+                      Click on any map marker to view clinic details including address, contact information, and services. Use the bookmark icon to save your favorite clinics.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Instruction 4 */}
+                <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
+                  <div style={{
+                    width: '48px',
+                    height: '48px',
+                    borderRadius: '12px',
+                    background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                    fontSize: '1.5rem'
+                  }}>
+                    🐾
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <h3 style={{
+                      fontSize: '1rem',
+                      fontWeight: 700,
+                      color: '#1e293b',
+                      margin: '0 0 8px 0'
+                    }}>
+                      View Clinic Details
+                    </h3>
+                    <p style={{
+                      fontSize: '0.875rem',
+                      color: '#64748b',
+                      lineHeight: 1.6,
+                      margin: 0
+                    }}>
+                      Click the "View Clinic" button in the popup to see full details, operating hours, and available services. You can book appointments directly from the clinic page.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div style={{
+              borderTop: '1px solid #e5e7eb',
+              padding: '16px 28px',
+              display: 'flex',
+              justifyContent: 'flex-end'
+            }}>
+              <button
+                onClick={() => setShowInstructions(false)}
+                style={{
+                  padding: '12px 24px',
+                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '10px',
+                  fontSize: '0.9375rem',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease',
+                  boxShadow: '0 4px 12px rgba(102, 126, 234, 0.3)'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 6px 16px rgba(102, 126, 234, 0.4)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.3)';
+                }}
+              >
+                Got it!
+              </button>
+            </div>
+          </div>
+        </div>
+        </>
       )}
     </div>
   );

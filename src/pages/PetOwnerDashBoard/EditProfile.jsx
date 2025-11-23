@@ -4,6 +4,7 @@ import { Upload, X } from 'lucide-react';
 import TopBar from '../../components/layout/TopBar';
 import Sidebar from '../../components/layout/Sidebar';
 import ImageUploader from '../../components/ImageUploader';
+import SuccessModal from '../../components/SuccessModal';
 import { useAuth } from '../../contexts/AuthContext';
 import styles from '../../styles/EditProfile.module.css';
 
@@ -56,10 +57,10 @@ export default function EditProfile() {
       
       setMessage({ type: 'success', text: 'Profile updated successfully!' });
       
-      // Navigate back to profile after a short delay
+      // Navigate back to profile after modal auto-closes
       setTimeout(() => {
         navigate('/profile');
-      }, 1500);
+      }, 2000);
     } catch (error) {
       console.error('Error updating profile:', error);
       setMessage({ type: 'error', text: 'Failed to update profile. Please try again.' });
@@ -170,7 +171,7 @@ export default function EditProfile() {
               </div>
             </div>
 
-            {message.text && (
+            {message.text && message.type === 'error' && (
               <div className={`${styles.message} ${styles[message.type]}`}>
                 {message.text}
               </div>
@@ -196,6 +197,17 @@ export default function EditProfile() {
           </form>
         </main>
       </div>
+
+      {/* Success Modal */}
+      <SuccessModal
+        isOpen={message.type === 'success'}
+        onClose={() => {
+          setMessage({ type: '', text: '' });
+          navigate('/profile');
+        }}
+        title="Profile Updated!"
+        message="Your profile has been successfully updated."
+      />
     </div>
   );
 }

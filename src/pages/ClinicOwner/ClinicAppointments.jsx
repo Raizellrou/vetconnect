@@ -672,10 +672,19 @@ export default function ClinicAppointments() {
   }
 
   return (
-    <div className={styles.dashboard}>
-      <ClinicSidebar />
-      <div className={styles.mainWrapper}>
-        <TopBar username={displayName} />
+    <>
+      <style>
+        {`
+          div[style*="overflowY: auto"]::-webkit-scrollbar,
+          div[style*="overflowY: 'auto'"]::-webkit-scrollbar {
+            display: none;
+          }
+        `}
+      </style>
+      <div className={styles.dashboard}>
+        <ClinicSidebar />
+        <div className={styles.mainWrapper}>
+          <TopBar username={displayName} />
         
         <main className={styles.mainContent}>
           {viewState === 'clinic-list' ? (
@@ -1618,7 +1627,9 @@ export default function ClinicAppointments() {
           alignItems: 'center',
           justifyContent: 'center',
           padding: '20px',
-          overflowY: 'auto'
+          overflowY: 'auto',
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none'
         }} onClick={handleBackFromDetails}>
           <div onClick={(e) => e.stopPropagation()}>
             <AppointmentDetailsCard
@@ -1655,7 +1666,9 @@ export default function ClinicAppointments() {
           alignItems: 'center',
           justifyContent: 'center',
           padding: '20px',
-          overflowY: 'auto'
+          overflowY: 'auto',
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none'
         }} onClick={() => !isSavingRecord && setShowMedicalRecordModal(false)}>
           <div style={{
             backgroundColor: 'white',
@@ -1665,7 +1678,9 @@ export default function ClinicAppointments() {
             width: '100%',
             maxHeight: '90vh',
             overflowY: 'auto',
-            position: 'relative'
+            position: 'relative',
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none'
           }} onClick={(e) => e.stopPropagation()}>
             
             {/* Header */}
@@ -1919,5 +1934,6 @@ export default function ClinicAppointments() {
         </div>
       )}
     </div>
+    </>
   );
 }

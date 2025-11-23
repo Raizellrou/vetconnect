@@ -3,7 +3,7 @@ import { addPet, updatePet } from "../lib/firebaseMutations";
 import { useAuth } from "../contexts/AuthContext";
 import { X, PawPrint, User, Calendar, Weight, ImageIcon, FileText } from 'lucide-react';
 
-export default function AddPetModal({ open, onClose, initialData = null, petId = null }) {
+export default function AddPetModal({ open, onClose, onSuccess, initialData = null, petId = null }) {
   const isEditMode = Boolean(petId && initialData);
   const { currentUser } = useAuth();
   const [form, setForm] = useState({
@@ -91,9 +91,13 @@ export default function AddPetModal({ open, onClose, initialData = null, petId =
         avatarURL: ""
       });
       
-      // Show success briefly before closing
+      // Call success callback if provided, otherwise just close
       setTimeout(() => {
-        onClose && onClose();
+        if (onSuccess) {
+          onSuccess();
+        } else {
+          onClose && onClose();
+        }
       }, 300);
     } catch (err) {
       console.error(`Failed to ${isEditMode ? 'update' : 'add'} pet:`, err);
@@ -106,25 +110,48 @@ export default function AddPetModal({ open, onClose, initialData = null, petId =
   if (!open) return null;
 
   return (
-    <div style={{
-      position: "fixed",
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      zIndex: 9999,
-      backgroundColor: "rgba(0, 0, 0, 0.6)",
-      backdropFilter: "blur(8px)",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      padding: "16px",
-      animation: "fadeIn 0.2s ease-out"
-    }}
-    onClick={(e) => {
-      if (e.target === e.currentTarget && !isSubmitting) onClose && onClose();
-    }}
-    >
+    <>
+      <style>
+        {`
+          @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+          }
+          @keyframes slideUp {
+            from { 
+              transform: translateY(20px) scale(0.95);
+              opacity: 0;
+            }
+            to { 
+              transform: translateY(0) scale(1);
+              opacity: 1;
+            }
+          }
+          /* Hide scrollbar for webkit browsers */
+          form::-webkit-scrollbar {
+            display: none;
+          }
+        `}
+      </style>
+      <div style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: 9999,
+        backgroundColor: "rgba(0, 0, 0, 0.6)",
+        backdropFilter: "blur(8px)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "16px",
+        animation: "fadeIn 0.2s ease-out"
+      }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget && !isSubmitting) onClose && onClose();
+      }}
+      >
       <div style={{
         backgroundColor: "white",
         borderRadius: "16px",
@@ -245,7 +272,9 @@ export default function AddPetModal({ open, onClose, initialData = null, petId =
         <form onSubmit={handleSubmit} style={{
           padding: "20px 24px",
           overflowY: "auto",
-          flex: 1
+          flex: 1,
+          scrollbarWidth: "none",
+          msOverflowStyle: "none"
         }}>
           {/* Basic Information Section */}
           <div style={{ marginBottom: "20px" }}>
@@ -668,5 +697,6 @@ export default function AddPetModal({ open, onClose, initialData = null, petId =
         </div>
       </div>
     </div>
+    </>
   );
 }

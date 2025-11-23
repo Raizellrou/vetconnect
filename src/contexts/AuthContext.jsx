@@ -56,7 +56,7 @@ export function AuthProvider({ children }) {
     if (!currentUser) throw new Error("No user logged in");
 
     try {
-      // photoURL is already uploaded to Cloudinary by ImageUploader component
+      // photoURL is already uploaded to Cloudinary
       const photoURL = updates.photoURL || currentUser.photoURL;
 
       // Update Firebase Auth profile
@@ -65,22 +65,30 @@ export function AuthProvider({ children }) {
         photoURL,
       });
 
+      // Prepare Firestore update data
+      const firestoreUpdates = {
+        fullName: updates.fullName,
+        phone: updates.phone || "",
+        address: updates.address || "",
+        photoURL,
+      };
+
+      // Add clinic-specific fields if provided
+      if (updates.clinicName !== undefined) {
+        firestoreUpdates.clinicName = updates.clinicName;
+      }
+      if (updates.portfolio !== undefined) {
+        firestoreUpdates.portfolio = updates.portfolio;
+      }
+
       // Update Firestore document
       const userRef = doc(db, "users", currentUser.uid);
-      await updateDoc(userRef, {
-        fullName: updates.fullName,
-        phone: updates.phone || "",
-        address: updates.address || "",
-        photoURL,
-      });
+      await updateDoc(userRef, firestoreUpdates);
 
-      // Update local state
+      // Update local state to trigger UI refresh
       setUserData(prev => ({
         ...prev,
-        fullName: updates.fullName,
-        phone: updates.phone || "",
-        address: updates.address || "",
-        photoURL,
+        ...firestoreUpdates,
       }));
 
       return { success: true };

@@ -273,6 +273,14 @@ export default function ClinicRegistrationForm({
 
   return (
     <>
+      <style>
+        {`
+          form::-webkit-scrollbar,
+          div[style*="overflowY"]::-webkit-scrollbar {
+            display: none;
+          }
+        `}
+      </style>
       <div 
         className="fixed inset-0 z-40 bg-black bg-opacity-50 flex items-center justify-center p-4"
         onClick={(e) => {
@@ -375,7 +383,9 @@ export default function ClinicRegistrationForm({
             flex: 1,
             overflow: 'auto',
             padding: '40px',
-            minHeight: '400px'
+            minHeight: '400px',
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none'
           }}>
             {/* Step 1: Basic Information */}
             {currentStep === 1 && (
@@ -1247,7 +1257,9 @@ export default function ClinicRegistrationForm({
             <div style={{
               flex: 1,
               overflowY: 'auto',
-              padding: '16px 24px'
+              padding: '16px 24px',
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none'
             }}>
               {getFilteredServices().length > 0 ? (
                 <div style={{ display: 'grid', gap: '8px' }}>

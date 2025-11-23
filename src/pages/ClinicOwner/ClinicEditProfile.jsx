@@ -7,6 +7,7 @@ import SuccessModal from '../../components/SuccessModal';
 import layoutStyles from '../../styles/ClinicDashboard.module.css';
 import { useAuth } from '../../contexts/AuthContext';
 import styles from '../../styles/EditProfile.module.css';
+import { uploadImageToCloudinary } from '../../utils/uploadImage';
 
 export default function ClinicEditProfile() {
   const { userData, updateUserProfile } = useAuth();
@@ -85,7 +86,20 @@ export default function ClinicEditProfile() {
     setMessage({ type: '', text: '' });
 
     try {
-      await updateUserProfile(formData, photoFile);
+      let uploadedPhotoURL = userData?.photoURL;
+
+      // Upload photo to Cloudinary if a new file was selected
+      if (photoFile) {
+        uploadedPhotoURL = await uploadImageToCloudinary(photoFile);
+      }
+
+      // Prepare updates object with photo URL
+      const updates = {
+        ...formData,
+        photoURL: uploadedPhotoURL
+      };
+
+      await updateUserProfile(updates);
       
       setMessage({ type: 'success', text: 'Profile updated successfully!' });
       
